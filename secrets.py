@@ -1,1 +1,2 @@
-token = "TOKEN"
+TOKEN = "TOKEN"
+INSTANCE_ID = "INSTANCE"
