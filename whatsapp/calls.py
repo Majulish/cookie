@@ -1,5 +1,5 @@
 import requests
-from cookie.secrets import TOKEN, INSTANCE_ID
+from secrets import TOKEN, INSTANCE_ID
 
 
 def message_person(number: str, message: str):
@@ -51,15 +51,11 @@ def get_groups():
 
 
 def new_method(number: str, message: str):
-    url = f"https://api.ultramsg.com/{INSTANCE_ID}/chats"
-
-    querystring = {
-        "token": TOKEN
-    }
-
+    url = f"https://api.ultramsg.com/{INSTANCE_ID}/messages/chat"
+    payload = f"token={TOKEN}&to=+{number}&body={message}"
+    payload = payload.encode('utf8').decode('iso-8859-1')
     headers = {'content-type': 'application/x-www-form-urlencoded'}
-    response = requests.request("GET", url, headers=headers, params=querystring)
+    response = requests.request("POST", url, data=payload, headers=headers)
     return response
-
 
 
