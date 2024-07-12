@@ -3,7 +3,7 @@
 First, install dependencies:
 
 ```bash
-npm install yarn && yarn install
+npm install yarn -g && yarn install
 ```
 
 ### Running the service
