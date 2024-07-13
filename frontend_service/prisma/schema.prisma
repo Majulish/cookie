@@ -1,0 +1,14 @@
+datasource db {
+  provider = "mongodb"
+  url      = "mongodb://root:example@localhost:27017"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id    String @id @default(auto()) @map("_id")
+  name  String
+  email String @unique
+}
