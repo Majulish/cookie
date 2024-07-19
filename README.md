@@ -20,6 +20,11 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ---
 
+[Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.<br>
+[Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+---
+
 ### stuff in progress
 
 auth.js for authentication page aka login signup.

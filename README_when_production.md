@@ -18,6 +18,5 @@ worst case scenario we use managed solution - **google pub sub**<br>
 nice to have stuff - domain - **go daddy**
 cosmos db is microsoft DB solution.
 
-[flowbite](https://flowbite-react.com/docs/getting-started/introduction)
-or [mui](https://mui.com/material-ui/)
-for styled components, we gotta decide.
+
+[mui](https://mui.com/material-ui/) for styled components, we gotta decide.
