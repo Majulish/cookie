@@ -1,0 +1,19 @@
+.Box {
+  display: flex;
+
+  justify-content: space-between;
+}
+
+.AppBar {
+    width: 100%;
+}
+
+.Toolbar {
+    display: flex;
+    justify-content: space-between;
+}
+
+.Title {
+    flex-grow: 1;
+    text-align: left;
+}
