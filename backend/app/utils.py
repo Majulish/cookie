@@ -1,6 +1,7 @@
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
 def validate_input(username, password, email):
     """
     Validate the user input for registration.

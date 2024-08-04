@@ -1,7 +1,5 @@
-# tests/test_signup.py
-
 import unittest
-from main import create_app
+from backend.main import create_app
 from flask import json
 
 
