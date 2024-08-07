@@ -7,7 +7,7 @@ from SECRETS import JWT_TOKEN
 
 
 def create_app():
-    app = Flask(__name__)
+    app: Flask = Flask(__name__)
     CORS(app)
 
     app.config['JWT_SECRET_KEY'] = JWT_TOKEN
