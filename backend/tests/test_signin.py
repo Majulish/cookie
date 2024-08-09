@@ -1,7 +1,6 @@
 import unittest
 from backend.main import create_app
 from flask import json, Response
-from typing import Tuple
 
 
 class SignInTestCase(unittest.TestCase):
