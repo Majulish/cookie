@@ -1,5 +1,7 @@
-flask
+Flask
+flask-cors
 pymongo
 redis
-flask-wtf
 Werkzeug
+flask-jwt-extended
+pydantic
