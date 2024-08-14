@@ -25,7 +25,8 @@ class RoutesTestCase(unittest.TestCase):
         response: Response = self.client.post('/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'Password123!',
-            'email': 'testuser@example.com'
+            'email': 'testuser@example.com',
+            'role': 'worker'
         }), content_type='application/json')
 
         data = json.loads(response.data)
@@ -36,14 +37,16 @@ class RoutesTestCase(unittest.TestCase):
         self.client.post('/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'Password123!',
-            'email': 'testuser@example.com'
+            'email': 'testuser@example.com',
+            'role': 'worker'
         }), content_type='application/json')
 
         # Attempt to sign up with the same username again
         response: Response = self.client.post('/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'AnotherPassword123!',
-            'email': 'anotheruser@example.com'
+            'email': 'anotheruser@example.com',
+            'role': 'worker'
         }), content_type='application/json')
 
         data = json.loads(response.data)
@@ -55,7 +58,8 @@ class RoutesTestCase(unittest.TestCase):
         response: Response = self.client.post('/signup', data=json.dumps({
             'username': '',
             'password': 'Password123!',
-            'email': 'testuser@example.com'
+            'email': 'testuser@example.com',
+            'role': 'worker'
         }), content_type='application/json')
 
         data = json.loads(response.data)
@@ -66,7 +70,8 @@ class RoutesTestCase(unittest.TestCase):
         response: Response = self.client.post('/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'short',
-            'email': 'testuser@example.com'
+            'email': 'testuser@example.com',
+            'role': 'worker'
         }), content_type='application/json')
 
         data = json.loads(response.data)
@@ -77,7 +82,8 @@ class RoutesTestCase(unittest.TestCase):
         response: Response = self.client.post('/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'Password123!',
-            'email': 'invalidemail'
+            'email': 'invalidemail',
+            'role': 'worker'
         }), content_type='application/json')
 
         data = json.loads(response.data)

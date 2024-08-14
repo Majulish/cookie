@@ -20,7 +20,8 @@ class SignInTestCase(unittest.TestCase):
         self.client.post('/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'Password123!',
-            'email': 'testuser@example.com'
+            'email': 'testuser@example.com',
+            'role': 'worker'
         }), content_type='application/json')
 
     def tearDown(self):
@@ -37,6 +38,9 @@ class SignInTestCase(unittest.TestCase):
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 200)
         self.assertIn('access_token', data)
+
+        token_data = json.loads(json.dumps(data['access_token']))
+        self.assertEqual(token_data['identity']['role'], 'worker')
 
     def test_signin_with_invalid_username(self) -> None:
         response: Response = self.client.post('/login', data=json.dumps({

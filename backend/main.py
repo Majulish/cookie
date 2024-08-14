@@ -3,7 +3,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from pymongo import MongoClient
 import redis
-from SECRETS import JWT_TOKEN
+from backend.SECRETS import JWT_TOKEN
 
 
 def create_app():
