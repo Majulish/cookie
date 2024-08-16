@@ -3,7 +3,9 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from pymongo import MongoClient
 import redis
-from SECRETS import JWT_TOKEN
+
+from backend.SECRETS import JWT_TOKEN
+from backend.routes import user_blueprint
 
 
 def create_app():
@@ -21,8 +23,8 @@ def create_app():
     # Redis connection
     app.redis_client = redis.StrictRedis(host='localhost', port=6379, decode_responses=True)
 
-    with app.app_context():
-        from backend.app import routes
+    # Adding Routes
+    app.register_blueprint(user_blueprint, url_prefix='/users')
 
     return app
 

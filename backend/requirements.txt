@@ -5,3 +5,4 @@ redis
 Werkzeug
 flask-jwt-extended
 pydantic
+pydantic[email]
