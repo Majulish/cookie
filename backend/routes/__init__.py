@@ -1,1 +1,1 @@
-from user_routes import user_blueprint
+from backend.routes.user_routes import user_blueprint

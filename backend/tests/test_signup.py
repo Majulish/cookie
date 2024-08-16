@@ -1,15 +1,21 @@
 import unittest
-from backend.main import create_app
 from flask import json, Response
+
+from backend.main import create_app
+from backend.stores import UserStore
 
 
 class RoutesTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        # Set up the application and its context
         cls.app = create_app()
+        cls.app_context = cls.app.app_context()
+        cls.app_context.push()
         cls.client = cls.app.test_client()
-        cls.app.config['TESTING'] = True
+
+        cls.user_store = UserStore()
 
     def setUp(self):
         # Ensure a clean start for each test by deleting specific test users
@@ -22,7 +28,7 @@ class RoutesTestCase(unittest.TestCase):
             self.app.db.users.delete_many({"username": {"$in": ["testuser", "anotheruser"]}})
 
     def test_signup_with_valid_info(self) -> None:
-        response: Response = self.client.post('/signup', data=json.dumps({
+        response: Response = self.client.post('/users/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'Password123!',
             'email': 'testuser@example.com',
@@ -34,7 +40,7 @@ class RoutesTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'User registered successfully')
 
     def test_signup_with_duplicate_username(self) -> None:
-        self.client.post('/signup', data=json.dumps({
+        self.client.post('/users/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'Password123!',
             'email': 'testuser@example.com',
@@ -42,7 +48,7 @@ class RoutesTestCase(unittest.TestCase):
         }), content_type='application/json')
 
         # Attempt to sign up with the same username again
-        response: Response = self.client.post('/signup', data=json.dumps({
+        response: Response = self.client.post('/users/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'AnotherPassword123!',
             'email': 'anotheruser@example.com',
@@ -55,7 +61,7 @@ class RoutesTestCase(unittest.TestCase):
 
     def test_signup_with_invalid_info(self) -> None:
         # Test with empty username
-        response: Response = self.client.post('/signup', data=json.dumps({
+        response: Response = self.client.post('/users/signup', data=json.dumps({
             'username': '',
             'password': 'Password123!',
             'email': 'testuser@example.com',
@@ -67,7 +73,7 @@ class RoutesTestCase(unittest.TestCase):
         self.assertIn('username', [error['loc'][0] for error in data])
 
         # Test with short password
-        response: Response = self.client.post('/signup', data=json.dumps({
+        response: Response = self.client.post('/users/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'short',
             'email': 'testuser@example.com',
@@ -79,7 +85,7 @@ class RoutesTestCase(unittest.TestCase):
         self.assertIn('password', [error['loc'][0] for error in data])
 
         # Test with invalid email
-        response: Response = self.client.post('/signup', data=json.dumps({
+        response: Response = self.client.post('/users/signup', data=json.dumps({
             'username': 'testuser',
             'password': 'Password123!',
             'email': 'invalidemail',
