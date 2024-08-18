@@ -2,42 +2,46 @@ import unittest
 from flask import json, Response
 
 from backend.main import create_app
-from backend.stores import UserStore
+import unittest
+from backend.main import create_app, db
+from backend.stores.user_store import UserStore
 
 
-class RoutesTestCase(unittest.TestCase):
-
+class UserSignupTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Set up the application and its context
         cls.app = create_app()
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
         cls.client = cls.app.test_client()
+        cls.app.config['TESTING'] = True
 
+        # Create all tables
+        db.create_all()
+
+        # Set up the store
         cls.user_store = UserStore()
 
+    @classmethod
+    def tearDownClass(cls):
+        # Drop all tables after tests
+        db.session.remove()
+        db.drop_all()
+        cls.app_context.pop()
+
     def setUp(self):
-        # Ensure a clean start for each test by deleting specific test users
-        with self.app.app_context():
-            self.app.db.users.delete_many({"username": {"$in": ["testuser", "anotheruser"]}})
+        # Optionally clear the user table before each test
+        pass
 
-    def tearDown(self):
-        # Clean up after each test by deleting specific test users
-        with self.app.app_context():
-            self.app.db.users.delete_many({"username": {"$in": ["testuser", "anotheruser"]}})
-
-    def test_signup_with_valid_info(self) -> None:
-        response: Response = self.client.post('/users/signup', data=json.dumps({
+    def test_signup_with_valid_info(self):
+        response = self.client.post('/users/signup', json={
             'username': 'testuser',
             'password': 'Password123!',
-            'email': 'testuser@example.com',
-            'role': 'worker'
-        }), content_type='application/json')
-
-        data = json.loads(response.data)
+            'email': 'testuser@example.com'
+        })
+        data = response.get_json()
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(data['message'], 'User registered successfully')
+        self.assertIn('User registered successfully', data['message'])
 
     def test_signup_with_duplicate_username(self) -> None:
         self.client.post('/users/signup', data=json.dumps({

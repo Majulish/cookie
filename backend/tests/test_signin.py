@@ -9,11 +9,13 @@ class SignInTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = create_app()
+        cls.app_context = cls.app.app_context()
+        cls.app_context.push()
         cls.client = cls.app.test_client()
         cls.app.config['TESTING'] = True
 
     def setUp(self):
-        # Ensure a clean start for each test by deleting specific test users
+        # Ensure a clean start by deleting test users
         with self.app.app_context():
             self.app.db.users.delete_many({"username": {"$in": ["testuser", "anotheruser"]}})
 

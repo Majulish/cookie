@@ -1,15 +1,30 @@
 services:
-  mongo:
-    image: mongo:7
-    container_name: mongo_container
-    ports:
-      - "27017:27017"
-    volumes:
-      - ./_db_data:/data/db
+  db:
+    image: postgres:13
+    container_name: postgres_container
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      POSTGRES_USER: your_username
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: cookie_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     restart: always
+
+  flask-app:
+    build: .
+    container_name: flask_container
+    environment:
+      FLASK_APP: backend.main
+      FLASK_ENV: development
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: flask run --host=0.0.0.0 --port=8000
+    volumes:
+      - .:/app
 
   redis:
     image: redis:latest
@@ -18,3 +33,7 @@ services:
     volumes:
       - ./redis_data:/data
     restart: always
+
+
+volumes:
+  postgres_data:
