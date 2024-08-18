@@ -2,7 +2,6 @@ import unittest
 from flask import json, Response
 
 from backend.main import create_app
-from backend.stores import UserStore
 
 
 class RoutesTestCase(unittest.TestCase):
@@ -14,8 +13,6 @@ class RoutesTestCase(unittest.TestCase):
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
         cls.client = cls.app.test_client()
-
-        cls.user_store = UserStore()
 
     def setUp(self):
         # Ensure a clean start for each test by deleting specific test users
