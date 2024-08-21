@@ -1,30 +1,16 @@
 services:
-  db:
-    image: postgres:13
+  postgres:
+    image: postgres:latest
     container_name: postgres_container
-    environment:
-      POSTGRES_USER: your_username
-      POSTGRES_PASSWORD: your_password
-      POSTGRES_DB: cookie_db
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: always
-
-  flask-app:
-    build: .
-    container_name: flask_container
+      - ./db_data:/var/lib/postgresql/data
     environment:
-      FLASK_APP: backend.main
-      FLASK_ENV: development
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-    command: flask run --host=0.0.0.0 --port=8000
-    volumes:
-      - .:/app
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: my_database
+    restart: always
 
   redis:
     image: redis:latest
@@ -34,6 +20,3 @@ services:
       - ./redis_data:/data
     restart: always
 
-
-volumes:
-  postgres_data:
