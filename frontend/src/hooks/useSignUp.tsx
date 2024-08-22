@@ -2,26 +2,7 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-//TODO: move to utils
-const calculateAge = (dateOfBirth: string): number => {
-  const today = new Date();
-  const birthDate = new Date(dateOfBirth);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDifference = today.getMonth() - birthDate.getMonth();
-
-  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-
-  return age;
-};
-
-//TODO: move to utils
-const isValidDate = (day: number, month: number, year: number): boolean => {
-  const date = new Date(year, month - 1, day);
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
-};
+import {calculateAge , isValidDate } from '../utils';
 
 const signUpSchema = z.object({
   username: z.string().min(4, 'Username must be at least 4 characters'),
@@ -71,63 +52,59 @@ export const useSignUp = () => {
     companyName: '',
     role: '',
   });
-  const [loading, setLoading] = useState<boolean>(false);  // Added loading state
+const [loading, setLoading] = useState<boolean>(false);  // Added loading state
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);  // Set loading to true when the form submission starts
+const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  setLoading(true);  // Set loading to true when the form submission starts
 
-    const data = new FormData(event.currentTarget);
-    const formData = {
-      username: data.get('username') as string,
-      id: data.get('id') as string,
-      phoneNumber: data.get('phoneNumber') as string,
-      dateOfBirth: data.get('dateOfBirth') as string,
-      email: data.get('email') as string,
-      password: data.get('password') as string,
-      confirmPassword: data.get('confirmPassword') as string,
-      companyName: data.get('companyName') as string,
-      firstName: data.get('companyName') as string,
-      lastName: data.get('lastName') as string,
-      role: data.get('role') as string,
-    };
+  const data = new FormData(event.currentTarget);
+  const formData = {
+    username: data.get('username') as string,
+    id: data.get('id') as string,
+    phoneNumber: data.get('phoneNumber') as string,
+    dateOfBirth: data.get('dateOfBirth') as string,
+    email: data.get('email') as string,
+    password: data.get('password') as string,
+    confirmPassword: data.get('confirmPassword') as string,
+    companyName: data.get('companyName') as string,
+    firstName: data.get('companyName') as string,
+    lastName: data.get('lastName') as string,
+    role: data.get('role') as string,
+  };
 
-      console.log("Form data:", formData);  // Log form data before submission
+  console.log("Form data!:", formData);  // Log form data before submission
+  const result = signUpSchema.safeParse(formData);
 
+  if (!result.success) {
+    const newErrors = result.error.formErrors.fieldErrors;
+    setErrors({
+      username: newErrors.username?.[0] || '',
+      firstName: newErrors.firstName?.[0] || '',
+      lastName: newErrors.lastName?.[0] || '',
+      id: newErrors.id?.[0] || '',
+      phoneNumber: newErrors.phoneNumber?.[0] || '',
+      dateOfBirth: newErrors.dateOfBirth?.[0] || '',
+      email: newErrors.email?.[0] || '',
+      password: newErrors.password?.[0] || '',
+      confirmPassword: newErrors.confirmPassword?.[0] || '',
+      role: newErrors.role?.[0] || '',
+      companyName: newErrors.companyName?.[0] || '',
+    });
 
-    const result = signUpSchema.safeParse(formData);
-
-    if (!result.success) {
-      const newErrors = result.error.formErrors.fieldErrors;
-      setErrors({
-        username: newErrors.username?.[0] || '',
-        firstName: newErrors.firstName?.[0] || '',
-        lastName: newErrors.lastName?.[0] || '',
-        id: newErrors.id?.[0] || '',
-        phoneNumber: newErrors.phoneNumber?.[0] || '',
-        dateOfBirth: newErrors.dateOfBirth?.[0] || '',
-        email: newErrors.email?.[0] || '',
-        password: newErrors.password?.[0] || '',
-        confirmPassword: newErrors.confirmPassword?.[0] || '',
-        role: newErrors.role?.[0] || '',
-        companyName: newErrors.companyName?.[0] || '',
-      });
-      setLoading(false);  // Stop loading when validation fails
-      return;
+    setLoading(false);  // Stop loading when validation fails
+    return;
     } else {
       try {
         console.log("Sending request to backend...");
-
-        const response = await axios.post('http://localhost:8000/signup', formData);
+        const response = await axios.post('http://localhost:8000/users/signup', formData); 
         console.log( 'RESPONSE' ,response);
 
-      console.log("Response received:", response.data);  // Log the response data
-
         const responseData = response.data;
+        console.log("Response received:", responseData);
 
         if (response.status === 200) {
           if (responseData.message === 'User registered successfully') {
-            // TODO: add confirmation poping message
             navigate('/');
           } else if (responseData.message === 'Username already exists') {
             setErrors((prevErrors) => ({
@@ -136,7 +113,6 @@ export const useSignUp = () => {
             }));
           }
         } else {
-          // TODO: change to a popping message
           setErrors((prevErrors) => ({
             ...prevErrors,
             username: responseData.message || 'Registration failed',
@@ -148,10 +124,10 @@ export const useSignUp = () => {
           username: 'Network error. Please try again.',
         }));
       } finally {
-        setLoading(false);  // Stop loading once the request is complete
+        setLoading(false);  
       }
     }
   };
 
-  return { errors, handleSubmit, loading };  // Return the loading state
+  return { errors, handleSubmit, loading }; 
 };

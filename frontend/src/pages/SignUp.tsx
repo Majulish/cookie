@@ -20,19 +20,7 @@ import InputLabel from '@mui/material/InputLabel'; // Import InputLabel
 import MenuItem from '@mui/material/MenuItem'; // Import MenuItem
 import FormControl from '@mui/material/FormControl'; // Import FormControl
 import Select, { SelectChangeEvent } from '@mui/material/Select'; // Import Select and SelectChangeEvent
-
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
+import Copyright from '../components/Copyright';
 
 const defaultTheme = createTheme();
 

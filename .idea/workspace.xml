@@ -2,12 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="56a9558e-fc03-4fdb-b169-0086c871e99f" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/frontend/src/components/Copyright.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/frontend/src/utils.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/devops/db/_db_data/WiredTiger.turtle" beforeDir="false" afterPath="$PROJECT_DIR$/devops/db/_db_data/WiredTiger.turtle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/devops/db/_db_data/WiredTiger.wt" beforeDir="false" afterPath="$PROJECT_DIR$/devops/db/_db_data/WiredTiger.wt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/devops/db/_db_data/diagnostic.data/metrics.2024-08-18T09-52-53Z-00000" beforeDir="false" afterPath="$PROJECT_DIR$/devops/db/_db_data/diagnostic.data/metrics.2024-08-18T09-52-53Z-00000" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/routes/user_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/routes/user_routes.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/devops/db/_db_data/diagnostic.data/metrics.interim" beforeDir="false" afterPath="$PROJECT_DIR$/devops/db/_db_data/diagnostic.data/metrics.interim" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/devops/db/_db_data/journal/WiredTigerLog.0000000002" beforeDir="false" afterPath="$PROJECT_DIR$/devops/db/_db_data/journal/WiredTigerLog.0000000002" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/hooks/usePostRequest.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/hooks/useSignUp.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/hooks/useSignUp.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/main.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/SignIn.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/SignIn.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/SignUp.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/pages/SignUp.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/utils.tsx" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
