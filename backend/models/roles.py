@@ -3,6 +3,6 @@ from enum import Enum
 
 class Role(Enum):
     WORKER = "worker"
-    HR_MANAGER = "hr_manager"
+    MANAGER = "manager"
     RECRUITER = "recruiter"
     ADMIN = "admin"
