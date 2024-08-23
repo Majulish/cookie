@@ -17,7 +17,7 @@ def signup() -> Tuple[Response, int]:
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400  # Convert ValueError to a string
+        return jsonify({"error": str(e)}), 400
 
     existing_user = UserStore.find_user_by_username(data.username)
     if existing_user:

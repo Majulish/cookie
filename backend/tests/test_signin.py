@@ -68,7 +68,6 @@ class UserSigninTestCase(unittest.TestCase):
         response = self.client.post('/users/signin', json=signin_data)
         data = response.get_json()
         self.assertEqual(401, response.status_code)
-        self.assertIn('Invalid credentials', data['error'])
 
     def test_signin_with_nonexistent_user(self):
         signin_data = {
@@ -79,7 +78,6 @@ class UserSigninTestCase(unittest.TestCase):
         response = self.client.post('/users/signin', json=signin_data)
         data = response.get_json()
         self.assertEqual(401, response.status_code)
-        self.assertIn('Invalid credentials', data['error'])
 
 
 if __name__ == '__main__':

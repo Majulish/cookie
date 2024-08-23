@@ -1,17 +1,17 @@
-from werkzeug.security import generate_password_hash, check_password_hash
 from typing import Optional, Dict, Any
 
 from backend.models.user import User
+from backend.app.auth import hash_password
 
 
 class UserStore:
     @staticmethod
     def create_user(data: Dict[str, Any]) -> User:
-        hashed_password = generate_password_hash(data['password'])
+        hashed_password = hash_password(data['password'])
         user = User(
             username=data['username'],
             email=data['email'],
-            password=hashed_password,
+            password_hash=hashed_password,
             role=data.get('role', 'worker'),
             birthdate=data.get('birthdate'),
             bank_number=data.get('bank_number'),
@@ -61,7 +61,3 @@ class UserStore:
             user.delete()
             return True
         return False
-
-    @staticmethod
-    def check_password(stored_password: str, provided_password: str) -> bool:
-        return check_password_hash(stored_password, provided_password)

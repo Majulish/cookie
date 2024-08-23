@@ -1,10 +1,10 @@
 from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
 from typing import Optional
 
 from backend.db import db
 from sqlalchemy import Enum
 from backend.models.roles import Role
+from backend.app.auth import check_password
 
 
 class User(db.Model):
@@ -36,11 +36,9 @@ class User(db.Model):
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-        if 'password' in kwargs:
-            self.password_hash = generate_password_hash(kwargs['password'])
 
     def check_password(self, password: str) -> bool:
-        return check_password_hash(self.password_hash, password)
+        return check_password(self.password_hash, password)
 
     def update_user(self, data: dict) -> None:
         for key, value in data.items():
