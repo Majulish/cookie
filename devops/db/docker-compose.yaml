@@ -1,14 +1,15 @@
 services:
-  mongo:
-    image: mongo:7
-    container_name: mongo_container
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
     ports:
-      - "27017:27017"
+      - "5432:5432"
     volumes:
-      - ./_db_data:/data/db
+      - ./db_data:/var/lib/postgresql/data
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: my_database
     restart: always
 
   redis:
@@ -18,3 +19,4 @@ services:
     volumes:
       - ./redis_data:/data
     restart: always
+

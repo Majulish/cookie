@@ -1,24 +1,27 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from pymongo import MongoClient
 import redis
 
 from backend.SECRETS import JWT_TOKEN
 from backend.routes import user_blueprint
+from backend.db import db
+
 
 
 def create_app():
-    app: Flask = Flask(__name__)
+    app = Flask(__name__)
     CORS(app)
 
+    # JWT Configuration
     app.config['JWT_SECRET_KEY'] = JWT_TOKEN
     jwt = JWTManager(app)
 
-    # MongoDB connection
-    app.config["MONGO_URI"] = "mongodb://root:example@localhost:27017/cookie_db?authSource=admin"
-    app.mongo_client = MongoClient(app.config["MONGO_URI"])
-    app.db = app.mongo_client["cookie_db"]
+    # SQLAlchemy configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:example@localhost:5432/my_database'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    db.init_app(app)
 
     # Redis connection
     app.redis_client = redis.StrictRedis(host='localhost', port=6379, decode_responses=True)
@@ -29,6 +32,7 @@ def create_app():
     return app
 
 
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
     app.run(host="0.0.0.0", port=8000)
