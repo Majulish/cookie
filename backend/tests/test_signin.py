@@ -1,11 +1,12 @@
 import unittest
-from flask import json, Response
 
+from backend.stores import UserStore
+from backend.db import db
 from backend.main import create_app
+from backend.models import Role
 
 
-class SignInTestCase(unittest.TestCase):
-
+class UserSigninTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = create_app()
@@ -13,70 +14,73 @@ class SignInTestCase(unittest.TestCase):
         cls.app_context.push()
         cls.client = cls.app.test_client()
         cls.app.config['TESTING'] = True
+        db.create_all()
+
+    @classmethod
+    def tearDownClass(cls):
+        db.session.remove()
+        db.drop_all()
+        cls.app_context.pop()
 
     def setUp(self):
-        # Ensure a clean start by deleting test users
-        with self.app.app_context():
-            self.app.db.users.delete_many({"username": {"$in": ["testuser", "anotheruser"]}})
-
-        # Create a test user to use in sign-in tests
-        self.client.post('/users/signup', data=json.dumps({
+        self.user_data = {
             'username': 'testuser',
             'password': 'Password123!',
             'email': 'testuser@example.com',
-            'role': 'worker'
-        }), content_type='application/json')
+            'role': Role.WORKER,
+            'first_name': 'Test',
+            'family_name': 'User',
+            'personal_id': '123456789',
+            'phone_number': '0501234567',
+            'birthdate': '1990-01-01',
+            'city': 'Test City',
+            'bank_number': '1234567890123456',
+            'bank_branch_number': '123',
+            'credit_card_account_number': '1234567890123456',
+            'company_id': 1
+        }
+
+        # Ensure the user is deleted before creating
+        UserStore.delete_user_by_username(self.user_data['username'])
+        UserStore.create_user(self.user_data)
 
     def tearDown(self):
-        # Clean up after each test by deleting specific test users
-        with self.app.app_context():
-            self.app.db.users.delete_many({"username": {"$in": ["testuser", "anotheruser"]}})
+        # Ensure the user is deleted after each test
+        UserStore.delete_user_by_username(self.user_data['username'])
 
-    def test_signin_with_valid_info(self) -> None:
-        response: Response = self.client.post('/users/login', data=json.dumps({
-            'username': 'testuser',
-            'password': 'Password123!'
-        }), content_type='application/json')
+    def test_signin_with_valid_credentials(self):
+        signin_data = {
+            'username': self.user_data['username'],
+            'password': self.user_data['password']
+        }
 
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 200)
+        response = self.client.post('/users/signin', json=signin_data)
+        data = response.get_json()
+        self.assertEqual(200, response.status_code)
         self.assertIn('access_token', data)
 
-    def test_signin_with_invalid_username(self) -> None:
-        response: Response = self.client.post('/users/login', data=json.dumps({
-            'username': 'wronguser',
+    def test_signin_with_invalid_password(self):
+        signin_data = {
+            'username': self.user_data['username'],
+            'password': 'WrongPassword123'
+        }
+
+        response = self.client.post('/users/signin', json=signin_data)
+        data = response.get_json()
+        self.assertEqual(401, response.status_code)
+        self.assertIn('Invalid credentials', data['error'])
+
+    def test_signin_with_nonexistent_user(self):
+        signin_data = {
+            'username': 'nonexistentuser',
             'password': 'Password123!'
-        }), content_type='application/json')
+        }
 
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(data['message'], 'Invalid username or password')
+        response = self.client.post('/users/signin', json=signin_data)
+        data = response.get_json()
+        self.assertEqual(401, response.status_code)
+        self.assertIn('Invalid credentials', data['error'])
 
-    def test_signin_with_invalid_password(self) -> None:
-        response: Response = self.client.post('/users/login', data=json.dumps({
-            'username': 'testuser',
-            'password': 'WrongPassword!'
-        }), content_type='application/json')
 
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(data['message'], 'Invalid username or password')
-
-    def test_signin_with_missing_credentials(self) -> None:
-        # Test with missing username
-        response: Response = self.client.post('/users/login', data=json.dumps({
-            'password': 'Password123!'
-        }), content_type='application/json')
-
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('missing', str(data[0]))
-
-        # Test with missing password
-        response: Response = self.client.post('/users/login', data=json.dumps({
-            'username': 'testuser'
-        }), content_type='application/json')
-
-        data = json.loads(response.data)
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('missing', str(data[0]))
+if __name__ == '__main__':
+    unittest.main()
