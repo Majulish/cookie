@@ -9,6 +9,7 @@ from backend.models import Role
 class UserSignupTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # Set up the application and its context
         cls.app = create_app()
         cls.app_context = cls.app.app_context()
         cls.app_context.push()

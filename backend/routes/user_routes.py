@@ -7,6 +7,7 @@ from backend.stores import UserStore
 from backend.models.schemas import SignupRequest, LoginRequest
 from backend.app.auth import check_password
 
+
 user_blueprint = Blueprint('users', __name__)
 
 

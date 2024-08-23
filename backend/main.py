@@ -8,6 +8,7 @@ from backend.routes import user_blueprint
 from backend.db import db
 
 
+
 def create_app():
     app = Flask(__name__)
     CORS(app)
