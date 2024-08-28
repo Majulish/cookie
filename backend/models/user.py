@@ -15,12 +15,12 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
 
-    role = db.Column(Enum(Role), nullable=False)  # Use SQLAlchemy's Enum for role
+    role = db.Column(Enum(Role), nullable=False)
     birthdate = db.Column(db.Date, nullable=True)
     bank_number = db.Column(db.String(20), nullable=True)
     bank_branch_number = db.Column(db.String(10), nullable=True)
     credit_card_account_number = db.Column(db.String(20), nullable=True)
-    abilities = db.Column(db.ARRAY(db.String), nullable=True)  # List of strings for abilities
+    abilities = db.Column(db.ARRAY(db.String), nullable=True)  # List of strings
     assigned_jobs = db.Column(db.ARRAY(db.Integer), nullable=True)  # List of job IDs (integers)
     rating = db.Column(db.Float, nullable=True, default=0.0)
     phone_number = db.Column(db.String(20), nullable=True)
