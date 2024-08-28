@@ -22,6 +22,11 @@ def create_app():
 
     db.init_app(app)
 
+    app.config["ENV"] = "development"
+    if app.config["ENV"] == "development":
+        with app.app_context():
+            db.create_all()
+
     # Redis connection
     app.redis_client = redis.StrictRedis(host='localhost', port=6379, decode_responses=True)
 
