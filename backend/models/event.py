@@ -1,32 +1,22 @@
 from datetime import datetime
-from typing import Optional
-
+from typing import Optional, List
 from backend.db import db
-from sqlalchemy import Enum, Table, Column, Integer, ForeignKey, String, Boolean, DateTime
+from sqlalchemy import Enum, Table, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
+from backend.models.roles import Role
 from enum import Enum as PyEnum
-
 
 class EventStatus(PyEnum):
     PLANNED = 'planned'
     STARTED = 'started'
     FINISHED = 'finished'
 
-
-# Association tables for many-to-many relationships
-worker = Table(
-    'worker', db.Model.metadata,
-    Column('event_id', Integer, ForeignKey('events.id')),
-    Column('worker_id', Integer, ForeignKey('workers.id'))
+# Association table for event-worker relationship
+event_worker = Table(
+    'event_worker', db.Model.metadata,
+    Column('event_id', Integer, db.ForeignKey('events.id')),
+    Column('user_id', Integer, db.ForeignKey('users.id'))
 )
-
-event_job = Table(
-    'event_job', db.Model.metadata,
-    Column('event_id', Integer, ForeignKey('events.id')),
-    Column('job_id', Integer, ForeignKey('jobs.id')),
-    Column('openings', Integer, nullable=False)
-)
-
 
 class Event(db.Model):
     __tablename__ = 'events'
@@ -37,13 +27,13 @@ class Event(db.Model):
     location = Column(String(100), nullable=True)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.now())
+    created_at = Column(DateTime, default=datetime.now)
     status = Column(Enum(EventStatus), default=EventStatus.PLANNED, nullable=False)
     advertised = Column(Boolean, default=False, nullable=False)
 
     # Relationships
-    workers = relationship('Worker', secondary=worker, back_populates='events')
-    jobs = relationship('Job', secondary=event_job, back_populates='events')
+    users = relationship('User', secondary=event_worker, back_populates='events')
+    job_ids = db.Column(db.ARRAY(db.Integer), nullable=True)  # Store job IDs directly
 
     def __init__(self, name: str, start_time: datetime, end_time: datetime, description: Optional[str] = None,
                  location: Optional[str] = None, status: EventStatus = EventStatus.PLANNED, advertised: bool = False):
@@ -67,12 +57,20 @@ class Event(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def add_worker(self, worker_id: int) -> None:
+    def add_worker(self, user_id: int) -> None:
         connection = db.engine.connect()
-        connection.execute(worker.insert().values(event_id=self.id, worker_id=worker_id))
+        connection.execute(event_worker.insert().values(event_id=self.id, user_id=user_id))
         connection.close()
         db.session.commit()
 
-    def add_job(self, job, openings: int) -> None:
-        event_job.insert().values(event_id=self.id, job_id=job.id, openings=openings)
+    def add_job(self, job_id: int) -> None:
+        if self.job_ids is None:
+            self.job_ids = []
+        self.job_ids.append(job_id)
         db.session.commit()
+
+    def get_workers(self) -> List['User']:
+        return [user for user in self.users if user.role == Role.WORKER]
+
+    def get_job_ids(self) -> List[int]:
+        return self.job_ids
