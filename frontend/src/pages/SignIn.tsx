@@ -1,13 +1,7 @@
-import * as React from 'react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
-import axios from 'axios';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -17,35 +11,16 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Link as RouterLink } from 'react-router-dom';
 import Copyright from '../components/Copyright';
+import { useSignIn } from '../hooks/useSignIn';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
+
+
 
 const defaultTheme = createTheme();
 
 export default function SignIn() {
-  const [usernameError, setUsernameError] = useState<string | null>(null);
-  const navigate = useNavigate();
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const credentials = {
-      username: data.get('username') as string,
-      password: data.get('password') as string,
-    };
-
-    try {
-      const response = await axios.post('/login', credentials);
-
-      if (response.status === 200) {
-        navigate('/home-page');
-      }
-    } catch (error: any) {
-      if (error.response && error.response.status === 401) {
-        setUsernameError(error.response.data.message);
-      } else {
-        setUsernameError('An unexpected error occurred. Please try again.');
-      }
-    }
-  };
+  const { errors, globalError, handleSubmit, loading } = useSignIn();  // Use the errors object from useSignIn
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -65,6 +40,8 @@ export default function SignIn() {
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
+          {/* Display global error alert if exists */}
+          {globalError && <Alert severity="error">{globalError}</Alert>}
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"
@@ -75,8 +52,8 @@ export default function SignIn() {
               name="username"
               autoComplete="username"
               autoFocus
-              error={usernameError !== null}
-              helperText={usernameError}
+              error={errors.username !== ''}
+              helperText={errors.username}
             />
             <TextField
               margin="normal"
@@ -87,18 +64,18 @@ export default function SignIn() {
               type="password"
               id="password"
               autoComplete="current-password"
+              error={errors.password !== ''}
+              helperText={errors.password}
             />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            />
+
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
             >
-              Sign In
+              {loading ? <CircularProgress size={24} /> : 'Sign In'}
             </Button>
             <Grid container>
               <Grid item xs>
