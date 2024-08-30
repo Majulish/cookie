@@ -1,3 +1,5 @@
+import random
+
 from flask import request, jsonify, Blueprint, Response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from pydantic import ValidationError
@@ -11,10 +13,11 @@ event_blueprint = Blueprint('events', __name__)
 
 
 # Create a new event
-@event_blueprint.route('/events', methods=['POST'])
+@event_blueprint.route('/create_event', methods=['POST'])
 @jwt_required()
 def create_event() -> Tuple[Response, int]:
     try:
+        id = random.randrange(1, 10)
         data = request.get_json()
         name = data.get('name')
         description = data.get('description', '')
@@ -25,6 +28,7 @@ def create_event() -> Tuple[Response, int]:
         advertised = data.get('advertised', False)
 
         event = Event(
+            id=id,
             name=name,
             description=description,
             location=location,
@@ -41,7 +45,7 @@ def create_event() -> Tuple[Response, int]:
 
 
 # Retrieve details of a specific event
-@event_blueprint.route('/events/<int:event_id>', methods=['GET'])
+@event_blueprint.route('/<int:event_id>', methods=['GET'])
 @jwt_required()
 def get_event(event_id: int) -> Tuple[Response, int]:
     event = Event.query.get(event_id)
@@ -64,7 +68,7 @@ def get_event(event_id: int) -> Tuple[Response, int]:
 
 
 # Update an existing event
-@event_blueprint.route('/events/<int:event_id>', methods=['PUT'])
+@event_blueprint.route('/<int:event_id>', methods=['PUT'])
 @jwt_required()
 def update_event(event_id: int) -> Tuple[Response, int]:
     event = Event.query.get(event_id)
@@ -89,7 +93,7 @@ def update_event(event_id: int) -> Tuple[Response, int]:
 
 
 # Delete an event
-@event_blueprint.route('/events/<int:event_id>', methods=['DELETE'])
+@event_blueprint.route('/<int:event_id>', methods=['DELETE'])
 @jwt_required()
 def delete_event(event_id: int) -> Tuple[Response, int]:
     event = Event.query.get(event_id)
@@ -101,7 +105,7 @@ def delete_event(event_id: int) -> Tuple[Response, int]:
 
 
 # Add a worker to an event
-@event_blueprint.route('/events/<int:event_id>/workers', methods=['POST'])
+@event_blueprint.route('/<int:event_id>/workers', methods=['POST'])
 @jwt_required()
 def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
     try:
@@ -123,7 +127,7 @@ def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
 
 
 # Add a job to an event
-@event_blueprint.route('/events/<int:event_id>/jobs', methods=['POST'])
+@event_blueprint.route('/<int:event_id>/jobs', methods=['POST'])
 @jwt_required()
 def add_job_to_event(event_id: int) -> Tuple[Response, int]:
     try:

@@ -1,22 +1,42 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
+
 from backend.db import db
-from sqlalchemy import Enum, Table, Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Enum, Table, Column, Integer, ForeignKey, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
-from backend.models.roles import Role
 from enum import Enum as PyEnum
+
+event_job = Table(
+    'event_job', db.Model.metadata,
+    Column('event_id', Integer, ForeignKey('events.id')),
+    Column('job_id', Integer, ForeignKey('jobs.id')),
+    Column('openings', Integer, nullable=False)
+)
+
+
+class Job(db.Model):
+    __tablename__ = 'jobs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+
+    # Relationship to Event model via association table
+    events = relationship("Event", secondary=event_job, back_populates="jobs")
+
 
 class EventStatus(PyEnum):
     PLANNED = 'planned'
     STARTED = 'started'
     FINISHED = 'finished'
 
-# Association table for event-worker relationship
-event_worker = Table(
-    'event_worker', db.Model.metadata,
-    Column('event_id', Integer, db.ForeignKey('events.id')),
-    Column('user_id', Integer, db.ForeignKey('users.id'))
+
+# Association tables for many-to-many relationships
+worker = Table(
+    'worker', db.Model.metadata,
+    Column('event_id', Integer, ForeignKey('events.id')),
+    Column('worker_id', String, ForeignKey('users.personal_id'))
 )
+
 
 class Event(db.Model):
     __tablename__ = 'events'
@@ -27,21 +47,20 @@ class Event(db.Model):
     location = Column(String(100), nullable=True)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=datetime.now())
     status = Column(Enum(EventStatus), default=EventStatus.PLANNED, nullable=False)
     advertised = Column(Boolean, default=False, nullable=False)
 
-    # Relationships
-    users = relationship('User', secondary=event_worker, back_populates='events')
-    job_ids = db.Column(db.ARRAY(db.Integer), nullable=True)  # Store job IDs directly
+    # Relationship to Job model via association table
+    jobs = relationship("Job", secondary=event_job, back_populates="events")
 
-    def __init__(self, name: str, start_time: datetime, end_time: datetime, description: Optional[str] = None,
-                 location: Optional[str] = None, status: EventStatus = EventStatus.PLANNED, advertised: bool = False):
+    def __init__(self, id, name, start_time, end_time, description, location, status, advertised):
+        self.id = id
         self.name = name
-        self.description = description
-        self.location = location
         self.start_time = start_time
         self.end_time = end_time
+        self.description = description
+        self.location = location
         self.status = status
         self.advertised = advertised
 
@@ -57,20 +76,12 @@ class Event(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def add_worker(self, user_id: int) -> None:
+    def add_worker(self, worker_id: int) -> None:
         connection = db.engine.connect()
-        connection.execute(event_worker.insert().values(event_id=self.id, user_id=user_id))
+        connection.execute(worker.insert().values(event_id=self.id, worker_id=worker_id))
         connection.close()
         db.session.commit()
 
-    def add_job(self, job_id: int) -> None:
-        if self.job_ids is None:
-            self.job_ids = []
-        self.job_ids.append(job_id)
+    def add_job(self, job, openings: int) -> None:
+        event_job.insert().values(event_id=self.id, job_id=job.id, openings=openings)
         db.session.commit()
-
-    def get_workers(self) -> List['User']:
-        return [user for user in self.users if user.role == Role.WORKER]
-
-    def get_job_ids(self) -> List[int]:
-        return self.job_ids

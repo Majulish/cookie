@@ -27,7 +27,7 @@ def create_app():
 
     # Adding Routes
     app.register_blueprint(user_blueprint, url_prefix='/users')
-    app.register_blueprint(event_blueprint, url_prefix='/event')
+    app.register_blueprint(event_blueprint, url_prefix='/events')
 
     return app
 

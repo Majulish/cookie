@@ -2,24 +2,36 @@ from datetime import datetime
 from typing import List, Optional
 from backend.models.event import Event, EventStatus
 from backend.models.roles import Role
+import json
+
 
 class EventStore:
-
     @staticmethod
-    def create_event(name: str, start_time: datetime, end_time: datetime,
-                     description: Optional[str] = None, location: Optional[str] = None,
-                     status: EventStatus = EventStatus.PLANNED, advertised: bool = False) -> Event:
+    def create_event(new_event):
         event = Event(
-            name=name,
-            start_time=start_time,
-            end_time=end_time,
-            description=description,
-            location=location,
-            status=status,
-            advertised=advertised
+            id=new_event['id'],
+            name=new_event['name'],
+            start_time=new_event['start_time'],
+            end_time=new_event['end_time'],
+            description=new_event['description'],
+            location=new_event['location'],
+            status=new_event['status'],
+            advertised=new_event['advertised']
         )
         event.create_event()
-        return event
+        result = {
+            'id': event.id,
+            'name': event.name,
+            'start_time': event.start_time.isoformat(),
+            'end_time': event.end_time.isoformat(),
+            'description': event.description,
+            'location': event.location,
+            'status': event.status.value,
+            'advertised': event.advertised
+        }
+        json_result = json.dumps(result)
+        print(json_result)
+        return json_result
 
     @staticmethod
     def get_event_by_id(event_id: int) -> Optional[Event]:
