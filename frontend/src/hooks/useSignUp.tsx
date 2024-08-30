@@ -9,7 +9,7 @@ const signUpSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
   lastName: z.string().min(2, 'Last name must be at least 2 characters'),
   id: z.string().regex(/^\d{9}$/, 'ID must be 9 digits'),
-  phoneNumber: z.string().regex(/^05\d{8}$/, 'Phone number must be 10 digits and start with 05'),
+  phoneNumber: z.string().regex(/^\d{10}$/, 'Phone number must be 10 digits'),
   dateOfBirth: z
     .string()
     .regex(/^\d{2}[./]\d{2}[./]\d{4}$/, 'Date of birth must be in DD/MM/YYYY or DD.MM.YYYY format')
