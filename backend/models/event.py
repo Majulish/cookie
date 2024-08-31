@@ -23,6 +23,10 @@ class Job(db.Model):
     # Relationship to Event model via association table
     events = relationship("Event", secondary=event_job, back_populates="jobs")
 
+    def create_job(self) -> None:
+        db.session.add(self)
+        db.session.commit()
+
 
 class EventStatus(PyEnum):
     PLANNED = 'planned'
@@ -30,12 +34,14 @@ class EventStatus(PyEnum):
     FINISHED = 'finished'
 
 
-# Association tables for many-to-many relationships
 worker = Table(
     'worker', db.Model.metadata,
     Column('event_id', Integer, ForeignKey('events.id')),
     Column('worker_id', String, ForeignKey('users.personal_id'))
 )
+
+
+
 
 
 class Event(db.Model):
@@ -77,11 +83,17 @@ class Event(db.Model):
         db.session.commit()
 
     def add_worker(self, worker_id: int) -> None:
-        connection = db.engine.connect()
-        connection.execute(worker.insert().values(event_id=self.id, worker_id=worker_id))
-        connection.close()
-        db.session.commit()
+        try:
+            # Insert the new worker entry
+            db.session.execute(worker.insert().values(event_id=self.id, worker_id=worker_id))
 
-    def add_job(self, job, openings: int) -> None:
-        event_job.insert().values(event_id=self.id, job_id=job.id, openings=openings)
+            # Commit the transaction
+            db.session.commit()
+        except Exception as e:
+            # Rollback in case of error
+            db.session.rollback()
+            raise e
+
+    def add_job_to_event(self, event_id: int, job_id: int, openings: int) -> None:
+        db.session.execute(event_job.insert().values(event_id=event_id, job_id=job_id, openings=openings))
         db.session.commit()

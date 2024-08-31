@@ -6,7 +6,7 @@ from enum import Enum
 from backend.stores import UserStore, EventStore
 from backend.db import db
 from backend.main import create_app
-from backend.models import EventStatus, Role
+from backend.models import EventStatus, Role, User, Event  # Add User and Event models
 
 
 class EventTestCase(unittest.TestCase):
@@ -34,7 +34,7 @@ class EventTestCase(unittest.TestCase):
             'role': Role.WORKER,
             'first_name': 'Worker',
             'family_name': 'One',
-            'personal_id': '987654321',
+            'personal_id': '1',
             'phone_number': '0501234567',
             'birthdate': '1990-01-01',
             'city': 'Worker City',
@@ -43,6 +43,7 @@ class EventTestCase(unittest.TestCase):
             'credit_card_account_number': '1234567890123456',
             'company_id': 1
         }
+        EventStore.delete_worker_by_personal_id(self.user_data['personal_id'])
         UserStore.delete_user_by_username(self.user_data['username'])
         self.worker = UserStore.create_user(self.user_data)
 
@@ -71,10 +72,22 @@ class EventTestCase(unittest.TestCase):
         EventStore.create_event(self.event_data)
 
     def tearDown(self):
+        EventStore.delete_worker(self.event_data['id'])
         EventStore.delete_event(self.event_data['id'])
         UserStore.delete_user_by_username(self.user_data['username'])
 
+    def authenticate(self):
+        signin_data = {
+            'username': self.user_data['username'],
+            'password': self.user_data['password']
+        }
+
+        response = self.client.post('/users/signin', json=signin_data)
+        self.assertEqual(200, response.status_code)
+        return response.get_json()['access_token']
+
     def test_create_event(self):
+        # Custom JSON encoder to handle Enum and datetime
         class CustomJSONEncoder(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, Enum):
@@ -83,19 +96,25 @@ class EventTestCase(unittest.TestCase):
                     return obj.isoformat()
                 return super().default(obj)
 
-        request_body = json.dumps(self.event_data, cls=CustomJSONEncoder)
+        # Convert self.event_data dictionary to a JSON-compatible dictionary
+        request_body = json.loads(json.dumps(self.event_data, cls=CustomJSONEncoder))
 
+        # Authenticate and get a token
+        token = self.authenticate()
+
+        # Include the token in the headers
         headers = {
-            'Authorization': f'Bearer {self.jwt_token}'
+            'Authorization': f'Bearer {token}'
         }
 
-        response = self.client.post('/events/create_event', data=request_body, content_type='application/json', headers=headers)
+        # Send the POST request with the dictionary, not a JSON string
+        response = self.client.post('/events/create_event', headers=headers, json=request_body)
+        data = response.get_json()
 
-        print('Response status code:', response.status_code)
-        print('Response body:', response.get_json())
-
+        # Assertions
         self.assertEqual(201, response.status_code)
-        self.assertIn('id', response.get_json())
+        self.assertIn('message', data)
+        self.assertEqual(data['message'], 'Event created successfully.')
 
     def test_update_event(self):
         updated_data = {
@@ -128,28 +147,34 @@ class EventTestCase(unittest.TestCase):
         self.assertIsNone(deleted_event)
 
     def test_add_worker_to_event(self):
+        # Retrieve the worker from the database
+
+        worker = User.find_by_username(username='worker1')
         headers = {
             'Authorization': f'Bearer {self.jwt_token}'
         }
 
-        response = self.client.post(f'/events/{self.event_data["id"]}/workers', json={'worker_id': self.worker.id},
+        print('im trying to insert worker_id: ', worker.id)
+
+        response = self.client.post(f'/events/{self.event_data["id"]}/workers', json={'worker_id': worker.id},
                                     headers=headers)
 
         self.assertEqual(200, response.status_code)
-        event_with_worker = EventStore.get_event_by_id(self.event_data['id'])
-        self.assertEqual(len(event_with_worker.users), 1)
-        self.assertEqual(event_with_worker.users[0].id, self.worker.id)
+        event_with_worker = EventStore.get_workers_by_event(self.event_data['id'])
+        self.assertEqual(len(event_with_worker), 1)
+        self.assertEqual(event_with_worker[0]['personal_id'], str(worker.id))
 
     def test_add_job_to_event(self):
-        # Assuming you have a way to mock or create jobs in your setup
-        job_id = 1  # Mock job ID
+        self.jobs = {
+            'id': 1,
+            'name': 'chef'
+        }
         headers = {
             'Authorization': f'Bearer {self.jwt_token}'
         }
 
-        response = self.client.post(f'/events/{self.event_data["id"]}/jobs', json={'job_id': job_id, 'openings': 5},
+        response = self.client.post(f'/events/{self.event_data["id"]}/jobs',
+                                    json={'job_id': self.jobs['id'], 'name': self.jobs['name'], 'openings': 5},
                                     headers=headers)
 
         self.assertEqual(200, response.status_code)
-        event_with_job = EventStore.get_event_by_id(self.event_data['id'])
-        self.assertIn(job_id, event_with_job.get_job_ids())

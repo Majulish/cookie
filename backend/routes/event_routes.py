@@ -1,13 +1,12 @@
 import random
 
 from flask import request, jsonify, Blueprint, Response
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 from typing import Tuple
 from datetime import datetime
 
-from backend.models import Event, user, event_job, EventStatus
-from backend.db import db
+from backend.models import Event, User, event_job, EventStatus, Job
 
 event_blueprint = Blueprint('events', __name__)
 
@@ -111,11 +110,15 @@ def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
     try:
         data = request.get_json()
         worker_id = data.get('worker_id')
+
+        if not worker_id:
+            return jsonify({"error": "Worker ID is required."}), 400
+
         event = Event.query.get(event_id)
         if not event:
             return jsonify({"error": "Event not found."}), 404
 
-        worker = user.query.filter_by(id=worker_id, role='WORKER').first()
+        worker = User.find_by_id_and_role(worker_id, 'WORKER')
         if not worker:
             return jsonify({"error": "Worker not found or not a valid worker."}), 404
 
@@ -133,16 +136,17 @@ def add_job_to_event(event_id: int) -> Tuple[Response, int]:
     try:
         data = request.get_json()
         job_id = data.get('job_id')
+        job_name = data.get('name')
         openings = data.get('openings')
-        event = Event.query.get(event_id)
+        event = Event.query
         if not event:
             return jsonify({"error": "Event not found."}), 404
 
-        job = event_job.query.get(job_id)
-        if not job:
-            return jsonify({"error": "Job not found."}), 404
+        job_data = Job(id=job_id, name=job_name)
+        Job.create_job(job_data)
 
-        event.add_job(job, openings)
+        Event.add_job_to_event(event, event_id, job_id, openings)
+
         return jsonify({"message": "Job added to event successfully."}), 200
 
     except ValidationError as e:
