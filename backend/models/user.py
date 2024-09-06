@@ -56,20 +56,16 @@ class User(db.Model):
         db.session.commit()
 
     @classmethod
-    def find_by_username(cls, username: str) -> Optional['User']:
-        return cls.query.filter_by(username=username).first()
-
-    @classmethod
     def find_by_email(cls, email: str) -> Optional['User']:
         return cls.query.filter_by(email=email).first()
 
     @classmethod
-    def find_by_id(cls, user_id: int) -> Optional['User']:
-        return cls.query.filter_by(id=user_id).first()
+    def find_by_personal_id(cls, user_id: int) -> Optional['User']:
+        return cls.query.filter_by(personal_id=user_id).first()
 
     @classmethod
-    def delete_by_id(cls, user_id: int) -> None:
-        user = cls.find_by_id(user_id)
+    def delete_by_personal_id(cls, user_id: int) -> None:
+        user = cls.find_by_personal_id(user_id)
         if user:
             db.session.delete(user)
             db.session.commit()

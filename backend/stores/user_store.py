@@ -32,7 +32,7 @@ class UserStore:
 
     @staticmethod
     def update_user(user_id: int, data: Dict[str, Any]) -> Optional[User]:
-        user = User.find_by_id(user_id)
+        user = User.find_by_personal_id(user_id)
         if user:
             user.update_user(data)
             return user
@@ -43,19 +43,15 @@ class UserStore:
         user.delete()
 
     @staticmethod
-    def find_user_by_username(username: str) -> Optional[User]:
-        return User.find_by_username(username)
-
-    @staticmethod
     def find_user_by_email(email: str) -> Optional[User]:
         return User.find_by_email(email)
 
     @staticmethod
     def find_user_by_id(user_id: int) -> Optional[User]:
-        return User.find_by_id(user_id)
+        return User.find_by_personal_id(user_id)
 
     @staticmethod
-    def delete_user_by_username(username: str) -> bool:
+    def delete_user_by_id(username: str) -> bool:
         user = User.find_by_username(username)
         if user:
             user.delete()

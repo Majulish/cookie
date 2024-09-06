@@ -66,8 +66,3 @@ def delete_user() -> Tuple[Response, int]:
 
     UserStore.delete_user(user.id)
     return jsonify({"message": "User deleted successfully"}), 200
-
-
-@user_blueprint.route('/ping', methods=['GET'])
-def ping() -> Tuple[Response, int]:
-    return jsonify({"message": "pong"}), 201
