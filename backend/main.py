@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 import redis
+from datetime import timedelta
 
 from backend.SECRETS import JWT_TOKEN
 from backend.routes import user_blueprint
@@ -14,6 +15,13 @@ def create_app():
 
     # JWT Configuration
     app.config['JWT_SECRET_KEY'] = JWT_TOKEN
+    app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+    app.config['JWT_ACCESS_COOKIE_PATH'] = '/'
+    app.config['JWT_REFRESH_COOKIE_PATH'] = '/users/refresh'
+    app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Set True in production
+    app.config['JWT_COOKIE_SECURE'] = False  # Set True in production (requires HTTPS)
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=15)
+    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
     jwt = JWTManager(app)
 
     # SQLAlchemy configuration

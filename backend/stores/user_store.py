@@ -47,6 +47,10 @@ class UserStore:
         return User.find_by_email(email)
 
     @staticmethod
+    def find_user_by_username(username: str) -> Optional[User]:
+        return User.find_by_username(username)
+
+    @staticmethod
     def find_user_by_id(user_id: int) -> Optional[User]:
         return User.find_by_personal_id(user_id)
 

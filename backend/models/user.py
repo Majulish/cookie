@@ -60,6 +60,13 @@ class User(db.Model):
         return cls.query.filter_by(email=email).first()
 
     @classmethod
+    def find_by_username(cls, username: str) -> Optional['User']:
+        return cls.query.filter_by(username=username).first()
+
+    def find_by(cls, attribute: str, value: str) -> Optional['User']:
+        return cls.query.filter_by({attribute: value}).first()
+
+    @classmethod
     def find_by_personal_id(cls, user_id: int) -> Optional['User']:
         return cls.query.filter_by(personal_id=user_id).first()
 
