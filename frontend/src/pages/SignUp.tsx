@@ -22,18 +22,53 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Alert from '@mui/material/Alert'; // Import MUI Alert component
+import Alert from '@mui/material/Alert'; 
 import Copyright from '../components/Copyright';
+
+interface FormDataState{
+  username: string,
+  id: string,
+  phoneNumber: string,
+  dateOfBirth: string,
+  email: string,
+  password: string,
+  confirmPassword: string,
+  companyName: string,
+  firstName: string,
+  lastName: string,
+  role: string,
+}
 
 const defaultTheme = createTheme();
 
 export default function SignUp() {
   const { errors, handleSubmit, loading, isSuccess, handleDialogClose, globalError } = useSignUp(); // Add globalError from useSignUp
-  const [role, setRole] = React.useState(''); // State for the role select
+  const [formData, setFormData] = React.useState<FormDataState>(
+    {username: "",
+    id: "",
+    phoneNumber: "",
+    dateOfBirth: "",
+    email: "",
+    password:"",
+    confirmPassword:"",
+    companyName:"",
+    firstName: "",
+    lastName: "",
+    role: "",});
 
   const handleRoleChange = (event: SelectChangeEvent) => {
-    setRole(event.target.value as string);
+    updateFormData({ role: event.target.value });
   };
+
+  const updateFormData = (update: Partial<FormDataState>)=> {
+    setFormData({...formData,
+      ...update
+    })
+
+
+  }
+
+
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -53,7 +88,6 @@ export default function SignUp() {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          {/* Display global error alert if exists */}
           {globalError && <Alert severity="error">{globalError}</Alert>}
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
@@ -67,6 +101,8 @@ export default function SignUp() {
                   autoComplete="username"
                   error={Boolean(errors.username)}
                   helperText={errors.username}
+                  value= {formData.username}
+                  onChange={e=>updateFormData({username: e.target.value})}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -80,6 +116,8 @@ export default function SignUp() {
                   autoFocus
                   error={Boolean(errors.firstName)}
                   helperText={errors.firstName}
+                  value= {formData.firstName}
+                  onChange={e=>updateFormData({firstName: e.target.value})}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -92,6 +130,8 @@ export default function SignUp() {
                   autoComplete="family-name"
                   error={Boolean(errors.lastName)}
                   helperText={errors.lastName}
+                  value= {formData.lastName}
+                  onChange={e=>updateFormData({lastName: e.target.value})}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -104,6 +144,8 @@ export default function SignUp() {
                   autoComplete="id"
                   error={Boolean(errors.id)}
                   helperText={errors.id}
+                  value= {formData.id}
+                  onChange={e=>updateFormData({id: e.target.value})}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -116,6 +158,8 @@ export default function SignUp() {
                   autoComplete="phone"
                   error={Boolean(errors.phoneNumber)}
                   helperText={errors.phoneNumber}
+                  value= {formData.phoneNumber}
+                  onChange={e=>updateFormData({phoneNumber: e.target.value})}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -128,7 +172,9 @@ export default function SignUp() {
                   autoComplete="bday"
                   error={Boolean(errors.dateOfBirth)}
                   helperText={errors.dateOfBirth}
-                  placeholder="00/00/0000" // Add the placeholder here
+                  placeholder="00/00/0000" 
+                  value= {formData.dateOfBirth}
+                  onChange={e=>updateFormData({dateOfBirth: e.target.value})}
 
                 />
               </Grid>
@@ -141,6 +187,8 @@ export default function SignUp() {
                   autoComplete="organization"
                   error={Boolean(errors.companyName)}
                   helperText={errors.companyName}
+                  value= {formData.companyName}
+                  onChange={e=>updateFormData({companyName: e.target.value})}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -149,7 +197,7 @@ export default function SignUp() {
                   <Select
                     labelId="role"
                     id="role"
-                    value={role}
+                    value={formData.role}
                     label="Role"
                     name='role'
                     error={Boolean(errors.role)}
@@ -171,6 +219,8 @@ export default function SignUp() {
                   autoComplete="email"
                   error={Boolean(errors.email)}
                   helperText={errors.email}
+                  value= {formData.email}
+                  onChange={e=>updateFormData({email: e.target.value})}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -184,6 +234,8 @@ export default function SignUp() {
                   autoComplete="new-password"
                   error={Boolean(errors.password)}
                   helperText={errors.password}
+                  value= {formData.password}
+                  onChange={e=>updateFormData({password: e.target.value})}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -197,6 +249,8 @@ export default function SignUp() {
                   autoComplete="new-password"
                   error={Boolean(errors.confirmPassword)}
                   helperText={errors.confirmPassword}
+                  value= {formData.confirmPassword}
+                  onChange={e=>updateFormData({confirmPassword: e.target.value})}
                 />
               </Grid>
             </Grid>
@@ -211,7 +265,7 @@ export default function SignUp() {
             </Button>
             <Grid container justifyContent="flex-end">
               <Grid item>
-                <Link component={RouterLink} to="/" variant="body2">
+                <Link component={RouterLink} to="/log-in" variant="body2">
                   Already have an account? Sign in
                 </Link>
               </Grid>
@@ -221,7 +275,6 @@ export default function SignUp() {
         <Copyright sx={{ mt: 5 }} />
       </Container>
 
-      {/* Dialog for successful registration */}
       <Dialog open={isSuccess} onClose={handleDialogClose}>
         <DialogTitle>{"User registered successfully"}</DialogTitle>
         <DialogContent>
@@ -230,7 +283,7 @@ export default function SignUp() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose} component={RouterLink} to="/">
+          <Button onClick={handleDialogClose} component={RouterLink} to='/sign-up'>
             Log in
           </Button>
         </DialogActions>

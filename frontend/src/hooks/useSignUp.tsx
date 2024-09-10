@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { calculateAge, isValidDate } from '../utils';
+import useSignUpRequest from './useSignUpRequest';
 
 const signUpSchema = z.object({
   username: z.string().min(4, 'Username must be at least 4 characters'),
@@ -37,9 +37,23 @@ const signUpSchema = z.object({
   path: ['confirmPassword'],
 });
 
+export interface SignUpErrors{
+  username: string,
+    firstName: string,
+    lastName: string,
+    id: string,
+    phoneNumber: string,
+    dateOfBirth: string,
+    email: string,
+    password: string,
+    confirmPassword: string,
+    companyName: string,
+    role: string
+}
+
 export const useSignUp = () => {
   const navigate = useNavigate();
-  const [errors, setErrors] = useState({
+  const [errors, setErrors] = useState<SignUpErrors>({
     username: '',
     firstName: '',
     lastName: '',
@@ -52,14 +66,19 @@ export const useSignUp = () => {
     companyName: '',
     role: '',
   });
-  const [loading, setLoading] = useState<boolean>(false);
-  const [isSuccess, setIsSuccess] = useState<boolean>(false);
-  const [globalError, setGlobalError] = useState<string>(''); // State for global error
+
+  const updateErrors = (update: Partial<SignUpErrors>)=> {
+    setErrors({...errors,
+      ...update
+    })
+  }
+
+  const [globalError, setGlobalError] = useState<string>(''); 
+
+  const {loading, isSuccess, doRequest, setIsSuccess} = useSignUpRequest({setGlobalError, updateErrors});
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setLoading(true); // Set loading to true when the form submission starts
-    setGlobalError(''); // Clear global error before new submission
 
     const data = new FormData(event.currentTarget);
     const formData = {
@@ -76,7 +95,7 @@ export const useSignUp = () => {
       role: data.get('role') as string,
     };
 
-    console.log("Form data!:", formData);  // Log form data before submission
+    console.log("Form data!:", formData);  
     const result = signUpSchema.safeParse(formData);
 
     if (!result.success) {
@@ -95,41 +114,18 @@ export const useSignUp = () => {
         companyName: newErrors.companyName?.[0] || '',
       });
 
-      setLoading(false);  // Stop loading when validation fails
       return;
     } else {
-      try {
-        console.log("Sending request to backend...");
-        const response = await axios.post('http://localhost:8000/users/signup', formData);
-        console.log('RESPONSE', response);
-
-        const responseData = response.data;
-        console.log("Response received:", responseData);
-
-        if (response.status === 200) {
-          if (responseData.message === 'User registered successfully') {
-            setIsSuccess(true);  // Show dialog on successful registration
-          } else if (responseData.message === 'Username already exists') {
-            setErrors((prevErrors) => ({
-              ...prevErrors,
-              username: 'Username already exists',
-            }));
-          }
-        } else {
-          setGlobalError(responseData.message || 'Registration failed');
-        }
-      } catch (error) {
-        setGlobalError('Network error. Please try again.');
-      } finally {
-        setLoading(false);
-      }
+      await doRequest(formData);
     }
+  
   };
 
   const handleDialogClose = () => {
     setIsSuccess(false);
-    navigate('/');
+    navigate('/sign-up');
   };
-
+  
   return { errors, handleSubmit, loading, isSuccess, handleDialogClose, globalError }; // Return globalError
 };
+
