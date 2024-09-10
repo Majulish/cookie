@@ -1,13 +1,14 @@
 from typing import Optional, Dict, Any
 
 from backend.models.user import User
-from backend.app.auth import hash_password
+from backend.app.auth import hash_data
 
 
 class UserStore:
     @staticmethod
     def create_user(data: Dict[str, Any]) -> User:
-        hashed_password = hash_password(data['password'])
+        hashed_password = hash_data(data['password'])
+        hashed_personal_id = hash_data(data['personal_id'])
         user = User(
             username=data['username'],
             email=data['email'],
@@ -23,7 +24,7 @@ class UserStore:
             phone_number=data.get('phone_number'),
             first_name=data.get('first_name'),
             family_name=data.get('family_name'),
-            personal_id=data.get('personal_id'),
+            personal_id=hashed_personal_id,
             company_id=data.get('company_id'),
             city=data.get('city'),
         )
