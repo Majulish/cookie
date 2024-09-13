@@ -1,6 +1,8 @@
 from typing import List, Optional
 import json
 
+from flask import jsonify
+
 from backend.models.event import Event
 from backend.models.user import User
 from backend.db import db
@@ -40,15 +42,15 @@ class EventStore:
         return Event.query.get(event_id)
 
     @staticmethod
-    def update_event(event_id: int, data: dict) -> Optional[Event]:
-        event = EventStore.get_event_by_id(event_id)
-        if event:
-            for key, value in data.items():
-                if hasattr(event, key):
-                    setattr(event, key, value)
-            event.save_to_db()
-            return event
-        return None
+    def update_event(event: dict) -> Optional[Event]:
+        if not EventStore.get_event_by_id(event.id):
+            return jsonify({"error": "Event not found."}), 404
+
+        for key, value in event.items():
+            if hasattr(event, key):
+                setattr(event, key, value)
+        event.save_to_db()
+        return event
 
     @staticmethod
     def delete_event(event_id: int) -> bool:
@@ -58,14 +60,7 @@ class EventStore:
             return True
         return False
 
-    @staticmethod
-    def delete_worker(event_id: int) -> None:
-        db.session.execute(
-            text('DELETE FROM worker WHERE event_id = :event_id'),
-            {'event_id': event_id}
-        )
 
-        db.session.commit()
 
     @staticmethod
     def delete_worker_by_personal_id(personal_id: str) -> None:
@@ -99,26 +94,22 @@ class EventStore:
     @staticmethod
     def get_workers_by_event(event_id: int) -> List[dict]:
         event = EventStore.get_event_by_id(event_id)
-        if event:
-            # Query the worker table to get worker IDs for the event
-            worker_ids = db.session.execute(
-                text('SELECT worker_id FROM worker WHERE event_id = :event_id'),
-                {'event_id': event_id}
-            ).fetchall()
+        if not event:
+            return []
 
-            # Extract worker IDs from the result
-            worker_ids = [row[0] for row in worker_ids]
+        worker_ids = db.session.execute(
+            text('SELECT worker_id FROM worker WHERE event_id = :event_id'),
+            {'event_id': event_id}
+        ).fetchall()
+        worker_ids = [row[0] for row in worker_ids]
+        workers = User.query.filter(User.personal_id.in_(worker_ids)).all()
 
-            # Fetch worker details from User model
-            workers = User.query.filter(User.personal_id.in_(worker_ids)).all()
+        result = [
+            {
+                'personal_id': worker.personal_id,
+                'email': worker.email
+            }
+            for worker in workers
+        ]
+        return result
 
-            # Convert worker objects to dictionaries
-            result = [
-                {
-                    'personal_id': worker.personal_id,
-                    'email': worker.email
-                }
-                for worker in workers
-            ]
-            return result
-        return []

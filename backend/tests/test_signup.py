@@ -1,16 +1,15 @@
 import unittest
-from datetime import datetime, timedelta
 
-from backend.stores.user_store import UserStore
-from backend.stores.event_store import EventStore
+from backend.stores import UserStore
 from backend.db import db
 from backend.main import create_app
-from backend.models import EventStatus, Role
+from backend.models import Role
 
 
-class EventTestCase(unittest.TestCase):
+class UserSignupTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # Set up the application and its context
         cls.app = create_app()
         cls.app_context = cls.app.app_context()
         cls.app_context.push()
@@ -25,85 +24,54 @@ class EventTestCase(unittest.TestCase):
         cls.app_context.pop()
 
     def setUp(self):
-        # Set up a user with worker role
+        # Common user data used across tests
         self.user_data = {
-            'username': 'worker1',
+            'username': 'testuser',
             'password': 'Password123!',
-            'email': 'worker1@example.com',
-            'role': Role.WORKER.value,  # Use the enum value
-            'first_name': 'Worker',
-            'family_name': 'One',
-            'personal_id': '987654321',
+            'confirmPassword': 'Password123!',
+            'email': 'testuser@example.com',
+            'role': Role.WORKER.value,
+            'first_name': 'Test',
+            'family_name': 'User',
+            'personal_id': '123456789',
             'phone_number': '0501234567',
             'birthdate': '1990-01-01',
-            'city': 'Worker City',
+            'city': 'Test City',
             'bank_number': '1234567890123456',
             'bank_branch_number': '123',
             'credit_card_account_number': '1234567890123456',
             'company_id': 1
         }
-        # Delete any existing user with the same username
+
         UserStore.delete_user_by_username(self.user_data['username'])
-        # Create the user and store the returned instance
-        self.worker = UserStore.create_user(self.user_data)
-
-        self.event_data = {
-            'name': 'Test Event',
-            'start_time': datetime.now(),
-            'end_time': datetime.now() + timedelta(hours=2),
-            'description': 'An event for testing',
-            'location': 'Test Location',
-            'status': EventStatus.PLANNED,
-            'advertised': False
-        }
-
-        # Ensure the event is deleted before creating
-        EventStore.delete_event(self.event_data['name'])
-        self.event = EventStore.create_event(**self.event_data)
 
     def tearDown(self):
-        # Clean up after each test
-        EventStore.delete_event(self.event_data['name'])
         UserStore.delete_user_by_username(self.user_data['username'])
 
-    def test_create_event(self):
-        response = self.client.post('/events', json=self.event_data)
+    def test_signup_with_valid_info(self):
+        response = self.client.post('/users/signup', json=self.user_data)
         data = response.get_json()
         self.assertEqual(201, response.status_code)
-        self.assertIn('id', data)
+        self.assertIn('User registered successfully', data['message'])
 
-    def test_update_event(self):
-        updated_data = {
-            'name': 'Updated Event',
-            'description': 'Updated event description',
-            'location': 'Updated Location'
-        }
-        response = self.client.put(f'/events/{self.event.id}', json=updated_data)
-        self.assertEqual(200, response.status_code)
-        updated_event = EventStore.get_event_by_id(self.event.id)
-        self.assertEqual(updated_event.name, updated_data['name'])
-        self.assertEqual(updated_event.description, updated_data['description'])
-        self.assertEqual(updated_event.location, updated_data['location'])
+    def test_signup_with_invalid_personal_id(self):
+        invalid_data = self.user_data.copy()
+        invalid_data['personal_id'] = '12345abc99'  # Invalid personal ID
 
-    def test_delete_event(self):
-        response = self.client.delete(f'/events/{self.event.id}')
-        self.assertEqual(200, response.status_code)
-        deleted_event = EventStore.get_event_by_id(self.event.id)
-        self.assertIsNone(deleted_event)
+        response = self.client.post('/users/signup', json=invalid_data)
+        data = response.get_json()
+        self.assertEqual(400, response.status_code)
+        self.assertIn('id', data["error"])
 
-    def test_add_worker_to_event(self):
-        response = self.client.post(f'/events/{self.event.id}/workers', json={'worker_id': self.worker.id})
-        self.assertEqual(200, response.status_code)
-        event_with_worker = EventStore.get_event_by_id(self.event.id)
-        self.assertEqual(len(event_with_worker.users), 1)
-        self.assertEqual(event_with_worker.users[0].id, self.worker.id)
+    def test_signup_with_mismatched_passwords(self):
+        mismatched_data = self.user_data.copy()
+        mismatched_data['confirmPassword'] = 'Password123'  # Mismatched passwords
 
-    def test_add_job_to_event(self):
-        job_id = 1  # This should match a valid job ID or be handled in the test setup
-        response = self.client.post(f'/events/{self.event.id}/jobs', json={'job_id': job_id, 'openings': 5})
-        self.assertEqual(200, response.status_code)
-        event_with_job = EventStore.get_event_by_id(self.event.id)
-        self.assertIn(job_id, event_with_job.job_ids)  # Check that job_id is in the list of job_ids
+        response = self.client.post('/users/signup', json=mismatched_data)
+        data = response.get_json()
+        self.assertEqual(400, response.status_code)
+        self.assertIn('Passwords do not match', data["error"])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -7,16 +7,17 @@ from typing import Tuple
 from datetime import datetime
 
 from backend.models import Event, User, event_job, EventStatus, Job
+from backend.models.schemas import UpdateEvent
+from backend.stores import EventStore
 
 event_blueprint = Blueprint('events', __name__)
 
 
-# Create a new event
 @event_blueprint.route('/create_event', methods=['POST'])
 @jwt_required()
 def create_event() -> Tuple[Response, int]:
     try:
-        id = random.randrange(1, 10)
+        id = random.randrange(1, 10)  # use uuid
         data = request.get_json()
         name = data.get('name')
         description = data.get('description', '')
@@ -43,7 +44,6 @@ def create_event() -> Tuple[Response, int]:
         return jsonify({"error": str(e)}), 400
 
 
-# Retrieve details of a specific event
 @event_blueprint.route('/<int:event_id>', methods=['GET'])
 @jwt_required()
 def get_event(event_id: int) -> Tuple[Response, int]:
@@ -66,44 +66,29 @@ def get_event(event_id: int) -> Tuple[Response, int]:
     }), 200
 
 
-# Update an existing event
 @event_blueprint.route('/<int:event_id>', methods=['PUT'])
 @jwt_required()
-def update_event(event_id: int) -> Tuple[Response, int]:
-    event = Event.query.get(event_id)
-    if not event:
-        return jsonify({"error": "Event not found."}), 404
-
+def update_event() -> Tuple[Response, int]:
     try:
-        data = request.get_json()
-        event.name = data.get('name', event.name)
-        event.description = data.get('description', event.description)
-        event.location = data.get('location', event.location)
-        event.start_time = datetime.fromisoformat(data.get('start_time', event.start_time.isoformat()))
-        event.end_time = datetime.fromisoformat(data.get('end_time', event.end_time.isoformat()))
-        event.status = EventStatus[data.get('status', event.status.name).upper()]
-        event.advertised = data.get('advertised', event.advertised)
-
-        event.save_to_db()
+        event = UpdateEvent(**request.get_json())
+        EventStore.update_event(event)
         return jsonify({"message": "Event updated successfully."}), 200
 
     except (ValidationError, ValueError) as e:
         return jsonify({"error": str(e)}), 400
 
 
-# Delete an event
 @event_blueprint.route('/<int:event_id>', methods=['DELETE'])
 @jwt_required()
 def delete_event(event_id: int) -> Tuple[Response, int]:
-    event = Event.query.get(event_id)
-    if not event:
-        return jsonify({"error": "Event not found."}), 404
+    EventStore.delete_event(event_id)
 
-    event.delete()
-    return jsonify({"message": "Event deleted successfully."}), 200
+    if EventStore.delete_event(event_id):
+        return jsonify({"message": "Event deleted successfully."}), 200
+    else:
+        return jsonify({"message": "Event was not found."}), 404
 
 
-# Add a worker to an event
 @event_blueprint.route('/<int:event_id>/workers', methods=['POST'])
 @jwt_required()
 def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
@@ -118,7 +103,7 @@ def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
         if not event:
             return jsonify({"error": "Event not found."}), 404
 
-        worker = User.find_by_id_and_role(worker_id, 'WORKER')
+        worker = User.find_by_id(worker_id)
         if not worker:
             return jsonify({"error": "Worker not found or not a valid worker."}), 404
 
@@ -129,7 +114,6 @@ def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
         return jsonify({"error": str(e)}), 400
 
 
-# Add a job to an event
 @event_blueprint.route('/<int:event_id>/jobs', methods=['POST'])
 @jwt_required()
 def add_job_to_event(event_id: int) -> Tuple[Response, int]:
@@ -145,7 +129,7 @@ def add_job_to_event(event_id: int) -> Tuple[Response, int]:
         job_data = Job(id=job_id, name=job_name)
         Job.create_job(job_data)
 
-        Event.add_job_to_event(event, event_id, job_id, openings)
+        add_job_to_event(event_id, job_id, openings)
 
         return jsonify({"message": "Job added to event successfully."}), 200
 

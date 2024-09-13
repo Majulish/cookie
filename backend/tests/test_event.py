@@ -6,7 +6,7 @@ from enum import Enum
 from backend.stores import UserStore, EventStore
 from backend.db import db
 from backend.main import create_app
-from backend.models import EventStatus, Role, User, Event  # Add User and Event models
+from backend.models import EventStatus, Role, User
 
 
 class EventTestCase(unittest.TestCase):
@@ -56,7 +56,6 @@ class EventTestCase(unittest.TestCase):
         login_data = login_response.get_json()
         self.jwt_token = login_data.get('access_token')
 
-        # Set up event data
         self.event_data = {
             'id': 1,
             'name': 'Test Event',
@@ -87,7 +86,6 @@ class EventTestCase(unittest.TestCase):
         return response.get_json()['access_token']
 
     def test_create_event(self):
-        # Custom JSON encoder to handle Enum and datetime
         class CustomJSONEncoder(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, Enum):

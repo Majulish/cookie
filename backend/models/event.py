@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import Optional
 
 from backend.db import db
-from sqlalchemy import Enum, Table, Column, Integer, ForeignKey, String, Boolean, DateTime
+from sqlalchemy import Enum, Table, Column, Integer, ForeignKey, String, Boolean, DateTime, text
 from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
 
@@ -20,7 +19,6 @@ class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
 
-    # Relationship to Event model via association table
     events = relationship("Event", secondary=event_job, back_populates="jobs")
 
     def create_job(self) -> None:
@@ -34,14 +32,16 @@ class EventStatus(PyEnum):
     FINISHED = 'finished'
 
 
-worker = Table(
+event_workers = Table(
     'worker', db.Model.metadata,
     Column('event_id', Integer, ForeignKey('events.id')),
     Column('worker_id', String, ForeignKey('users.personal_id'))
 )
 
 
-
+def add_job_to_event(event_id: int, job_id: int, openings: int) -> None:
+    db.session.execute(event_job.insert().values(event_id=event_id, job_id=job_id, openings=openings))
+    db.session.commit()
 
 
 class Event(db.Model):
@@ -57,7 +57,6 @@ class Event(db.Model):
     status = Column(Enum(EventStatus), default=EventStatus.PLANNED, nullable=False)
     advertised = Column(Boolean, default=False, nullable=False)
 
-    # Relationship to Job model via association table
     jobs = relationship("Job", secondary=event_job, back_populates="events")
 
     def __init__(self, id, name, start_time, end_time, description, location, status, advertised):
@@ -84,16 +83,17 @@ class Event(db.Model):
 
     def add_worker(self, worker_id: int) -> None:
         try:
-            # Insert the new worker entry
-            db.session.execute(worker.insert().values(event_id=self.id, worker_id=worker_id))
-
-            # Commit the transaction
+            db.session.execute(event_workers.insert().values(event_id=self.id, worker_id=worker_id))
             db.session.commit()
         except Exception as e:
-            # Rollback in case of error
             db.session.rollback()
             raise e
 
-    def add_job_to_event(self, event_id: int, job_id: int, openings: int) -> None:
-        db.session.execute(event_job.insert().values(event_id=event_id, job_id=job_id, openings=openings))
+    @staticmethod
+    def delete_worker(event_id: int) -> None:
+        db.session.execute(
+            text('DELETE FROM worker WHERE event_id = :event_id'),
+            {'event_id': event_id}
+        )
+
         db.session.commit()

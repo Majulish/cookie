@@ -68,10 +68,6 @@ class User(db.Model):
         return cls.query.filter_by(id=user_id).first()
 
     @classmethod
-    def find_by_id_and_role(cls, user_id: int, role: str) -> Optional['User']:
-        return cls.query.filter_by(id=user_id, role=role).first()
-
-    @classmethod
     def delete_by_id(cls, user_id: int) -> None:
         user = cls.find_by_id(user_id)
         if user:
