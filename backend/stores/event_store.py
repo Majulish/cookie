@@ -2,11 +2,7 @@ from typing import List, Optional
 import json
 
 from flask import jsonify
-
 from backend.models.event import Event
-from backend.models.user import User
-from backend.db import db
-from sqlalchemy import text
 
 
 class EventStore:

@@ -49,4 +49,3 @@ class UpdateEvent(BaseModel):
     end_time: constr(datetime)
     status: Optional[EventStatus] = EventStatus.PLANNED
     advertised: Optional[bool] = False
-

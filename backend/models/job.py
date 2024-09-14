@@ -1,6 +1,6 @@
 from sqlalchemy.orm import relationship
 from backend.db import db
-from backend.models import EventJob, Event
+from backend.models import EventJob
 from backend.stores import EventStore
 
 

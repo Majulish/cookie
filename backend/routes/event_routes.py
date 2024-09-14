@@ -1,5 +1,5 @@
-import random
 
+import uuid
 from flask import request, jsonify, Blueprint, Response
 from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
@@ -18,7 +18,7 @@ event_blueprint = Blueprint('events', __name__)
 @jwt_required()
 def create_event() -> Tuple[Response, int]:
     try:
-        id = random.randrange(1, 10)  # use uuid
+        event_id = uuid.uuid4()
         data = request.get_json()
         name = data.get('name')
         description = data.get('description', '')
@@ -29,7 +29,7 @@ def create_event() -> Tuple[Response, int]:
         advertised = data.get('advertised', False)
 
         event = Event(
-            id=id,
+            id=event_id,
             name=name,
             description=description,
             location=location,
