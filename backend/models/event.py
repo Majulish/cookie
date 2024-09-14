@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from backend.db import db
-from sqlalchemy import Enum, Column, Integer, String, Boolean, DateTime, text
+from sqlalchemy import Enum, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
 from backend.models import EventJob, EventStatus
 

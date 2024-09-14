@@ -1,6 +1,7 @@
 from sqlalchemy.orm import relationship
 from backend.db import db
-from backend.models import EventJob
+from backend.models import EventJob, Event
+from backend.stores import EventStore
 
 
 class Job(db.Model):
@@ -14,3 +15,14 @@ class Job(db.Model):
     def create_job(self) -> None:
         db.session.add(self)
         db.session.commit()
+
+    @staticmethod
+    def add_job_to_event(event_id: int, job_id: int, openings: int) -> str:
+        event = EventStore.get_event_by_id(event_id)
+        if not event:
+            return "Event not found"
+
+        event.add_job_to_event(job_id, openings)
+        return "Job added successfully"
+
+

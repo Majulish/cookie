@@ -61,55 +61,12 @@ class EventStore:
         return False
 
 
-
-    @staticmethod
-    def delete_worker_by_personal_id(personal_id: str) -> None:
-        db.session.execute(
-            text('DELETE FROM worker WHERE worker_id = :personal_id'),
-            {'personal_id': personal_id}
-        )
-
-        db.session.commit()
-
-    @staticmethod
-    def add_worker_to_event(event_id: int, user_id: int) -> bool:
-        event = EventStore.get_event_by_id(event_id)
-        if event:
-            event.add_worker(event_id, user_id)
-            return True
-        return False
-
-    @staticmethod
-    def add_job_to_event(event_id: int, job_id: int, openings: int) -> bool:
-        event = EventStore
-        if event:
-            event.add_job_to_event(event_id, job_id, openings)
-            return True
-        return False
-
     @staticmethod
     def get_all_events() -> List[Event]:
         return Event.query.all()
 
-    @staticmethod
-    def get_workers_by_event(event_id: int) -> List[dict]:
-        event = EventStore.get_event_by_id(event_id)
-        if not event:
-            return []
+    from typing import List, Dict
 
-        worker_ids = db.session.execute(
-            text('SELECT worker_id FROM worker WHERE event_id = :event_id'),
-            {'event_id': event_id}
-        ).fetchall()
-        worker_ids = [row[0] for row in worker_ids]
-        workers = User.query.filter(User.personal_id.in_(worker_ids)).all()
 
-        result = [
-            {
-                'personal_id': worker.personal_id,
-                'email': worker.email
-            }
-            for worker in workers
-        ]
-        return result
+
 

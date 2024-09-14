@@ -1,4 +1,7 @@
+from typing import List, Dict
+
 from backend import db
+from backend.stores import EventStore
 
 
 class EventWorkers(db.Model):
@@ -16,11 +19,50 @@ class EventWorkers(db.Model):
             raise e
 
     @staticmethod
-    # delete_worker function deletes all rows in the EventWorkers table where the event_id matches the provided event_id
-    def delete_worker(event_id: int) -> None:
+    def delete_workers_by_event(event_id: int) -> None:
         try:
             EventWorkers.query.filter_by(event_id=event_id).delete()
             db.session.commit()
         except Exception as e:
             db.session.rollback()
             raise e
+
+    @staticmethod
+    def delete_worker_by_personal_id(personal_id: str) -> None:
+        try:
+            EventWorkers.query.filter_by(worker_id=personal_id).delete()
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    @staticmethod
+    def add_worker_to_event(event_id: int, user_id: int) -> bool:
+        event = EventStore.get_event_by_id(event_id)
+        if event:
+            event.add_worker(event_id, user_id)
+            return True
+        return False
+
+    @staticmethod
+    def get_workers_by_event(event_id: int) -> List[Dict[str, str]]:
+        event = EventStore.get_event_by_id(event_id)
+        if not event:
+            return []
+
+        workers = db.session.execute(
+            db.select(EventWorkers.worker_id).filter_by(event_id=event_id)
+        ).scalars().all()
+
+        if not workers:
+            return []
+
+        result = [
+            {
+                'worker_id': worker_id
+            }
+            for worker_id in workers
+        ]
+
+        return result
+
