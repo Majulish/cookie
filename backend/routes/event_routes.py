@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from typing import Tuple
 from datetime import datetime
 
-from backend.models import Event, User, event_job, EventStatus, Job
+from backend.models import Event, User, event_job, EventStatus, job
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
 
