@@ -1,7 +1,7 @@
 import React from 'react';
 import {Container, Typography, Grid, Paper, useMediaQuery, useTheme} from '@mui/material';
-import ResponsiveTabs from '../components/ResponsiveTabs';
-import SideTab from '../components/SideTab';
+import ResponsiveTabs from '../../components/ResponsiveTabs';
+import SideTab from '../../components/SideTab';
 
 const HomePage: React.FC = () => {
     const theme = useTheme();

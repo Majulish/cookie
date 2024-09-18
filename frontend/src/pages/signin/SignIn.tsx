@@ -1,6 +1,5 @@
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -15,15 +14,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { Link as RouterLink } from 'react-router-dom';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useSignIn } from './useSignIn';
+import { signInSchema, SignInFormInputs } from './signInScheme';
 
 const defaultTheme = createTheme();
-
-const signInSchema = z.object({
-  username: z.string().min(4, 'Username must be at least 4 characters'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-});
-
-type SignInFormInputs = z.infer<typeof signInSchema>;
 
 export default function SignIn() {
   const { signIn, loading, error } = useSignIn();
