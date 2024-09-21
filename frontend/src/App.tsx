@@ -2,8 +2,9 @@ import React from 'react';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
-import SignIn from './pages/sign in/SignIn';
-//import SignUp from './pages/sign up/SignUp';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import SignIn from './pages/signin/SignIn';
+import SignUp from './pages/signup/SignUp';
 import HomePage from './pages/home/HomePage';
 
 const theme = createTheme({
@@ -14,18 +15,22 @@ const theme = createTheme({
   },
 });
 
+const queryClient = new QueryClient();
+
 const router = createBrowserRouter([
-  { path: '/', element: <HomePage /> },
- // { path: '/sign-up', element: <SignUp /> },
+  {path: '/',element: <HomePage />},
+  { path: '/sign-up', element: <SignUp /> },
   { path: '/sign-in', element: <SignIn /> },
 ]);
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <RouterProvider router={router} />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 };
 
