@@ -1,7 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr, constr, conint, field_validator
-
-from backend.models import Role
+from datetime import datetime
+from backend.models import Role, EventStatus
 
 
 class SignupRequest(BaseModel):
@@ -38,3 +38,14 @@ class SignupRequest(BaseModel):
 class LoginRequest(BaseModel):
     username: constr(min_length=1)
     password: constr(min_length=8)
+
+
+class UpdateEvent(BaseModel):
+    name: constr(min_length=1, max_length=100)
+    id: constr(min_length=1, max_length=256)
+    description: Optional[constr(min_length=1, max_length=500)]
+    location: constr(min_length=1, max_length=200)
+    start_time: constr(datetime)
+    end_time: constr(datetime)
+    status: Optional[EventStatus] = EventStatus.PLANNED
+    advertised: Optional[bool] = False

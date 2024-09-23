@@ -5,7 +5,7 @@ import redis
 from datetime import timedelta
 
 from backend.SECRETS import JWT_TOKEN
-from backend.routes import user_blueprint
+from backend.routes import user_blueprint, event_blueprint
 from backend.db import db
 
 
@@ -40,6 +40,7 @@ def create_app():
 
     # Adding Routes
     app.register_blueprint(user_blueprint, url_prefix='/users')
+    app.register_blueprint(event_blueprint, url_prefix='/events')
 
     return app
 
