@@ -26,44 +26,12 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Alert from '@mui/material/Alert';
-import { signUpApi } from '../../api/authApi';
-import { signUpSchema, SignUpFormInputs } from './signUpScheme';
-import { AxiosError } from 'axios';
+import { useSignUp } from './useSignUp';
 
 const defaultTheme = createTheme();
 
 export default function SignUp() {
-  const navigate = useNavigate();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setError,
-  } = useForm<SignUpFormInputs>({
-    resolver: zodResolver(signUpSchema),
-  });
-
-  const mutation = useMutation(signUpApi, {
-    onSuccess: (data) => {
-      if (data.message === 'User registered successfully') {
-        navigate('/sign-in');
-      }
-    },
-    onError: (error: AxiosError<{ message: string }>) => {
-      if (error.response?.status === 400 && error.response.data.message === "Username already exists") {
-        setError('username', { 
-          type: 'manual',
-          message: 'Username already exists'
-        });
-      } else {
-        console.error('Sign up error:', error);
-      }
-    },
-  });
-
-  const onSubmit: SubmitHandler<SignUpFormInputs> = (data) => {
-    mutation.mutate(data);
-  };
+  const { register, handleSubmit, errors, onSubmit, mutation } = useSignUp();
 
   return (
     <ThemeProvider theme={defaultTheme}>
