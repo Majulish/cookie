@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from backend import db
+from backend.db import db
 from backend.stores import EventStore
 
 
