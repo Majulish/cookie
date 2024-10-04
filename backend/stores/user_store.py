@@ -1,13 +1,14 @@
 from typing import Optional, Dict, Any
 
 from backend.models.user import User
-from backend.app.auth import hash_password
+from backend.app.auth import hash_data
 
 
 class UserStore:
     @staticmethod
     def create_user(data: Dict[str, Any]) -> User:
-        hashed_password = hash_password(data['password'])
+        hashed_password = hash_data(data['password'])
+        hashed_personal_id = hash_data(data['personal_id'])
         user = User(
             username=data['username'],
             email=data['email'],
@@ -23,7 +24,7 @@ class UserStore:
             phone_number=data.get('phone_number'),
             first_name=data.get('first_name'),
             family_name=data.get('family_name'),
-            personal_id=data.get('personal_id'),
+            personal_id=hashed_personal_id,
             company_id=data.get('company_id'),
             city=data.get('city'),
         )
@@ -32,7 +33,7 @@ class UserStore:
 
     @staticmethod
     def update_user(user_id: int, data: Dict[str, Any]) -> Optional[User]:
-        user = User.find_by_id(user_id)
+        user = User.find_by_personal_id(user_id)
         if user:
             user.update_user(data)
             return user
@@ -43,19 +44,19 @@ class UserStore:
         user.delete()
 
     @staticmethod
-    def find_user_by_username(username: str) -> Optional[User]:
-        return User.find_by_username(username)
-
-    @staticmethod
     def find_user_by_email(email: str) -> Optional[User]:
         return User.find_by_email(email)
 
     @staticmethod
-    def find_user_by_id(user_id: int) -> Optional[User]:
-        return User.find_by_id(user_id)
+    def find_user_by_username(username: str) -> Optional[User]:
+        return User.find_by_username(username)
 
     @staticmethod
-    def delete_user_by_username(username: str) -> bool:
+    def find_user_by_id(user_id: int) -> Optional[User]:
+        return User.find_by_personal_id(user_id)
+
+    @staticmethod
+    def delete_user_by_id(username: str) -> bool:
         user = User.find_by_username(username)
         if user:
             user.delete()
