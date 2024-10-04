@@ -71,9 +71,9 @@ export default function SignUp() {
                   id="firstName"
                   label="First Name"
                   autoFocus
-                  {...register('firstName')}
-                  error={!!errors.firstName}
-                  helperText={errors.firstName?.message}
+                  {...register('first_name')}
+                  error={!!errors.first_name}
+                  helperText={errors.first_name?.message}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -83,9 +83,9 @@ export default function SignUp() {
                   id="lastName"
                   label="Last Name"
                   autoComplete="family-name"
-                  {...register('lastName')}
-                  error={!!errors.lastName}
-                  helperText={errors.lastName?.message}
+                  {...register('family_name')}
+                  error={!!errors.family_name}
+                  helperText={errors.family_name?.message}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -95,9 +95,9 @@ export default function SignUp() {
                   id="id"
                   label="ID"
                   autoComplete="id"
-                  {...register('id')}
-                  error={!!errors.id}
-                  helperText={errors.id?.message}
+                  {...register('personal_id')}
+                  error={!!errors.personal_id}
+                  helperText={errors.personal_id?.message}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -107,9 +107,9 @@ export default function SignUp() {
                   id="phoneNumber"
                   label="Phone Number"
                   autoComplete="tel"
-                  {...register('phoneNumber')}
-                  error={!!errors.phoneNumber}
-                  helperText={errors.phoneNumber?.message}
+                  {...register('phone_number')}
+                  error={!!errors.phone_number}
+                  helperText={errors.phone_number?.message}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -120,9 +120,9 @@ export default function SignUp() {
                   label="Date of Birth"
                   autoComplete="bday"
                   placeholder="DD/MM/YYYY"
-                  {...register('dateOfBirth')}
-                  error={!!errors.dateOfBirth}
-                  helperText={errors.dateOfBirth?.message}
+                  {...register('birthdate')}
+                  error={!!errors.birthdate}
+                  helperText={errors.birthdate?.message}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -131,9 +131,9 @@ export default function SignUp() {
                   id="companyName"
                   label="Company Name"
                   autoComplete="organization"
-                  {...register('companyName')}
-                  error={!!errors.companyName}
-                  helperText={errors.companyName?.message}
+                  {...register('company_name')}
+                  error={!!errors.company_name}
+                  helperText={errors.company_name?.message}
                 />
               </Grid>
               <Grid item xs={12}>

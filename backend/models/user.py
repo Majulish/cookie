@@ -27,7 +27,8 @@ class User(db.Model):
     first_name = db.Column(db.String(50), nullable=False)
     family_name = db.Column(db.String(50), nullable=False)
     personal_id = db.Column(db.String(10), unique=True, nullable=False)
-    company_id = db.Column(db.Integer, nullable=True)
+    company_name = db.Column(db.String(10), nullable=False)
+    #company_id = db.Column(db.Integer, nullable=True)
     city = db.Column(db.String(50), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.now)

@@ -4,7 +4,7 @@ import { useMutation } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { signUpApi } from '../../api/authApi';
-import { signUpSchema, SignUpFormInputs } from './signUpScheme';
+import { signUpSchema, SignUpFormInputs} from './signUpScheme';
 
 export const useSignUp = () => {
   const navigate = useNavigate();
@@ -36,7 +36,8 @@ export const useSignUp = () => {
   });
 
   const onSubmit: SubmitHandler<SignUpFormInputs> = (data) => {
-    mutation.mutate(data);
+    const { confirmPassword, ...rest } = data;
+    mutation.mutate(rest);
   };
 
   return {

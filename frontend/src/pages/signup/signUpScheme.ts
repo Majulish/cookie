@@ -3,11 +3,11 @@ import {calculateAge , isValidDate} from './utils'
 
 export const signUpSchema = z.object({
     username: z.string().min(4, 'Username must be at least 4 characters'),
-    firstName: z.string().min(2, 'First name must be at least 2 characters'),
-    lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-    id: z.string().regex(/^\d{9}$/, 'ID must be 9 digits'),
-    phoneNumber: z.string().regex(/^\d{10}$/, 'Phone number must be 10 digits'),
-    dateOfBirth: z
+    first_name: z.string().min(2, 'First name must be at least 2 characters'),
+    family_name: z.string().min(2, 'Last name must be at least 2 characters'),
+    personal_id: z.string().regex(/^\d{9}$/, 'ID must be 9 digits'),
+    phone_number: z.string().regex(/^\d{10}$/, 'Phone number must be 10 digits'),
+    birthdate: z
       .string()
       .regex(/^\d{2}[./]\d{2}[./]\d{4}$/, 'Date of birth must be in DD/MM/YYYY or DD.MM.YYYY format')
       .refine((dob) => {
@@ -20,7 +20,7 @@ export const signUpSchema = z.object({
         const age = calculateAge(formattedDateOfBirth);
         return age >= 18 && age <= 80;
       }, 'Age must be between 18 and 80'),
-    companyName: z.string().min(2, 'Company Name must be at least 2 characters'),
+    company_name: z.string().min(2, 'Company Name must be at least 2 characters'),
     role: z.string().min(2, 'Must choose a role'),
     email: z.string().email('Invalid email address'),
     password: z
@@ -34,4 +34,4 @@ export const signUpSchema = z.object({
     path: ['confirmPassword'],
 });
 
-export type SignUpFormInputs = z.infer<typeof signUpSchema>;
+export type SignUpFormInputs = z.infer<typeof signUpSchema> & { confirmPassword?: string };
