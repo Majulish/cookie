@@ -3,7 +3,8 @@ from datetime import datetime
 from backend.db import db
 from sqlalchemy import Enum, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship
-from backend.models import EventJob, EventStatus
+from backend.models.event_job import EventJob
+from backend.models.event_status import EventStatus
 
 
 class Event(db.Model):
