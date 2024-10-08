@@ -21,6 +21,7 @@ export const signUpSchema = z.object({
         return age >= 18 && age <= 80;
       }, 'Age must be between 18 and 80'),
     company_name: z.string().min(2, 'Company Name must be at least 2 characters'),
+    company_id: z.string().min(1,'Company ID is required'),
     role: z.string().min(2, 'Must choose a role'),
     email: z.string().email('Invalid email address'),
     password: z

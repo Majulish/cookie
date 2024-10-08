@@ -80,7 +80,7 @@ export default function SignIn() {
             label="Password"
             type="password"
             id="password"
-            autoComplete="current-password"
+            autoComplete="password"
             {...register('password')}
             error={!!errors.password}
             helperText={errors.password?.message}

@@ -17,6 +17,7 @@ class SignupRequest(BaseModel):
     birthdate: Optional[str]  # Use consistent date format if required
     phone_number: Optional[constr(max_length=20)]
     personal_id: Optional[constr(min_length=9, max_length=9)]
+    company_id: Optional[str]
     company_name: Optional[str]
 
 

@@ -6,7 +6,9 @@ const API_BASE_URL = 'http://localhost:8000';
 
 export const signInApi = async (data: SignInFormInputs) => {
     console.log(data);
-  const response = await axios.post(`${API_BASE_URL}/users/signin`, data);
+  const response = await axios.post(`${API_BASE_URL}/users/signin`, data,{
+    withCredentials: true,
+  });
   return response.data;
 };
 

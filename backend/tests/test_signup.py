@@ -3,7 +3,7 @@ import unittest
 from backend.stores import UserStore
 from backend.db import db
 from backend.main import create_app
-from backend.models import Role
+from backend.models.roles import Role
 
 
 class UserSignupTestCase(unittest.TestCase):

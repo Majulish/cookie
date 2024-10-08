@@ -136,6 +136,17 @@ export default function SignUp() {
                   helperText={errors.company_name?.message}
                 />
               </Grid>
+              <Grid item xs = {12}>
+                <TextField
+                  fullWidth
+                  id = "company_id"
+                  label = "company_id"
+                  autoComplete = "company_id"
+                  {...register('company_id')}
+                  error={!!errors.company_id}
+                  helperText={errors.company_id?.message}
+                  />
+               </Grid>
               <Grid item xs={12}>
                 <FormControl fullWidth error={!!errors.role}>
                   <InputLabel id="role-label">Role</InputLabel>
@@ -143,6 +154,7 @@ export default function SignUp() {
                     labelId="role-label"
                     id="role"
                     label="Role"
+                    defaultValue=""
                     {...register('role')}
                   >
                     <MenuItem value="worker">Worker</MenuItem>

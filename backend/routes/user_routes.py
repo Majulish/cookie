@@ -44,12 +44,12 @@ def signin() -> Tuple[Response, int]:
     access_token = create_access_token(identity={'username': data.username, 'role': user.role.value})
     refresh_token = create_refresh_token(identity={'username': data.username, 'role': user.role.value})
 
-    response = make_response(redirect("/", code=302))
-
+    # Return tokens as JSON instead of redirecting
+    response = jsonify({"message": "Login successful"})
     set_access_cookies(response, access_token)
     set_refresh_cookies(response, refresh_token)
 
-    return response, 302
+    return response, 200
 
 
 @user_blueprint.route('/refresh', methods=['POST'])

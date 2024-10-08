@@ -20,7 +20,7 @@ export const useSignUp = () => {
   const mutation = useMutation(signUpApi, {
     onSuccess: (data) => {
       if (data.message === 'User registered successfully') {
-        navigate('/sign-in');
+       // navigate('/sign-in');
       }
     },
     onError: (error: AxiosError<{ message: string }>) => {
