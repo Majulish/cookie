@@ -18,11 +18,7 @@ export const useSignUp = () => {
   });
 
   const mutation = useMutation(signUpApi, {
-    onSuccess: (data) => {
-      if (data.message === 'User registered successfully') {
-       // navigate('/sign-in');
-      }
-    },
+
     onError: (error: AxiosError<{ message: string }>) => {
       if (error.response?.status === 400 && error.response.data.message === "Username already exists") {
         setError('username', { 
