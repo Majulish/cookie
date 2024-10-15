@@ -20,7 +20,7 @@ class Event(db.Model):
     status = Column(Enum(EventStatus), default=EventStatus.PLANNED, nullable=False)
     advertised = Column(Boolean, default=False, nullable=False)
 
-    jobs = relationship("Job", secondary=EventJob, back_populates="events")
+    jobs = relationship("Job", secondary="event_job", back_populates="events")
 
     def __init__(self, event_id, name, start_time, end_time, description, location, status, advertised):
         self.id = event_id

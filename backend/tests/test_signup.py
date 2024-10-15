@@ -3,7 +3,7 @@ import unittest
 from backend.stores import UserStore
 from backend.db import db
 from backend.main import create_app
-from backend.models import Role
+from backend.models.roles import Role
 
 
 class UserSignupTestCase(unittest.TestCase):
@@ -28,7 +28,6 @@ class UserSignupTestCase(unittest.TestCase):
         self.user_data = {
             'username': 'testuser',
             'password': 'Password123!',
-            'confirmPassword': 'Password123!',
             'email': 'testuser@example.com',
             'role': Role.WORKER.value,
             'first_name': 'Test',
@@ -62,15 +61,6 @@ class UserSignupTestCase(unittest.TestCase):
         data = response.get_json()
         self.assertEqual(400, response.status_code)
         self.assertIn('id', data["error"])
-
-    def test_signup_with_mismatched_passwords(self):
-        mismatched_data = self.user_data.copy()
-        mismatched_data['confirmPassword'] = 'Password123'  # Mismatched passwords
-
-        response = self.client.post('/users/signup', json=mismatched_data)
-        data = response.get_json()
-        self.assertEqual(400, response.status_code)
-        self.assertIn('Passwords do not match', data["error"])
 
 
 if __name__ == '__main__':

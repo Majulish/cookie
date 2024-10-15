@@ -1,7 +1,7 @@
 import React from 'react';
 import {Container, Typography, Grid, Paper, useMediaQuery, useTheme} from '@mui/material';
-import ResponsiveTabs from '../components/ResponsiveTabs';
-import SideTab from '../components/SideTab';
+import ResponsiveTabs from '../../components/ResponsiveTabs';
+import SideTab from '../../components/SideTab';
 
 const HomePage: React.FC = () => {
     const theme = useTheme();
@@ -22,14 +22,12 @@ const HomePage: React.FC = () => {
                     )}
                 </Grid>
 
-                {/* Notification Bell Placeholder */}
                 <Grid item xs={12} style={{textAlign: 'right'}}>
                     <div>
                         <Typography variant="h6">🔔 Notification Bell</Typography>
                     </div>
                 </Grid>
 
-                {/* Main Content */}
                 <Grid item xs={12} md={8}>
                     <Typography variant="h4" component="h1" gutterBottom>
                         Events here
@@ -41,12 +39,10 @@ const HomePage: React.FC = () => {
                                 <Typography>This is the content of the text block</Typography>
                             </Paper>
                         </Grid>
-                        {/* Add more event items here */}
                     </Grid>
                 </Grid>
 
 
-                {/* SideTab */}
                 <Grid item xs={12} md={4}>
                     <div style={{position: 'fixed', right: 0}}>
                         <SideTab/>

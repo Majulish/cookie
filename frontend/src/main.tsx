@@ -1,18 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import SignUp from './pages/SignUp';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
-import {RouterProvider, createBrowserRouter} from 'react-router-dom'
-import HomePage from './pages/HomePage';
-
-const router = createBrowserRouter([
-
-  {path: '/' , element: <App/>},
-  {path: '/sign-up', element: <SignUp/>},
-  {path: '/home-page', element: <HomePage/>}
-]);
 
 const theme = createTheme({
   palette: {
@@ -26,7 +16,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
         <ThemeProvider theme={theme}>
             <CssBaseline/>
-            <RouterProvider router = {router}/>
-            </ThemeProvider>
+            <App/>
+        </ThemeProvider>
     </React.StrictMode>
 );

@@ -26,7 +26,8 @@ class User(db.Model):
     phone_number = db.Column(db.String(20), nullable=True)
     first_name = db.Column(db.String(50), nullable=False)
     family_name = db.Column(db.String(50), nullable=False)
-    personal_id = db.Column(db.String(10), unique=True, nullable=False)
+    personal_id = db.Column(db.String(256), unique=True, nullable=False)
+    company_name = db.Column(db.String(10), nullable=True)
     company_id = db.Column(db.Integer, nullable=True)
     city = db.Column(db.String(50), nullable=True)
 
