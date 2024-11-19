@@ -4,7 +4,7 @@ import json
 from flask import jsonify, Response
 from backend.models.event import Event
 from backend.models.user import User
-from backend.models.event_workers import EventWorkers
+from backend.models.event_users import EventUsers
 
 
 class EventStore:
@@ -72,8 +72,8 @@ class EventStore:
 
         workers = (
             User.query
-            .join(EventWorkers, User.id == EventWorkers.user_id)
-            .filter(EventWorkers.event_id == event_id)
+            .join(EventUsers, User.id == EventUsers.user_id)
+            .filter(EventUsers.event_id == event_id)
             .all()
         )
 

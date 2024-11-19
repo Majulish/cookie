@@ -4,24 +4,25 @@ from backend.db import db
 from backend.stores import EventStore
 
 
-class EventWorkers(db.Model):
-    __tablename__ = 'event_workers'
+class EventUsers(db.Model):
+    __tablename__ = 'event_users'
 
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), primary_key=True)
     worker_id = db.Column(db.String, db.ForeignKey('users.personal_id'), primary_key=True)
 
     def add_worker(self, worker_id: int) -> None:
         try:
-            db.session.execute(EventWorkers.insert().values(event_id=self.id, worker_id=worker_id))
+            db.session.execute(EventUsers.insert().values(event_id=self.id, worker_id=worker_id))
             db.session.commit()
         except Exception as e:
             db.session.rollback()
             raise e
 
+
     @staticmethod
     def delete_workers_by_event(event_id: int) -> None:
         try:
-            EventWorkers.query.filter_by(event_id=event_id).delete()
+            EventUsers.query.filter_by(event_id=event_id).delete()
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -30,7 +31,7 @@ class EventWorkers(db.Model):
     @staticmethod
     def delete_worker_by_personal_id(personal_id: str) -> None:
         try:
-            EventWorkers.query.filter_by(worker_id=personal_id).delete()
+            EventUsers.query.filter_by(worker_id=personal_id).delete()
             db.session.commit()
         except Exception as e:
             db.session.rollback()
@@ -51,7 +52,7 @@ class EventWorkers(db.Model):
             return []
 
         workers = db.session.execute(
-            db.select(EventWorkers.worker_id).filter_by(event_id=event_id)
+            db.select(EventUsers.worker_id).filter_by(event_id=event_id)
         ).scalars().all()
 
         if not workers:

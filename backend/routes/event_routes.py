@@ -1,17 +1,20 @@
 
 import uuid
-from flask import request, jsonify, Blueprint, Response
-from flask_jwt_extended import jwt_required
+from flask import request, jsonify, Blueprint, Response, redirect, app
+from flask_jwt_extended import jwt_required, get_jwt
 from pydantic import ValidationError
 from typing import Tuple
 from datetime import datetime
 
 from backend.models.event import Event
+from backend.models.event_users import EventUsers
 from backend.models.user import User
 from backend.models.event import EventStatus
 from backend.models.job import Job
+from backend.models.roles import Role
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
+from backend.stores import UserStore
 
 event_blueprint = Blueprint('events', __name__)
 
@@ -138,3 +141,33 @@ def add_job_to_event(event_id: int) -> Tuple[Response, int]:
 
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
+
+@event_blueprint.route('/my_events', methods=['GET'])
+@jwt_required(locations=["cookies"])
+@jwt_required()
+def get_my_events(): # available or waiting-list, registered  or both parameter
+    jwt_data = get_jwt()
+    if not jwt_data or 'username' not in jwt_data:
+        return redirect('/sign_in')
+    username = jwt_data["username"]
+
+    user_data = UserStore.find_user_by_username(username)
+    if not user_data:
+        return jsonify({"error": "User not found"}), 404
+    user_id = user_data["personal_id"]
+    user_role = user_data["role"]
+
+    if user_role == Role.WORKER.value: # TODO: here we need to use rbac and check for a permission, not a role
+        events = EventUsers.get_events_by_worker(user_id)
+    elif user_role in [Role.HR_MANAGER.value, Role.RECRUITER.value, Role.ADMIN.value]:
+        events = EventUsers.get_events_by_manager(user_id)
+    else:
+        return jsonify({"error": "User role is not authorized to view events"}), 403
+
+    if not events:
+        return jsonify({"message": "No events found for the user"}), 204
+
+    event_data = [event.to_dict() for event in events]
+
+    return jsonify({"events": event_data}), 200
+
