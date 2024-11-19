@@ -28,18 +28,25 @@ def create_event() -> Tuple[Response, int]:
         name = data.get('name')
         description = data.get('description', '')
         location = data.get('location', '')
-        start_time = datetime.fromisoformat(data.get('start_time'))
-        end_time = datetime.fromisoformat(data.get('end_time'))
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
         status = EventStatus[data.get('status', 'PLANNED').upper()]
         advertised = data.get('advertised', False)
 
+
+        # Combine and convert to datetime objects
+        start_datetime = datetime.strptime(f"{start_date} {start_time}", "%d-%m-%y %H%M")
+        end_datetime = datetime.strptime(f"{end_date} {end_time}", "%d-%m-%y %H%M")
+
         event = Event(
-            id=event_id,
+            event_id=event_id,
             name=name,
             description=description,
             location=location,
-            start_time=start_time,
-            end_time=end_time,
+            start_time=start_datetime,
+            end_time=end_datetime,
             status=status,
             advertised=advertised
         )
@@ -120,7 +127,7 @@ def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
         return jsonify({"error": str(e)}), 400
 
 
-@event_blueprint.route('/<int:event_id>/jobs', methods=['POST'])
+@event_blueprint.route('/<int:event_id>/apply', methods=['POST'])
 @jwt_required()
 def add_job_to_event(event_id: int) -> Tuple[Response, int]:
     try:

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from backend.db import db
-from sqlalchemy import Enum, Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Enum, Column, Integer, String, Boolean, DateTime,PickleType
 from sqlalchemy.orm import relationship
 from backend.models.event_job import EventJob
 from backend.models.event_status import EventStatus
@@ -14,6 +14,8 @@ class Event(db.Model):
     name = Column(String(80), nullable=False)
     description = Column(String(200), nullable=True)
     location = Column(String(100), nullable=True)
+    recruiter = Column(String(100), nullable=True)
+    hr_managers = Column(PickleType, nullable=True)
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.now())
