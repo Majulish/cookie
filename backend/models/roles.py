@@ -10,15 +10,16 @@ class Role(Enum):
 
 class Permission(Enum):
     # Event-related permissions
-    VIEW_EVENTS = "view_events"        # View event details and available jobs.
-    MANAGE_EVENTS = "manage_events"   # Create, update, and delete events.
+    VIEW_EVENTS = "view_events"  # View event details and available jobs.
+    MANAGE_EVENTS = "manage_events"  # Create, update, and delete events.
 
     # Worker-related permissions
-    APPLY_FOR_JOBS = "apply_for_jobs" # Workers apply for jobs in events.
-    ASSIGN_WORKERS = "assign_workers" # Assign workers to specific jobs in events.
+    APPLY_FOR_JOBS = "apply_for_jobs"  # Workers apply for jobs in events.
+    ASSIGN_WORKERS = "assign_workers"  # Assign workers to specific jobs in events.
 
     # Application-related permissions
     MANAGE_APPLICATIONS = "manage_applications"  # Approve/reject worker applications.
+
 
 ROLE_PERMISSIONS = {
     Role.WORKER: [
@@ -41,4 +42,3 @@ ROLE_PERMISSIONS = {
 
 def has_permission(user_role: Role, permission: Permission) -> bool:
     return permission in ROLE_PERMISSIONS.get(user_role, [])
-
