@@ -1,64 +1,39 @@
-from typing import Optional, Dict, Any
-
+from flask import jsonify, Response
 from backend.models.user import User
-from backend.app.auth import hash_data
+from typing import Dict, Tuple, Optional
 
 
 class UserStore:
     @staticmethod
-    def create_user(data: Dict[str, Any]) -> User:
-        hashed_password = hash_data(data['password'])
-        hashed_personal_id = hash_data(data['personal_id'])
-        user = User(
-            username=data['username'],
-            email=data['email'],
-            password_hash=hashed_password,
-            role=data.get('role', 'worker'),
-            birthdate=data.get('birthdate'),
-            bank_number=data.get('bank_number'),
-            bank_branch_number=data.get('bank_branch_number'),
-            credit_card_account_number=data.get('credit_card_account_number'),
-            abilities=data.get('abilities', []),
-            assigned_jobs=data.get('assigned_jobs', []),
-            rating=data.get('rating', 0.0),
-            phone_number=data.get('phone_number'),
-            first_name=data.get('first_name'),
-            family_name=data.get('family_name'),
-            personal_id=hashed_personal_id,
-            company_id=data.get('company_id'),
-            city=data.get('city'),
-        )
-        user.save_to_db()
-        return user
+    def create_user(data: Dict) -> Tuple[Response, int]:
+        try:
+            user = User(**data)
+            user.save_to_db()
+            return jsonify({"message": "User created successfully"}), 201
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     @staticmethod
-    def update_user(user_id: int, data: Dict[str, Any]) -> Optional[User]:
-        user = User.find_by_personal_id(user_id)
-        if user:
+    def update_user(user_id: int, data: Dict) -> Tuple[Response, int]:
+        try:
+            user = User.find_by("id", user_id)
+            if not user:
+                return jsonify({"error": "User not found"}), 404
             user.update_user(data)
-            return user
-        return None
+            return jsonify({"message": "User updated successfully"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     @staticmethod
-    def delete_user(user: User) -> None:
-        user.delete()
+    def delete_user(field: str, value: str) -> Tuple[Response, int]:
+        try:
+            success = User.delete_by(field, value)
+            if success:
+                return jsonify({"message": "User deleted successfully"}), 200
+            return jsonify({"error": "User not found"}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     @staticmethod
-    def find_user_by_email(email: str) -> Optional[User]:
-        return User.find_by_email(email)
-
-    @staticmethod
-    def find_user_by_username(username: str) -> Optional[User]:
-        return User.find_by_username(username)
-
-    @staticmethod
-    def find_user_by_id(user_id: int) -> Optional[User]:
-        return User.find_by_personal_id(user_id)
-
-    @staticmethod
-    def delete_user_by_id(username: str) -> bool:
-        user = User.find_by_username(username)
-        if user:
-            user.delete()
-            return True
-        return False
+    def find_user(field: str, value: str) -> Optional[User]:
+        return User.find_by(field, value)
