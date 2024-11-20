@@ -4,17 +4,31 @@ from sqlalchemy.exc import SQLAlchemyError
 from backend.models.event import Event
 from backend.models.user import User
 from backend.models.event_users import EventUsers
+from backend.models.event_job import EventJob
 
 
 class EventStore:
     @staticmethod
-    def create_event(new_event: Dict) -> Tuple[Response, int]:
+    def create_event(data: Dict) -> Event:
         try:
-            event = Event(**new_event)
-            event.save()
-            return jsonify({"message": "Event created successfully"}), 201
-        except SQLAlchemyError as e:
-            return jsonify({"error": str(e)}), 500
+            # Create the event using the model
+            event = Event.create_event(
+                name=data["name"],
+                description=data["description"],
+                location=data["location"],
+                start_time=data["start_datetime"],
+                end_time=data["end_datetime"],
+                recruiter=data["recruiter"],
+            )
+
+            # Add associated jobs
+            for job_title, slots in data["jobs"].items():
+                EventJob.create_event_job(event_id=event.id, job_title=job_title, slots=slots)
+
+            return event
+
+        except Exception as e:
+            raise e
 
     @staticmethod
     def update_event(event: Dict) -> Tuple[Response, int]:
@@ -45,7 +59,7 @@ class EventStore:
     @staticmethod
     def get_workers_by_event(event_id: int) -> tuple[Response, int]:
         # Fetch the event
-        event = EventStore.get_event_by_id(event_id)
+        event = EventStore.get_event_by({"id": event_id})
         if not event:
             return jsonify({"error": "Event not found."}), 404
 
@@ -65,6 +79,6 @@ class EventStore:
 
         return jsonify(worker_data), 200
 
-
-
-
+    @staticmethod
+    def get_event_by(filter) -> Optional[Event]:
+        return Event.query.filter_by(filter).first()

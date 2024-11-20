@@ -1,4 +1,3 @@
-
 import uuid
 from flask import request, jsonify, Blueprint, Response, redirect, app
 from flask_jwt_extended import jwt_required, get_jwt
@@ -6,6 +5,7 @@ from pydantic import ValidationError
 from typing import Tuple
 from datetime import datetime
 
+from backend.app.utils import combine_date_time, split_date_time
 from backend.models.event import Event
 from backend.models.event_users import EventUsers
 from backend.models.user import User
@@ -17,44 +17,57 @@ from backend.stores import EventStore
 from backend.stores import UserStore
 
 event_blueprint = Blueprint('events', __name__)
+JOB_TITLES = ["cook", "cashier", "waiter"]
 
 
-@event_blueprint.route('/create_event', methods=['POST'])
+@event_blueprint.route("/create_event", methods=["POST"])
 @jwt_required()
-def create_event() -> Tuple[Response, int]:
+def create_event():
+    from backend.app.utils import combine_date_time
+
+    data = request.get_json()
     try:
-        event_id = uuid.uuid4()
-        data = request.get_json()
-        name = data.get('name')
-        description = data.get('description', '')
-        location = data.get('location', '')
-        start_date = data.get('start_date')
-        end_date = data.get('end_date')
-        start_time = data.get('start_time')
-        end_time = data.get('end_time')
-        status = EventStatus[data.get('status', 'PLANNED').upper()]
-        advertised = data.get('advertised', False)
+        # Parse and validate event details
+        name = data.get("name")
+        description = data.get("description", "")
+        location = data.get("location", "")
 
+        jwt_data = get_jwt()
+        if not jwt_data or 'username' not in jwt_data:
+            return redirect('/sign_in')
+        recruiter = jwt_data["username"]
 
-        # Combine and convert to datetime objects
-        start_datetime = datetime.strptime(f"{start_date} {start_time}", "%d-%m-%y %H%M")
-        end_datetime = datetime.strptime(f"{end_date} {end_time}", "%d-%m-%y %H%M")
+        start_date = data.get("start_date")
+        start_time = data.get("start_time")
+        end_date = data.get("end_date")
+        end_time = data.get("end_time")
 
-        event = Event(
-            event_id=event_id,
-            name=name,
-            description=description,
-            location=location,
-            start_time=start_datetime,
-            end_time=end_datetime,
-            status=status,
-            advertised=advertised
-        )
-        event.create_event()
-        return jsonify({"message": "Event created successfully."}), 201
+        if not all([start_date, start_time, end_date, end_time]):
+            return jsonify({"error": "Start and end date/time are required"}), 400
 
-    except (ValidationError, ValueError) as e:
-        return jsonify({"error": str(e)}), 400
+        start_datetime = combine_date_time(start_date, start_time)
+        end_datetime = combine_date_time(end_date, end_time)
+
+        jobs_data = data.get("jobs", {})
+        if not isinstance(jobs_data, dict):
+            return jsonify({"error": "Invalid jobs format"}), 400
+
+        event_data = {
+            "name": name,
+            "description": description,
+            "location": location,
+            "recruiter": recruiter,
+            "start_datetime": start_datetime,
+            "end_datetime": end_datetime,
+            "jobs": jobs_data,
+        }
+
+        event = EventStore.create_event(event_data)
+
+        return jsonify({"message": "Event created successfully", "event_id": event.id}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @event_blueprint.route('/<int:event_id>', methods=['GET'])
@@ -149,10 +162,11 @@ def add_job_to_event(event_id: int) -> Tuple[Response, int]:
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
 
+
 @event_blueprint.route('/my_events', methods=['GET'])
 @jwt_required(locations=["cookies"])
 @jwt_required()
-def get_my_events(): # available or waiting-list, registered  or both parameter
+def get_my_events():  # available or waiting-list, registered  or both parameter
     jwt_data = get_jwt()
     if not jwt_data or 'username' not in jwt_data:
         return redirect('/sign_in')
@@ -164,7 +178,7 @@ def get_my_events(): # available or waiting-list, registered  or both parameter
     user_id = user_data["personal_id"]
     user_role = user_data["role"]
 
-    if user_role == Role.WORKER.value: # TODO: here we need to use rbac and check for a permission, not a role
+    if user_role == Role.WORKER.value:  # TODO: here we need to use rbac and check for a permission, not a role
         events = EventUsers.get_events_by_worker(user_id)
     elif user_role in [Role.HR_MANAGER.value, Role.RECRUITER.value, Role.ADMIN.value]:
         events = EventUsers.get_events_by_manager(user_id)
@@ -177,4 +191,3 @@ def get_my_events(): # available or waiting-list, registered  or both parameter
     event_data = [event.to_dict() for event in events]
 
     return jsonify({"events": event_data}), 200
-
