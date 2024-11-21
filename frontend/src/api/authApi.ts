@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { SignInFormInputs } from '../pages/signin/signInScheme';
 import { SignUpFormInputs } from '../pages/signup/signUpScheme';
-
-const API_BASE_URL = 'http://localhost:8000';
+import {API_BASE_URL} from './config'
 
 export const signInApi = async (data: SignInFormInputs) => {
     console.log(data);

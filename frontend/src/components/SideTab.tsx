@@ -22,24 +22,33 @@ const SideTab: React.FC = () => {
 
   return (
     <>
-      <IconButton onClick={toggleDrawer(true)}>
+      <IconButton
+        onClick={toggleDrawer(true)}
+        style={{
+          position: 'fixed',
+          top: '16px',
+          right: '16px',
+          zIndex: 1200,
+        }}
+      >
         <MenuIcon />
       </IconButton>
+
       <Drawer anchor="right" open={isOpen} onClose={toggleDrawer(false)}>
         <List>
-          <ListItem component="div" onClick={() => handleNavigation('/profile')}>
+          <ListItem button onClick={() => handleNavigation('/profile')}>
             <ListItemIcon><AccountCircle /></ListItemIcon>
             <ListItemText primary="Profile" />
           </ListItem>
-          <ListItem component="div" onClick={() => handleNavigation('/settings')}>
+          <ListItem button onClick={() => handleNavigation('/settings')}>
             <ListItemIcon><Settings /></ListItemIcon>
             <ListItemText primary="Settings" />
           </ListItem>
-          <ListItem component="div" onClick={() => handleNavigation('/support')}>
+          <ListItem button onClick={() => handleNavigation('/support')}>
             <ListItemIcon><Help /></ListItemIcon>
             <ListItemText primary="Support" />
           </ListItem>
-          <ListItem component="div" onClick={() => handleNavigation('/logout')}>
+          <ListItem button onClick={() => handleNavigation('/logout')}>
             <ListItemIcon><ExitToApp /></ListItemIcon>
             <ListItemText primary="Logout" />
           </ListItem>
