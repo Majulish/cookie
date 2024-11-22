@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Dialog,
   TextField,
@@ -17,7 +17,6 @@ import {
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { DateTimePicker } from "@mui/x-date-pickers";
-import dayjs, { Dayjs } from "dayjs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema, EventFormInputs } from "./eventScheme";
@@ -39,10 +38,14 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
     handleAddJob,
     handleJobChange,
     handleRemoveJob,
-    getFormDataWithJobs,
-    resetJobList,
+    handleFormSubmit,
+    resetModalState,
+    setStartDateTime,
+    setEndDateTime,
+    startDateTime,
+    endDateTime,
     availableJobs,
-  } = useEventModal();
+  } = useEventModal(onSubmit);
 
   const {
     register,
@@ -53,24 +56,9 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
     resolver: zodResolver(eventSchema),
   });
 
-  const [startDateTime, setStartDateTime] = useState<Dayjs | null>(dayjs());
-  const [endDateTime, setEndDateTime] = useState<Dayjs | null>(dayjs());
-
-  const handleFormSubmit = (data: EventFormInputs) => {
-    const formData: EventFormInputs = {
-      ...data,
-      start_date: startDateTime?.toDate() || new Date(), // Fallback to new Date()
-      end_date: endDateTime?.toDate() || new Date(),
-    };
-    const completeData = getFormDataWithJobs(formData);
-    onSubmit(completeData);
-    reset();
-    resetJobList();
-  };
-
   const handleClose = () => {
     reset();
-    resetJobList();
+    resetModalState();
     onClose();
   };
 
@@ -112,7 +100,7 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
               <DateTimePicker
                 label="Start Date and Time"
                 value={startDateTime}
-                onChange={(newValue) => setStartDateTime(newValue)}
+                onChange={setStartDateTime}
                 slots={{ textField: TextField }}
                 slotProps={{
                   textField: {
@@ -127,7 +115,7 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
               <DateTimePicker
                 label="End Date and Time"
                 value={endDateTime}
-                onChange={(newValue) => setEndDateTime(newValue)}
+                onChange={setEndDateTime}
                 slots={{ textField: TextField }}
                 slotProps={{
                   textField: {
