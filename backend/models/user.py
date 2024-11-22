@@ -58,7 +58,7 @@ class User(db.Model):
     @classmethod
     def find_by(cls, field: str, value: str) -> Optional['User']:
         try:
-            return cls.query.filter_by(**{field: value}).first()
+            return cls.query.filter_by({field: value}).first()
         except Exception as e:
             db.session.rollback()
             raise e

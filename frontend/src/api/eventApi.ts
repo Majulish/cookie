@@ -4,7 +4,7 @@ import { API_BASE_URL } from './config';
 
 export const createEvent = async (data: EventFormInputs) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/users/create_event`, data, {
+        const response = await axios.post(`${API_BASE_URL}/events/create_event`, data, {
             withCredentials: true,
         });
         return response.data;
@@ -16,7 +16,7 @@ export const createEvent = async (data: EventFormInputs) => {
 
 export const getEvents = async () => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/get_events`, {
+        const response = await axios.get(`${API_BASE_URL}/events/get_events`, {
             withCredentials: true,
         });
         return response.data;
