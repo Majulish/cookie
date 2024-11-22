@@ -1,50 +1,76 @@
-
-import uuid
-from flask import request, jsonify, Blueprint, Response
-from flask_jwt_extended import jwt_required
+from flask import request, jsonify, Blueprint, Response, redirect, app
+from flask_jwt_extended import jwt_required, get_jwt
 from pydantic import ValidationError
 from typing import Tuple
-from datetime import datetime
 
 from backend.models.event import Event
+from backend.models.event_users import EventUsers
 from backend.models.user import User
-from backend.models.event import EventStatus
 from backend.models.job import Job
+from backend.models.roles import Permission, Role, has_permission
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
+from backend.stores import UserStore
 
 event_blueprint = Blueprint('events', __name__)
+JOB_TITLES = ["cook", "cashier", "waiter"]
 
 
-@event_blueprint.route('/create_event', methods=['POST'])
+@event_blueprint.route("/create_event", methods=["POST"])
 @jwt_required()
-def create_event() -> Tuple[Response, int]:
+def create_event():
+    from backend.app.utils import combine_date_time
+    jwt_data = get_jwt()
+    if not jwt_data or "role" not in jwt_data:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    current_role = jwt_data["role"]
+    if not has_permission(current_role, Permission.MANAGE_EVENTS):
+        return jsonify({"error": "Permission denied"}), 403
+
+    data = request.get_json()
     try:
-        event_id = uuid.uuid4()
-        data = request.get_json()
-        name = data.get('name')
-        description = data.get('description', '')
-        location = data.get('location', '')
-        start_time = datetime.fromisoformat(data.get('start_time'))
-        end_time = datetime.fromisoformat(data.get('end_time'))
-        status = EventStatus[data.get('status', 'PLANNED').upper()]
-        advertised = data.get('advertised', False)
+        # Parse and validate event details
+        name = data.get("name")
+        description = data.get("description", "")
+        location = data.get("location", "")
 
-        event = Event(
-            id=event_id,
-            name=name,
-            description=description,
-            location=location,
-            start_time=start_time,
-            end_time=end_time,
-            status=status,
-            advertised=advertised
-        )
-        event.create_event()
-        return jsonify({"message": "Event created successfully."}), 201
+        jwt_data = get_jwt()
+        if not jwt_data or 'username' not in jwt_data:
+            return redirect('/sign_in')
+        recruiter = jwt_data["username"]
 
-    except (ValidationError, ValueError) as e:
-        return jsonify({"error": str(e)}), 400
+        start_date = data.get("start_date")
+        start_time = data.get("start_time")
+        end_date = data.get("end_date")
+        end_time = data.get("end_time")
+
+        if not all([start_date, start_time, end_date, end_time]):
+            return jsonify({"error": "Start and end date/time are required"}), 400
+
+        start_datetime = combine_date_time(start_date, start_time)
+        end_datetime = combine_date_time(end_date, end_time)
+
+        jobs_data = data.get("jobs", {})
+        if not isinstance(jobs_data, dict):
+            return jsonify({"error": "Invalid jobs format"}), 400
+
+        event_data = {
+            "name": name,
+            "description": description,
+            "location": location,
+            "recruiter": recruiter,
+            "start_datetime": start_datetime,
+            "end_datetime": end_datetime,
+            "jobs": jobs_data,
+        }
+
+        event = EventStore.create_event(event_data)
+
+        return jsonify({"message": "Event created successfully", "event_id": event.id}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @event_blueprint.route('/<int:event_id>', methods=['GET'])
@@ -69,27 +95,41 @@ def get_event(event_id: int) -> Tuple[Response, int]:
     }), 200
 
 
-@event_blueprint.route('/<int:event_id>', methods=['PUT'])
+@event_blueprint.route("/<int:event_id>", methods=["PUT"])
 @jwt_required()
-def update_event() -> Tuple[Response, int]:
-    try:
-        event = UpdateEvent(**request.get_json())
-        EventStore.update_event(event)
-        return jsonify({"message": "Event updated successfully."}), 200
+def update_event(event_id: int) -> Tuple[Response, int]:
+    jwt_data = get_jwt()
+    if not jwt_data or "role" not in jwt_data:
+        return jsonify({"error": "Unauthorized"}), 403
 
+    current_role = jwt_data["role"]
+    if not has_permission(current_role, Permission.MANAGE_EVENTS):
+        return jsonify({"error": "Permission denied"}), 403
+
+    try:
+        data = request.get_json()
+        event_data = UpdateEvent(**data)
+        result = EventStore.update_event(event_data.model_dump())
+        return result
     except (ValidationError, ValueError) as e:
         return jsonify({"error": str(e)}), 400
+
 
 
 @event_blueprint.route('/<int:event_id>', methods=['DELETE'])
 @jwt_required()
 def delete_event(event_id: int) -> Tuple[Response, int]:
-    EventStore.delete_event(event_id)
+    jwt_data = get_jwt()
+    if not jwt_data or "role" not in jwt_data:
+        return jsonify({"error": "Unauthorized"}), 403
 
-    if EventStore.delete_event(event_id):
-        return jsonify({"message": "Event deleted successfully."}), 200
-    else:
-        return jsonify({"message": "Event was not found."}), 404
+    current_role = jwt_data["role"]
+    if not has_permission(current_role, Permission.MANAGE_EVENTS):
+        return jsonify({"error": "Permission denied"}), 403
+
+    result = EventStore.delete_event(event_id)
+    return result
+
 
 
 @event_blueprint.route('/<int:event_id>/workers', methods=['POST'])
@@ -117,7 +157,7 @@ def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
         return jsonify({"error": str(e)}), 400
 
 
-@event_blueprint.route('/<int:event_id>/jobs', methods=['POST'])
+@event_blueprint.route('/<int:event_id>/apply', methods=['POST'])
 @jwt_required()
 def add_job_to_event(event_id: int) -> Tuple[Response, int]:
     try:
@@ -138,3 +178,33 @@ def add_job_to_event(event_id: int) -> Tuple[Response, int]:
 
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
+
+
+@event_blueprint.route('/my_events', methods=['GET'])
+@jwt_required(locations=["cookies"])
+@jwt_required()
+def get_my_events():  # available or waiting-list, registered  or both parameter
+    jwt_data = get_jwt()
+    if not jwt_data or 'username' not in jwt_data:
+        return redirect('/sign_in')
+    username = jwt_data["username"]
+
+    user_data = UserStore.find_user_by_username(username)
+    if not user_data:
+        return jsonify({"error": "User not found"}), 404
+    user_id = user_data["personal_id"]
+    user_role = user_data["role"]
+
+    if user_role == Role.WORKER.value:  # TODO: here we need to use rbac and check for a permission, not a role
+        events = EventUsers.get_events_by_worker(user_id)
+    elif user_role in [Role.HR_MANAGER.value, Role.RECRUITER.value, Role.ADMIN.value]:
+        events = EventUsers.get_events_by_manager(user_id)
+    else:
+        return jsonify({"error": "User role is not authorized to view events"}), 403
+
+    if not events:
+        return jsonify({"message": "No events found for the user"}), 204
+
+    event_data = [event.to_dict() for event in events]
+
+    return jsonify({"events": event_data}), 200

@@ -32,7 +32,9 @@ class UpdateEvent(BaseModel):
     id: constr(min_length=1, max_length=256)
     description: Optional[constr(min_length=1, max_length=500)]
     location: constr(min_length=1, max_length=200)
-    start_time: datetime
-    end_time: datetime
+    start_date: str
+    end_date: str
+    start_time: str
+    end_time: str
     status: Optional[EventStatus] = EventStatus.PLANNED
     advertised: Optional[bool] = False

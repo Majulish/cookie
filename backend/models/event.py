@@ -1,40 +1,42 @@
-from datetime import datetime
+import datetime
 
 from backend.db import db
-from sqlalchemy import Enum, Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Enum, Column, Integer, String, Boolean, DateTime,PickleType
 from sqlalchemy.orm import relationship
 from backend.models.event_job import EventJob
 from backend.models.event_status import EventStatus
 
 
 class Event(db.Model):
-    __tablename__ = 'events'
+    __tablename__ = "events"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(80), nullable=False)
-    description = Column(String(200), nullable=True)
-    location = Column(String(100), nullable=True)
-    start_time = Column(DateTime, nullable=False)
-    end_time = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.now())
-    status = Column(Enum(EventStatus), default=EventStatus.PLANNED, nullable=False)
-    advertised = Column(Boolean, default=False, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    description = db.Column(db.String(200), nullable=True)
+    location = db.Column(db.String(100), nullable=True)
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=False)
+    recruiter = db.Column(db.String(80), nullable=False)
+    status = db.Column(db.String(20), default="planned", nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC), onupdate=datetime.datetime.now(datetime.UTC))
 
-    jobs = relationship("Job", secondary="event_job", back_populates="events")
-
-    def __init__(self, event_id, name, start_time, end_time, description, location, status, advertised):
-        self.id = event_id
-        self.name = name
-        self.start_time = start_time
-        self.end_time = end_time
-        self.description = description
-        self.location = location
-        self.status = status
-        self.advertised = advertised
-
-    def create_event(self) -> None:
-        db.session.add(self)
+    @staticmethod
+    def create_event(name: str, description: str, location: str, start_time: datetime, end_time: datetime, recruiter: str) -> "Event":
+        """
+        Creates and returns a new event.
+        """
+        event = Event(
+            name=name,
+            description=description,
+            location=location,
+            start_time=start_time,
+            end_time=end_time,
+            recruiter=recruiter,
+        )
+        db.session.add(event)
         db.session.commit()
+        return event  # Return the created event
 
     def delete(self) -> None:
         db.session.delete(self)

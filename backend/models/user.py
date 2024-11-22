@@ -1,6 +1,5 @@
-from datetime import datetime
-from typing import Optional
-
+import datetime
+from typing import Optional, Dict
 from backend.db import db
 from sqlalchemy import Enum
 from backend.models.roles import Role
@@ -20,8 +19,8 @@ class User(db.Model):
     bank_number = db.Column(db.String(20), nullable=True)
     bank_branch_number = db.Column(db.String(10), nullable=True)
     credit_card_account_number = db.Column(db.String(20), nullable=True)
-    abilities = db.Column(db.ARRAY(db.String), nullable=True)  # List of strings
-    assigned_jobs = db.Column(db.ARRAY(db.Integer), nullable=True)  # List of job IDs (integers)
+    abilities = db.Column(db.ARRAY(db.String), nullable=True)
+    assigned_jobs = db.Column(db.ARRAY(db.Integer), nullable=True)
     rating = db.Column(db.Float, nullable=True, default=0.0)
     phone_number = db.Column(db.String(20), nullable=True)
     first_name = db.Column(db.String(50), nullable=False)
@@ -31,8 +30,8 @@ class User(db.Model):
     company_id = db.Column(db.Integer, nullable=True)
     city = db.Column(db.String(50), nullable=True)
 
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC), onupdate=datetime.datetime.now(datetime.UTC))
 
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
@@ -41,11 +40,11 @@ class User(db.Model):
     def check_password(self, password: str) -> bool:
         return check_password(self.password_hash, password)
 
-    def update_user(self, data: dict) -> None:
+    def update_user(self, data: Dict) -> None:
         for key, value in data.items():
-            if hasattr(self, key) and key != 'id':  # Prevent updating the ID directly
+            if hasattr(self, key) and key != 'id':
                 setattr(self, key, value)
-        self.updated_at = datetime.now()
+        self.updated_at = datetime.datetime.now(datetime.UTC)
         db.session.commit()
 
     def delete(self) -> None:
@@ -57,23 +56,21 @@ class User(db.Model):
         db.session.commit()
 
     @classmethod
-    def find_by_email(cls, email: str) -> Optional['User']:
-        return cls.query.filter_by(email=email).first()
+    def find_by(cls, field: str, value: str) -> Optional['User']:
+        try:
+            return cls.query.filter_by(**{field: value}).first()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     @classmethod
-    def find_by_username(cls, username: str) -> Optional['User']:
-        return cls.query.filter_by(username=username).first()
-
-    def find_by(cls, attribute: str, value: str) -> Optional['User']:
-        return cls.query.filter_by({attribute: value}).first()
-
-    @classmethod
-    def find_by_personal_id(cls, user_id: int) -> Optional['User']:
-        return cls.query.filter_by(personal_id=user_id).first()
-
-    @classmethod
-    def delete_by_personal_id(cls, user_id: int) -> None:
-        user = cls.find_by_personal_id(user_id)
-        if user:
-            db.session.delete(user)
-            db.session.commit()
+    def delete_by(cls, field: str, value: str) -> bool:
+        try:
+            user = cls.find_by(field, value)
+            if user:
+                user.delete()
+                return True
+            return False
+        except Exception as e:
+            db.session.rollback()
+            raise e

@@ -1,13 +1,38 @@
+from sqlalchemy.exc import SQLAlchemyError
+
 from backend.db import db
 
 
 class EventJob(db.Model):
-    __tablename__ = 'event_job'
+    __tablename__ = "event_jobs"
 
-    event_id = db.Column(db.Integer, db.ForeignKey('events.id'), primary_key=True)
-    job_id = db.Column(db.Integer, db.ForeignKey('jobs.id'), primary_key=True)
-    openings = db.Column(db.Integer, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey("events.id"), nullable=False)
+    job_title = db.Column(db.String(80), nullable=False)
+    slots = db.Column(db.Integer, nullable=False)  # Total number of slots
+    openings = db.Column(db.Integer, nullable=False)  # Remaining open positions
 
-    def add_job_to_event(self: int, job_id: int, openings: int) -> None:
-        db.session.execute(EventJob.insert().values(event_id=self, job_id=job_id, openings=openings))
+    @staticmethod
+    def create_event_job(event_id: int, job_title: str, slots: int) -> "EventJob":
+        """
+        Creates a new job for an event in the database.
+        """
+        event_job = EventJob(
+            event_id=event_id,
+            job_title=job_title,
+            slots=slots,
+            openings=slots,
+        )
+        db.session.add(event_job)
         db.session.commit()
+        return event_job
+
+    def add_job_to_event(self: int, job_id: int, slots: int) -> None:
+        try:
+            db.session.execute(
+                EventJob.__table__.insert().values(event_id=self, job_id=job_id, slots=slots, openings=slots)
+            )
+            db.session.commit()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            raise e
