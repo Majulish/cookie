@@ -1,10 +1,13 @@
-from typing import List, Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple
 from flask import jsonify, Response
 from sqlalchemy.exc import SQLAlchemyError
+
 from backend.models.event import Event
 from backend.models.user import User
 from backend.models.event_users import EventUsers
 from backend.models.event_job import EventJob
+from backend.models.roles import check_permission
+from backend.stores.event_users_store import EventUsersStore
 
 
 class EventStore:
@@ -80,5 +83,36 @@ class EventStore:
         return jsonify(worker_data), 200
 
     @staticmethod
-    def get_event_by(filter) -> Optional[Event]:
+    def apply_to_event(event_id: int, worker_id: str, job_title: str) -> tuple[Response, int]:
+        """
+        Handles worker application to an event.
+        """
+        try:
+            event = EventStore.get_event_by({"id": event_id})
+            if not event:
+                return jsonify({"error": "Event not found"}), 404
+
+            job = EventJob.query.filter_by(event_id=event_id, job_title=job_title).first()
+            if not job:
+                return jsonify({"error": f"Job '{job_title}' not found in this event"}), 404
+            if job.openings <= 0:
+                return jsonify({"error": "No openings available for this job"}), 400
+
+            if EventUsersStore.is_worker_assigned(event_id=event_id, worker_id=worker_id):
+                return jsonify({"message": "You have already applied for this event"}), 200
+
+            # Assign the worker to the event
+            EventUsersStore.add_worker_to_event(event_id=event_id, worker_id=worker_id)
+
+            # Reduce job openings
+            job.openings -= 1
+            job.save()
+
+            return jsonify({"message": "Successfully applied to the event"}), 201
+
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def get_event_by(filter: dict) -> Optional[Event]:
         return Event.query.filter_by(filter).first()
