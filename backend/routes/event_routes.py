@@ -1,7 +1,8 @@
-from flask import request, jsonify, Blueprint, Response, redirect, app
+from flask import request, jsonify, Blueprint, redirect
 from flask_jwt_extended import jwt_required, get_jwt
 from pydantic import ValidationError
 from typing import Tuple, Any
+from datetime import datetime
 
 from werkzeug import Response
 
@@ -11,7 +12,6 @@ from backend.models.roles import Permission, Role, has_permission, check_permiss
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
 from backend.stores import UserStore
-from backend.app.utils import combine_date_time
 
 event_blueprint = Blueprint('events', __name__)
 JOB_TITLES = ["cook", "cashier", "waiter"]
@@ -37,16 +37,14 @@ def create_event():
             return redirect('/sign_in')
         recruiter = jwt_data["username"]
 
-        start_date = data.get("start_date")
-        start_time = data.get("start_time")
-        end_date = data.get("end_date")
-        end_time = data.get("end_time")
+        start_datetime = data.get("start_datetime")
+        end_datetime = data.get("end_datetime")
 
-        if not all([start_date, start_time, end_date, end_time]):
-            return jsonify({"error": "Start and end date/time are required"}), 400
-
-        start_datetime = combine_date_time(start_date, start_time)
-        end_datetime = combine_date_time(end_date, end_time)
+        try:
+            start_datetime = datetime.fromisoformat(start_datetime)
+            end_datetime = datetime.fromisoformat(end_datetime)
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use ISO format (e.g., 2024-11-30T10:00:00)"}), 400
 
         jobs_data = data.get("jobs", {})
         if not isinstance(jobs_data, dict):

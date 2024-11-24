@@ -43,13 +43,18 @@ def signin() -> Tuple[Response, int]:
         return jsonify({"error": str(e)}), 400
 
     user = UserStore.find_user("username", data.username)
+
     if not user or not check_password(user.password_hash, data.password):
         return jsonify({"message": "Invalid username or password"}), 401
 
     access_token = create_access_token(identity={"username": data.username, "role": user.role.value})
     refresh_token = create_refresh_token(identity={"username": data.username, "role": user.role.value})
 
-    response = jsonify({"message": "Login successful"})
+    response = jsonify({
+        "message": "Login successful",
+        "access_token": access_token,
+        "refresh_token": refresh_token
+    })
     set_access_cookies(response, access_token)
     set_refresh_cookies(response, refresh_token)
 

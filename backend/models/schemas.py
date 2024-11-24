@@ -14,12 +14,11 @@ class SignupRequest(BaseModel):
     role: Role
     first_name: constr(min_length=1, max_length=50)
     family_name: constr(min_length=1, max_length=50)
-    birthdate: Optional[str]  # Use consistent date format if required
+    birthdate: Optional[datetime]
     phone_number: Optional[constr(max_length=20)]
-    personal_id: Optional[constr(min_length=9, max_length=9)]
+    personal_id: Optional[constr(min_length=9, max_length=9)]  # Ensure numeric-only if required
     company_id: Optional[str]
     company_name: Optional[str]
-
 
 
 class LoginRequest(BaseModel):
@@ -28,13 +27,11 @@ class LoginRequest(BaseModel):
 
 
 class UpdateEvent(BaseModel):
-    name: constr(min_length=1, max_length=100)
     id: constr(min_length=1, max_length=256)
+    name: constr(min_length=1, max_length=100)
     description: Optional[constr(min_length=1, max_length=500)]
     location: constr(min_length=1, max_length=200)
-    start_date: str
-    end_date: str
-    start_time: str
-    end_time: str
+    start_datetime: datetime
+    end_datetime: datetime
     status: Optional[EventStatus] = EventStatus.PLANNED
     advertised: Optional[bool] = False
