@@ -1,10 +1,9 @@
 import datetime
+from typing import List, Dict
 
 from backend.db import db
-from sqlalchemy import Enum, Column, Integer, String, Boolean, DateTime,PickleType
-from sqlalchemy.orm import relationship
+from backend.models.event_users import EventUsers
 from backend.models.event_job import EventJob
-from backend.models.event_status import EventStatus
 
 
 class Event(db.Model):
@@ -19,10 +18,12 @@ class Event(db.Model):
     recruiter = db.Column(db.String(80), nullable=False)
     status = db.Column(db.String(20), default="planned", nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
-    updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC), onupdate=datetime.datetime.now(datetime.UTC))
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC),
+                           onupdate=datetime.datetime.now(datetime.UTC))
 
     @staticmethod
-    def create_event(name: str, description: str, location: str, start_time: datetime, end_time: datetime, recruiter: str) -> "Event":
+    def create_event(name: str, description: str, location: str, start_time: datetime, end_time: datetime,
+                     recruiter: str) -> "Event":
         """
         Creates and returns a new event.
         """
@@ -45,3 +46,56 @@ class Event(db.Model):
     def save_to_db(self) -> None:
         db.session.add(self)
         db.session.commit()
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "location": self.location,
+            "start_time": self.start_time.isoformat(),
+            "end_time": self.end_time.isoformat(),
+            "recruiter": self.recruiter,
+            "status": self.status,
+        }
+
+    @staticmethod
+    def get_future_events_excluding_signed(worker_id: str, filters: Dict) -> List["Event"]:
+        """
+        Fetches future events that a worker can apply to, excluding events they're already signed up for.
+        """
+        try:
+            # Subquery to get event IDs the worker is already signed up for
+            signed_event_ids = db.session.query(EventUsers.event_id).filter_by(worker_id=worker_id).subquery()
+
+            # Base query: Future events not already signed up for
+            query = Event.query.filter(
+                Event.start_time > datetime.utcnow(),
+                ~Event.id.in_(signed_event_ids)
+            )
+
+            # Apply filters dynamically
+            if "location" in filters:
+                query = query.filter(Event.location == filters["location"])
+            if "job_title" in filters:
+                query = query.join(EventJob).filter(EventJob.job_title == filters["job_title"])
+
+            return query.all()
+
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def get_events_by_worker_id(worker_id: str) -> List["Event"]:
+        """
+        Fetch events where a worker is signed up.
+        """
+        try:
+            return (
+                db.session.query(Event)
+                .join(EventUsers, Event.id
+                      .filter(EventUsers.worker_id == EventUsers.event_id) == worker_id)
+                .all()
+            )
+        except Exception as e:
+            raise e

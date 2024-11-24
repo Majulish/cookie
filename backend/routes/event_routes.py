@@ -193,3 +193,25 @@ def get_available_events():
     events = EventStore.get_available_events_for_worker(worker_id=user.personal_id, filters=filters)
     return jsonify({"events": events}), 200
 
+
+@event_blueprint.route('/my_events', methods=['GET'])
+@jwt_required()
+def get_my_events():
+    jwt_data = get_jwt()
+    if not jwt_data or 'username' not in jwt_data:
+        return redirect('/sign_in')
+    username = jwt_data["username"]
+
+    if has_permission(jwt_data["role"], Permission.MANAGE_APPLICATIONS):
+        events = EventStore.get_events_by_recruiter(recruiter_username=username)
+    elif has_permission(jwt_data["role"], Permission.MANAGE_EVENTS):
+        events = EventStore.get_all_events()
+    elif has_permission(jwt_data["role"], Permission.APPLY_FOR_JOBS):
+        user = UserStore.find_user("username", username)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        events = EventStore.get_events_for_worker(worker_id=user.personal_id)
+    else:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    return jsonify({"events": events}), 200

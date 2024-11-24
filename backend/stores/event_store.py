@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, List
 from flask import jsonify, Response
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -6,7 +6,6 @@ from backend.models.event import Event
 from backend.models.user import User
 from backend.models.event_users import EventUsers
 from backend.models.event_job import EventJob
-from backend.models.roles import check_permission
 from backend.stores.event_users_store import EventUsersStore
 
 
@@ -29,6 +28,21 @@ class EventStore:
                 EventJob.create_event_job(event_id=event.id, job_title=job_title, slots=slots)
 
             return event
+
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def get_available_events_for_worker(worker_id: str, filters: Dict) -> List[Dict]:
+        """
+        Returns a list of future events that the worker can apply to, excluding events they're already signed up for.
+        """
+        try:
+            # Delegate database queries to the Event model
+            events = Event.get_future_events_excluding_signed(worker_id, filters)
+
+            # Convert events to a dictionary for API response
+            return [event.to_dict() for event in events]
 
         except Exception as e:
             raise e
@@ -61,7 +75,6 @@ class EventStore:
 
     @staticmethod
     def get_workers_by_event(event_id: int) -> tuple[Response, int]:
-        # Fetch the event
         event = EventStore.get_event_by({"id": event_id})
         if not event:
             return jsonify({"error": "Event not found."}), 404
@@ -116,3 +129,25 @@ class EventStore:
     @staticmethod
     def get_event_by(filter: dict) -> Optional[Event]:
         return Event.query.filter_by(filter).first()
+
+    @staticmethod
+    def get_all_events() -> List[Dict]:
+        """
+        Returns a list of all events.
+        """
+        try:
+            events = Event.query.all()
+            return [event.to_dict() for event in events]
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def get_events_by_recruiter(recruiter_username: str) -> List[Dict]:
+        """
+        Returns a list of events created by the recruiter.
+        """
+        try:
+            events = Event.query.filter_by(recruiter=recruiter_username).all()
+            return [event.to_dict() for event in events]
+        except Exception as e:
+            raise e

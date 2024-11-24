@@ -1,10 +1,35 @@
+# Flask and related extensions
 Flask
 flask-cors
-pymongo
-redis
-Werkzeug
 flask-jwt-extended
-pydantic
-pydantic[email]
+
+# Database dependencies
 SQLAlchemy
 psycopg2-binary
+pymongo
+
+# Redis for caching or queuing
+redis
+
+# Data validation
+pydantic
+pydantic[email]
+
+# Authentication and security
+bcrypt
+
+# Role-based access control (RBAC)
+flask-principal
+
+# Schema validation and input resolution
+marshmallow
+marshmallow-sqlalchemy
+
+
+# Miscellaneous utilities
+Werkzeug
+python-dotenv
+
+# Testing and development dependencies (optional)
+pytest
+pytest-flask
