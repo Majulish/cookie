@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from 'react-query';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
 import SideTab from '../../components/SideTab';
 import NewEventModal from './crate_event/NewEventModal';
-import { EventFormInputs } from './crate_event/eventScheme';
+import { EventFormInputs , convertFormDataToAPIPayload} from './crate_event/eventScheme';
 import { createEvent, getEvents } from '../../api/eventApi';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import EventList from '../home/crate_event/EventList';
@@ -24,15 +24,20 @@ const HomePage: React.FC = () => {
     const handleOpen = () => setModalOpen(true);
     const handleClose = () => setModalOpen(false);
 
-    const handleEventSubmit = async (data: EventFormInputs) => {
-        try {
-            await createEvent(data);
-            await queryClient.invalidateQueries(['events']);
-            setModalOpen(false);
-        } catch (error) {
-            console.error("Failed to create event:", error);
-        }
-    };
+ // In your HomePage component:
+ const handleEventSubmit = async (data: EventFormInputs) => {
+    try {
+        const apiPayload = convertFormDataToAPIPayload(data);
+        console.log('Submitting to backend:', apiPayload);
+        await createEvent(apiPayload);
+        console.log('Submission successful');
+        await queryClient.invalidateQueries(['events']);
+        setModalOpen(false);
+    } catch (error) {
+        console.error("Failed to create event:", error);
+        alert('Failed to create event. Please try again.');
+    }
+};
 
     // if (isLoading) {
     //     return <LoadingPage />;

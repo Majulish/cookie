@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { EventFormInputs } from '../pages/home/crate_event/eventScheme';
+import { EventAPIPayload } from '../pages/home/crate_event/eventScheme';
 import { API_BASE_URL } from './config';
 
-export const createEvent = async (data: EventFormInputs) => {
+export const createEvent = async (data: EventAPIPayload) => {
     try {
         const response = await axios.post(`${API_BASE_URL}/events/create_event`, data, {
             withCredentials: true,

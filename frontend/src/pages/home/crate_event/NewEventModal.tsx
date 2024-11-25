@@ -16,7 +16,6 @@ import {
   Typography,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import { DateTimePicker } from "@mui/x-date-pickers";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema, EventFormInputs } from "./eventScheme";
@@ -40,10 +39,6 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
     handleRemoveJob,
     handleFormSubmit,
     resetModalState,
-    setStartDateTime,
-    setEndDateTime,
-    startDateTime,
-    endDateTime,
     availableJobs,
   } = useEventModal(onSubmit);
 
@@ -52,9 +47,40 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
+    trigger,
   } = useForm<EventFormInputs>({
     resolver: zodResolver(eventSchema),
+    mode: 'onChange',
+    defaultValues: {
+      start_date: '',
+      start_time: '',
+      end_date: '',
+      end_time: '',
+    }
   });
+
+  // Watch date/time fields
+  const startDate = watch('start_date');
+  const startTime = watch('start_time');
+  const endDate = watch('end_date');
+  const endTime = watch('end_time');
+
+  // Validate dates when they change
+  React.useEffect(() => {
+    if (startDate && startTime && endDate && endTime) {
+      console.log('Form Values Changed:');
+      console.log('Start:', startDate, startTime);
+      console.log('End:', endDate, endTime);
+      console.log('Current Errors:', {
+        start_date: errors.start_date,
+        start_time: errors.start_time,
+        end_date: errors.end_date,
+        end_time: errors.end_time,
+      });
+      trigger(['start_date', 'start_time', 'end_date', 'end_time']);
+    }
+  }, [startDate, startTime, endDate, endTime, errors, trigger]);
 
   const handleClose = () => {
     reset();
@@ -62,11 +88,12 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
     onClose();
   };
 
+
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>New Event</DialogTitle>
       <DialogContent>
-        <form id="new-event-form" onSubmit={handleSubmit(handleFormSubmit)}>
+       <form id="new-event-form" onSubmit={handleSubmit(handleFormSubmit)}>
           <TextField
             label="Event Name"
             fullWidth
@@ -97,33 +124,49 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
           {/* Date and Time Fields */}
           <Grid container spacing={2}>
             <Grid item xs={6}>
-              <DateTimePicker
-                label="Start Date and Time"
-                value={startDateTime}
-                onChange={setStartDateTime}
-                slots={{ textField: TextField }}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    error: !!errors.start_date,
-                    helperText: errors.start_date?.message,
-                  },
-                }}
+              <TextField
+                label="Start Date (DD/MM/YYYY)"
+                fullWidth
+                margin="normal"
+                {...register("start_date")}
+                error={!!errors.start_date}
+                helperText={errors.start_date?.message}
+                placeholder="DD/MM/YYYY"
               />
             </Grid>
             <Grid item xs={6}>
-              <DateTimePicker
-                label="End Date and Time"
-                value={endDateTime}
-                onChange={setEndDateTime}
-                slots={{ textField: TextField }}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    error: !!errors.end_date,
-                    helperText: errors.end_date?.message,
-                  },
-                }}
+              <TextField
+                label="Start Time (HH:mm)"
+                fullWidth
+                margin="normal"
+                {...register("start_time")}
+                error={!!errors.start_time}
+                helperText={errors.start_time?.message}
+                placeholder="HH:mm"
+              />
+            </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <TextField
+                label="End Date (DD/MM/YYYY)"
+                fullWidth
+                margin="normal"
+                {...register("end_date")}
+                error={!!errors.end_date}
+                helperText={errors.end_date?.message}
+                placeholder="DD/MM/YYYY"
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                label="End Time (HH:mm)"
+                fullWidth
+                margin="normal"
+                {...register("end_time")}
+                error={!!errors.end_time}
+                helperText={errors.end_time?.message}
+                placeholder="HH:mm"
               />
             </Grid>
           </Grid>

@@ -1,6 +1,6 @@
+// useEventModal.ts
 import { useState } from "react";
-import dayjs, { Dayjs } from "dayjs";
-import { EventFormInputs } from "./eventScheme";
+import { EventFormInputs, convertFormDataToAPIPayload } from "./eventScheme";
 
 const availableJobs = [
   "waiter",
@@ -15,8 +15,6 @@ interface Job {
 
 const useEventModal = (onSubmit: (data: EventFormInputs) => void) => {
   const [jobList, setJobList] = useState<Job[]>([]);
-  const [startDateTime, setStartDateTime] = useState<Dayjs | null>(dayjs());
-  const [endDateTime, setEndDateTime] = useState<Dayjs | null>(dayjs());
 
   const handleAddJob = () => {
     if (jobList.some((job) => job.job === "")) {
@@ -60,22 +58,18 @@ const useEventModal = (onSubmit: (data: EventFormInputs) => void) => {
 
     return {
       ...data,
-      start_date: startDateTime?.toDate() || new Date(),
-      end_date: endDateTime?.toDate() || new Date(),
       jobs: jobsObject,
     };
   };
 
   const handleFormSubmit = (data: EventFormInputs) => {
-    const formData = getFormDataWithJobs(data);
-    onSubmit(formData);
+    const formDataWithJobs = getFormDataWithJobs(data);
+    onSubmit(formDataWithJobs);  // Pass the form data directly
     resetModalState();
-  };
+};
 
   const resetModalState = () => {
     setJobList([]);
-    setStartDateTime(dayjs());
-    setEndDateTime(dayjs());
   };
 
   return {
@@ -85,10 +79,6 @@ const useEventModal = (onSubmit: (data: EventFormInputs) => void) => {
     handleRemoveJob,
     handleFormSubmit,
     resetModalState,
-    setStartDateTime,
-    setEndDateTime,
-    startDateTime,
-    endDateTime,
     availableJobs,
   };
 };
