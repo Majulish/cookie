@@ -16,12 +16,15 @@ class TestEventBasicActions(unittest.TestCase):
         cls.client = cls.app.test_client()
         db.create_all()
 
-        # Add a recruiter user
+        # Add a recruiter user with all required fields
         cls.recruiter = User(
             username="recruiter",
             email="recruiter@example.com",
             password_hash="hashed_password",
             role=Role.RECRUITER,
+            first_name="Recruiter",
+            family_name="User",
+            personal_id="123456789",
         )
         db.session.add(cls.recruiter)
         db.session.commit()

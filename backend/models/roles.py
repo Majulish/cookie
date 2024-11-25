@@ -44,15 +44,3 @@ ROLE_PERMISSIONS = {
 
 def has_permission(user_role: Role, permission: Permission) -> bool:
     return permission in ROLE_PERMISSIONS.get(user_role, [])
-
-
-def check_permission(required_permission: Permission):
-    jwt_data = get_jwt()
-    if not jwt_data or "role" not in jwt_data:
-        return jsonify({"error": "Unauthorized"}), 403
-
-    current_role = jwt_data["role"]
-    if not has_permission(Role(current_role), required_permission):
-        return jsonify({"error": "Permission denied"}), 403
-
-    return None
