@@ -5,9 +5,9 @@ import ResponsiveTabs from '../../components/ResponsiveTabs';
 import SideTab from '../../components/SideTab';
 import NewEventModal from './crate_event/NewEventModal';
 import { EventFormInputs , convertFormDataToAPIPayload} from './crate_event/eventScheme';
-import { createEvent, getEvents } from '../../api/eventApi';
+import { createEvent, getMyEvents } from '../../api/eventApi';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import EventList from '../home/crate_event/EventList';
+import EventList from './my_events/MyEventList';
 import LoadingPage from './LoadingPage';  
 import { useNavigate } from 'react-router-dom';
 import useUserRole from './hooks/useUserRole';
@@ -17,7 +17,7 @@ const HomePage: React.FC = () => {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
 
-    const { data: events = [], isLoading, isError } = useQuery(['events'], getEvents);
+    const { data: events = [], isLoading, isError } = useQuery(['events'], getMyEvents);
     const userRole = useUserRole(); 
 
 
@@ -66,9 +66,8 @@ const HomePage: React.FC = () => {
                         <EventList events={events} />
                     )}
 
-                    {/* !!!!!!!!!!!! CHANGE LATER TO && !!!!!!!!!!!!!!!!!!!! */}
 
-                    {((userRole === 'recruiter') || (userRole === 'hr_manager')) || ( 
+                    {(userRole !== 'worker') && ( 
                         <Button
                             variant="contained"
                             color="primary"

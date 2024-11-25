@@ -14,12 +14,11 @@ export const createEvent = async (data: EventAPIPayload) => {
     }
 };
 
-export const getEvents = async (): Promise<EventFormInputs[]> => {
+export const getMyEvents = async (): Promise<EventFormInputs[]> => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/events/get_events`, {
+        const response = await axios.get(`${API_BASE_URL}/events/my_events`, {
             withCredentials: true,
         });
-        // Convert each event from API format to form format
         return response.data.map((event: EventAPIPayload) => convertAPIEventToFormEvent(event));
     } catch (error) {
         console.error('Error fetching events:', error);

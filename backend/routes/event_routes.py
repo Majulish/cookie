@@ -19,22 +19,19 @@ JOB_TITLES = ["cook", "cashier", "waiter"]
 
 @event_blueprint.route("/generate_description", methods=["POST"])
 def generate_description():
-    """
-    Endpoint to generate a professional event/job description using OpenAI.
-    """
+    if request.content_type != "application/json":
+        return jsonify({"error": "Unsupported Media Type. Ensure Content-Type is application/json."}), 415
+
     try:
-        # Parse the request JSON
         data = request.get_json()
         if not data or "prompt" not in data:
             return jsonify({"error": "Invalid request. 'prompt' is required."}), 400
 
-        # Generate the professional description
         prompt = data["prompt"]
         description = generate_event_description(
             f"Generate a professional event/job description based on the following input:\n\n{prompt}"
         )
 
-        # Return the description
         return jsonify({"description": description}), 200
 
     except Exception as e:
