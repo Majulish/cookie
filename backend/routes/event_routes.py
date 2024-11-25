@@ -1,4 +1,4 @@
-from flask import request, jsonify, Blueprint, redirect
+from flask import request, jsonify, Blueprint, redirect, Response
 from flask_jwt_extended import jwt_required, get_jwt
 from pydantic import ValidationError
 from typing import Tuple, Any
@@ -8,7 +8,7 @@ from werkzeug import Response
 
 from backend.models.event import Event
 from backend.models.user import User
-from backend.models.roles import Permission, Role, has_permission, check_permission
+from backend.models.roles import Permission, Role, has_permission
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
 from backend.stores import UserStore
@@ -42,9 +42,13 @@ def generate_description():
 @jwt_required()
 def create_event():
     jwt_data = get_jwt()
-    if (not jwt_data or "role" not in jwt_data or
-            not has_permission(jwt_data["role"], Permission.MANAGE_EVENTS)):
-        return jsonify({"error": "Unauthorized"}), 403
+    if not jwt_data or 'username' not in jwt_data:
+        return redirect('/sign_in')
+    username = jwt_data["username"]
+    user = UserStore.find_user("username", username)
+
+    if not has_permission(user.role, Permission.MANAGE_EVENTS):
+        return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
 
     data = request.get_json()
     try:
@@ -91,7 +95,6 @@ def create_event():
 @event_blueprint.route('/<int:event_id>', methods=['GET'])
 @jwt_required()
 def get_event(event_id: int) -> Tuple[Response, int]:
-
     event = Event.query.get(event_id)
     if not event:
         return jsonify({"error": "Event not found."}), 404
@@ -113,11 +116,15 @@ def get_event(event_id: int) -> Tuple[Response, int]:
 
 @event_blueprint.route("/<int:event_id>", methods=["PUT"])
 @jwt_required()
-def update_event(event_id: int) -> Tuple[Response, int]:
+def update_event(event_id: int) -> Response | tuple[Response, int]:
     jwt_data = get_jwt()
-    if (not jwt_data or "role" not in jwt_data or
-            not has_permission(jwt_data["role"], Permission.MANAGE_EVENTS)):
-        return jsonify({"error": "Unauthorized"}), 403
+    if not jwt_data or 'username' not in jwt_data:
+        return redirect('/sign_in')
+    username = jwt_data["username"]
+    user = UserStore.find_user("username", username)
+
+    if not has_permission(user.role, Permission.MANAGE_EVENTS):
+        return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
 
     try:
         data = request.get_json()
@@ -132,9 +139,13 @@ def update_event(event_id: int) -> Tuple[Response, int]:
 @jwt_required()
 def delete_event(event_id: int) -> Tuple[Response, int]:
     jwt_data = get_jwt()
-    if (not jwt_data or "role" not in jwt_data or
-            not has_permission(jwt_data["role"], Permission.MANAGE_EVENTS)):
-        return jsonify({"error": "Unauthorized"}), 403
+    if not jwt_data or 'username' not in jwt_data:
+        return redirect('/sign_in')
+    username = jwt_data["username"]
+    user = UserStore.find_user("username", username)
+
+    if not has_permission(user.role, Permission.MANAGE_EVENTS):
+        return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
 
     result = EventStore.delete_event(event_id)
     return result
@@ -142,11 +153,15 @@ def delete_event(event_id: int) -> Tuple[Response, int]:
 
 @event_blueprint.route('/<int:event_id>/workers', methods=['POST'])
 @jwt_required()
-def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
+def add_worker_to_event(event_id: int) -> Response | tuple[Response, int]:
     jwt_data = get_jwt()
-    if (not jwt_data or "role" not in jwt_data or
-            not has_permission(jwt_data["role"], Permission.MANAGE_EVENTS)):
-        return jsonify({"error": "Unauthorized"}), 403
+    if not jwt_data or 'username' not in jwt_data:
+        return redirect('/sign_in')
+    username = jwt_data["username"]
+    user = UserStore.find_user("username", username)
+
+    if not has_permission(user.role, Permission.MANAGE_EVENTS):
+        return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
 
     try:
         data = request.get_json()
@@ -159,11 +174,7 @@ def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
         if not event:
             return jsonify({"error": "Event not found."}), 404
 
-        worker = User.find_by_id(worker_id)
-        if not worker:
-            return jsonify({"error": "Worker not found or not a valid worker."}), 404
-
-        event.add_worker(worker_id)
+        event.add_worker(user.id)
         return jsonify({"message": "Worker added to event successfully."}), 200
 
     except ValidationError as e:
@@ -177,20 +188,18 @@ def apply_to_event(event_id: int) -> Response | tuple[Response, int] | Any:
     if not jwt_data or 'username' not in jwt_data:
         return redirect('/sign_in')
     username = jwt_data["username"]
-    user_role = jwt_data.get("role")
+    user = UserStore.find_user("username", username)
 
-    if not user_role or not has_permission(Role(user_role), Permission.APPLY_FOR_JOBS):
+    if not has_permission(user.role, Permission.APPLY_FOR_JOBS):
         return jsonify({"error": "Unauthorized. Only workers can apply to events."}), 403
 
     try:
-        worker = UserStore.find_user("username", username)
-
         data = request.get_json()
         job_title = data.get("job_title")
         if not job_title:
             return jsonify({"error": "Job title is required"}), 400
 
-        result = EventStore.apply_to_event(event_id=event_id, worker_id=worker["personal_id"], job_title=job_title)
+        result = EventStore.apply_to_event(event_id=event_id, worker_id=user.id, job_title=job_title)
         return result
 
     except Exception as e:
@@ -203,13 +212,9 @@ def get_feed():
     jwt_data = get_jwt()
     if not jwt_data or 'username' not in jwt_data:
         return redirect('/sign_in')
-
     username = jwt_data["username"]
-    permission_check = check_permission(Permission.VIEW_EVENTS)
-    if permission_check:
-        return permission_check
-
     user = UserStore.find_user("username", username)
+
     if not user or user.role != Role.WORKER:
         return jsonify({"error": "Unauthorized. Only workers can access this endpoint."}), 403
 
@@ -228,12 +233,13 @@ def my_events():
     if not jwt_data or 'username' not in jwt_data:
         return redirect('/sign_in')
     username = jwt_data["username"]
+    user = UserStore.find_user("username", username)
 
-    if has_permission(jwt_data["role"], Permission.MANAGE_APPLICATIONS):
+    if has_permission(user.role, Permission.MANAGE_APPLICATIONS):
         events = EventStore.get_events_by_recruiter(recruiter_username=username)
-    elif has_permission(jwt_data["role"], Permission.MANAGE_EVENTS):
+    elif has_permission(user.role, Permission.MANAGE_EVENTS):
         events = EventStore.get_all_events()
-    elif has_permission(jwt_data["role"], Permission.APPLY_FOR_JOBS):
+    elif has_permission(user.role, Permission.APPLY_FOR_JOBS):
         user = UserStore.find_user("username", username)
         if not user:
             return jsonify({"error": "User not found"}), 404
