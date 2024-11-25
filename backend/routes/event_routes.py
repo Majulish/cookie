@@ -194,6 +194,9 @@ def get_feed():
 
     filters = request.args.to_dict()
     events = EventStore.get_available_events_for_worker(worker_id=user.personal_id, filters=filters)
+
+    events = [{**event, "start_time": event["start_time"].isoformat(), "end_time": event["end_time"].isoformat()}
+              for event in events]
     return jsonify({"events": events}), 200
 
 
@@ -217,4 +220,7 @@ def my_events():
     else:
         return jsonify({"error": "Unauthorized"}), 403
 
+    events = [{**event, "start_time": event["start_time"].isoformat(), "end_time": event["end_time"].isoformat()}
+              for event in events]
     return jsonify({"events": events}), 200
+
