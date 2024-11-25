@@ -70,6 +70,7 @@ def create_event():
 @event_blueprint.route('/<int:event_id>', methods=['GET'])
 @jwt_required()
 def get_event(event_id: int) -> Tuple[Response, int]:
+
     event = Event.query.get(event_id)
     if not event:
         return jsonify({"error": "Event not found."}), 404
@@ -121,6 +122,11 @@ def delete_event(event_id: int) -> Tuple[Response, int]:
 @event_blueprint.route('/<int:event_id>/workers', methods=['POST'])
 @jwt_required()
 def add_worker_to_event(event_id: int) -> Tuple[Response, int]:
+    jwt_data = get_jwt()
+    if (not jwt_data or "role" not in jwt_data or
+            not has_permission(jwt_data["role"], Permission.MANAGE_EVENTS)):
+        return jsonify({"error": "Unauthorized"}), 403
+
     try:
         data = request.get_json()
         worker_id = data.get('worker_id')
@@ -170,9 +176,9 @@ def apply_to_event(event_id: int) -> Response | tuple[Response, int] | Any:
         return jsonify({"error": str(e)}), 500
 
 
-@event_blueprint.route('/events/available', methods=['GET'])
+@event_blueprint.route('/feed', methods=['GET'])
 @jwt_required()
-def get_available_events():
+def get_feed():
     jwt_data = get_jwt()
     if not jwt_data or 'username' not in jwt_data:
         return redirect('/sign_in')
