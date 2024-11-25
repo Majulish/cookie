@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { EventAPIPayload } from '../pages/home/crate_event/eventScheme';
+import {  EventAPIPayload, EventFormInputs, convertAPIEventToFormEvent  } from '../pages/home/crate_event/eventScheme';
 import { API_BASE_URL } from './config';
 
 export const createEvent = async (data: EventAPIPayload) => {
@@ -14,12 +14,13 @@ export const createEvent = async (data: EventAPIPayload) => {
     }
 };
 
-export const getEvents = async () => {
+export const getEvents = async (): Promise<EventFormInputs[]> => {
     try {
         const response = await axios.get(`${API_BASE_URL}/events/get_events`, {
             withCredentials: true,
         });
-        return response.data;
+        // Convert each event from API format to form format
+        return response.data.map((event: EventAPIPayload) => convertAPIEventToFormEvent(event));
     } catch (error) {
         console.error('Error fetching events:', error);
         throw error;

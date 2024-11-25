@@ -11,6 +11,44 @@ const convertToISOString = (date: string, time: string): string => {
   return new Date(year, month - 1, day, hours, minutes).toISOString();
 };
 
+export const convertFromISOString = (isoString: string): {
+  date: string;  // DD/MM/YYYY
+  time: string;  // HH:mm
+} => {
+  const date = new Date(isoString);
+  
+  // Get date components
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  
+  // Get time components
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return {
+    date: `${day}/${month}/${year}`,
+    time: `${hours}:${minutes}`
+  };
+};
+
+// Function to convert API response to form format
+export const convertAPIEventToFormEvent = (apiEvent: EventAPIPayload): EventFormInputs => {
+  const startDateTime = convertFromISOString(apiEvent.start_datetime);
+  const endDateTime = convertFromISOString(apiEvent.end_datetime);
+  
+  return {
+    event_name: apiEvent.event_name,
+    event_description: apiEvent.event_description,
+    start_date: startDateTime.date,
+    start_time: startDateTime.time,
+    end_date: endDateTime.date,
+    end_time: endDateTime.time,
+    location: apiEvent.location,
+    jobs: apiEvent.jobs
+  };
+};
+
 // Interface for the form inputs (what user enters)
 export interface EventFormInputs {
   event_name: string;
