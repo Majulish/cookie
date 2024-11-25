@@ -12,9 +12,33 @@ from backend.models.roles import Permission, Role, has_permission, check_permiss
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
 from backend.stores import UserStore
+from backend.openai_utils import generate_event_description  # Import the utility
 
 event_blueprint = Blueprint('events', __name__)
 JOB_TITLES = ["cook", "cashier", "waiter"]
+
+@event_blueprint.route("/generate_description", methods=["POST"])
+def generate_description():
+    """
+    Endpoint to generate a professional event/job description using OpenAI.
+    """
+    try:
+        # Parse the request JSON
+        data = request.get_json()
+        if not data or "prompt" not in data:
+            return jsonify({"error": "Invalid request. 'prompt' is required."}), 400
+
+        # Generate the professional description
+        prompt = data["prompt"]
+        description = generate_event_description(
+            f"Generate a professional event/job description based on the following input:\n\n{prompt}"
+        )
+
+        # Return the description
+        return jsonify({"description": description}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @event_blueprint.route("/create_event", methods=["POST"])
