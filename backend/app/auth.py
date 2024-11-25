@@ -7,3 +7,4 @@ def hash_data(data: str) -> str:
 
 def check_password(hashed_password: str, password: str) -> bool:
     return check_password_hash(hashed_password, password)
+

@@ -26,12 +26,13 @@ class User(db.Model):
     first_name = db.Column(db.String(50), nullable=False)
     family_name = db.Column(db.String(50), nullable=False)
     personal_id = db.Column(db.String(256), unique=True, nullable=False)
-    company_name = db.Column(db.String(10), nullable=True)
-    company_id = db.Column(db.Integer, nullable=True)
+    company_name = db.Column(db.String(50), nullable=True)
+    company_id = db.Column(db.String(50), nullable=True)
     city = db.Column(db.String(50), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
-    updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC), onupdate=datetime.datetime.now(datetime.UTC))
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC),
+                           onupdate=datetime.datetime.now(datetime.UTC))
 
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
@@ -56,11 +57,12 @@ class User(db.Model):
         db.session.commit()
 
     @classmethod
-    def find_by(cls, field: str, value: str) -> Optional['User']:
+    def find_by(cls, field: str, value: any) -> Optional['User']:
         try:
             return cls.query.filter_by({field: value}).first()
         except Exception as e:
             db.session.rollback()
+            print(e)
             raise e
 
     @classmethod

@@ -1,12 +1,18 @@
 from flask import jsonify, Response
-from backend.models.user import User
 from typing import Dict, Tuple, Optional
+
+from backend.app.auth import hash_data
+from backend.models.user import User
 
 
 class UserStore:
     @staticmethod
     def create_user(data: Dict) -> Tuple[Response, int]:
         try:
+            # Hash the password before creating the user
+            if "password" in data:
+                data["password_hash"] = hash_data(data.pop("password"))
+
             user = User(**data)
             user.save_to_db()
             return jsonify({"message": "User created successfully"}), 201
