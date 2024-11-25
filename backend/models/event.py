@@ -65,16 +65,12 @@ class Event(db.Model):
         Fetches future events that a worker can apply to, excluding events they're already signed up for.
         """
         try:
-            # Subquery to get event IDs the worker is already signed up for
             signed_event_ids = db.session.query(EventUsers.event_id).filter_by(worker_id=worker_id).subquery()
-
-            # Base query: Future events not already signed up for
             query = Event.query.filter(
-                Event.start_time > datetime.utcnow(),
+                Event.start_time > datetime.datetime.now(datetime.UTC),
                 ~Event.id.in_(signed_event_ids)
             )
 
-            # Apply filters dynamically
             if "location" in filters:
                 query = query.filter(Event.location == filters["location"])
             if "job_title" in filters:
@@ -86,16 +82,17 @@ class Event(db.Model):
             raise e
 
     @staticmethod
-    def get_events_by_worker_id(worker_id: str) -> List["Event"]:
+    def get_events_by_worker(worker_id: str) -> List['Event']:
         """
-        Fetch events where a worker is signed up.
+        Retrieves all events that a specific worker is signed up for.
         """
         try:
             return (
                 db.session.query(Event)
-                .join(EventUsers, Event.id
-                      .filter(EventUsers.worker_id == EventUsers.event_id) == worker_id)
+                .join(EventUsers, Event.id == EventUsers.event_id)
+                .filter(EventUsers.worker_id == worker_id)
                 .all()
             )
         except Exception as e:
+            db.session.rollback()
             raise e

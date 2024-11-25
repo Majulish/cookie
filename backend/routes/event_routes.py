@@ -27,7 +27,6 @@ def create_event():
 
     data = request.get_json()
     try:
-        # Parse and validate event details
         name = data.get("name")
         description = data.get("description", "")
         location = data.get("location", "")
@@ -194,7 +193,7 @@ def get_available_events():
 
 @event_blueprint.route('/my_events', methods=['GET'])
 @jwt_required()
-def get_my_events():
+def my_events():
     jwt_data = get_jwt()
     if not jwt_data or 'username' not in jwt_data:
         return redirect('/sign_in')

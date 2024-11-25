@@ -63,10 +63,10 @@ class TestUserSignIn(unittest.TestCase):
             "username": "nonexistentuser",
             "password": "password123",
         })
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 401)
         data = response.get_json()
         self.assertIn("message", data, "Message missing in response")
-        self.assertEqual(data["message"], "User not found")
+        self.assertEqual(data["message"], "Invalid username or password")
 
     def test_signin_missing_field(self):
         # Attempt to sign in with missing fields

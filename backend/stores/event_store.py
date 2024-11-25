@@ -38,10 +38,7 @@ class EventStore:
         Returns a list of future events that the worker can apply to, excluding events they're already signed up for.
         """
         try:
-            # Delegate database queries to the Event model
             events = Event.get_future_events_excluding_signed(worker_id, filters)
-
-            # Convert events to a dictionary for API response
             return [event.to_dict() for event in events]
 
         except Exception as e:
@@ -148,6 +145,20 @@ class EventStore:
         """
         try:
             events = Event.query.filter_by(recruiter=recruiter_username).all()
+            return [event.to_dict() for event in events]
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def get_events_for_worker(worker_id: str) -> List[Dict]:
+        """
+        Retrieves a list of events the worker is signed up for, using model capabilities.
+        """
+        try:
+            # Use the model's capability to fetch events
+            events = Event.get_events_by_worker(worker_id)
+
+            # Convert events to dictionary format
             return [event.to_dict() for event in events]
         except Exception as e:
             raise e

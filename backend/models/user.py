@@ -62,6 +62,7 @@ class User(db.Model):
             return cls.query.filter_by(**{field: value}).first()
         except Exception as e:
             db.session.rollback()
+            print(e)
             raise e
 
     @classmethod

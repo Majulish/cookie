@@ -30,3 +30,4 @@ class EventUsersStore:
             return [{"worker_id": worker.worker_id} for worker in workers]
         except Exception as e:
             raise e
+

@@ -27,10 +27,10 @@ class TestUserSignup(unittest.TestCase):
             "username": "testuser",
             "password": "Password123!",
             "email": "testuser@example.com",
-            "role": Role.WORKER.value,
+            "role": Role.WORKER,
             "first_name": "John",
             "family_name": "Doe",
-            "birthdate": datetime(1990, 5, 15).isoformat(),  # ISO format
+            "birthdate": datetime(1990, 5, 15).isoformat(),
             "phone_number": "1234567890",
             "personal_id": "123456789",
             "company_id": "123",
