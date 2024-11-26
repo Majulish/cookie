@@ -13,8 +13,8 @@ class Event(db.Model):
     name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.String(200), nullable=True)
     location = db.Column(db.String(100), nullable=True)
-    start_time = db.Column(db.DateTime, nullable=False)
-    end_time = db.Column(db.DateTime, nullable=False)
+    start_datetime = db.Column(db.DateTime, nullable=False)
+    end_datetime = db.Column(db.DateTime, nullable=False)
     recruiter = db.Column(db.String(80), nullable=False)
     status = db.Column(db.String(20), default="planned", nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
@@ -22,7 +22,7 @@ class Event(db.Model):
                            onupdate=datetime.datetime.now(datetime.UTC))
 
     @staticmethod
-    def create_event(name: str, description: str, location: str, start_time: datetime, end_time: datetime,
+    def create_event(name: str, description: str, location: str, start_datetime: datetime, end_datetime: datetime,
                      recruiter: str) -> "Event":
         """
         Creates and returns a new event.
@@ -31,8 +31,8 @@ class Event(db.Model):
             name=name,
             description=description,
             location=location,
-            start_time=start_time,
-            end_time=end_time,
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
             recruiter=recruiter,
         )
         db.session.add(event)
@@ -53,8 +53,8 @@ class Event(db.Model):
             "name": self.name,
             "description": self.description,
             "location": self.location,
-            "start_time": self.start_time.isoformat(),
-            "end_time": self.end_time.isoformat(),
+            "start_datetime": self.start_datetime.isoformat(),
+            "end_datetime": self.end_datetime.isoformat(),
             "recruiter": self.recruiter,
             "status": self.status,
         }
@@ -67,7 +67,7 @@ class Event(db.Model):
         try:
             signed_event_ids = db.session.query(EventUsers.event_id).filter_by(worker_id=worker_id).subquery()
             query = Event.query.filter(
-                Event.start_time > datetime.datetime.now(datetime.UTC),
+                Event.start_datetime > datetime.datetime.now(datetime.UTC),
                 ~Event.id.in_(signed_event_ids)
             )
 

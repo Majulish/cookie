@@ -42,8 +42,8 @@ class FeedEventSchema(BaseModel):
     name: constr(max_length=80)
     description: Optional[constr(max_length=200)]
     location: Optional[constr(max_length=100)]
-    start_time: str  # ISO format
-    end_time: str  # ISO format
+    start_datetime: str  # ISO format
+    end_datetime: str  # ISO format
     recruiter: constr(max_length=80)
     status: constr(max_length=20)
 
@@ -63,8 +63,8 @@ class MyEventSchema(BaseModel):
     name: constr(max_length=80)
     description: Optional[constr(max_length=200)]
     location: Optional[constr(max_length=100)]
-    start_time: str  # ISO format
-    end_time: str  # ISO format
+    start_datetime: str  # ISO format
+    end_datetime: str  # ISO format
     status: constr(max_length=20)
     advertised: Optional[bool]
     workers: List[int]

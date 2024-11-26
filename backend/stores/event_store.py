@@ -18,8 +18,8 @@ class EventStore:
                 name=data["name"],
                 description=data["description"],
                 location=data["location"],
-                start_time=data["start_datetime"],
-                end_time=data["end_datetime"],
+                start_datetime=data["start_datetime"],
+                end_datetime=data["end_datetime"],
                 recruiter=data["recruiter"],
             )
 

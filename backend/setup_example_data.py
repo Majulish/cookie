@@ -66,8 +66,8 @@ def setup_example_data():
         name="Event by Recruiter 1",
         description="An event created by recruiter1.",
         location="Location A",
-        start_time="2024-12-01T10:00:00",
-        end_time="2024-12-01T14:00:00",
+        start_datetime="2024-12-01T10:00:00",
+        end_datetime="2024-12-01T14:00:00",
         recruiter="recruiter1",
         status="planned"
     )
@@ -75,8 +75,8 @@ def setup_example_data():
         name="Event by Recruiter 2",
         description="An event created by recruiter2.",
         location="Location B",
-        start_time="2024-12-02T10:00:00",
-        end_time="2024-12-02T14:00:00",
+        start_datetime="2024-12-02T10:00:00",
+        end_datetime="2024-12-02T14:00:00",
         recruiter="recruiter2",
         status="planned"
     )

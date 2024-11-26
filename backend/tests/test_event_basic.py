@@ -58,8 +58,8 @@ class TestEventBasicActions(unittest.TestCase):
             name="Test Event",
             description="Retrieve test event",
             location="Test Location",
-            start_time=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1),
-            end_time=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=2),
+            start_datetime=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1),
+            end_datetime=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=2),
             recruiter="recruiter",
         )
         db.session.add(event)
@@ -76,8 +76,8 @@ class TestEventBasicActions(unittest.TestCase):
             name="Old Event",
             description="Event to update",
             location="Old Location",
-            start_time=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1),
-            end_time=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=2),
+            start_datetime=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1),
+            end_datetime=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=2),
             recruiter="recruiter",
         )
         db.session.add(event)
@@ -89,8 +89,8 @@ class TestEventBasicActions(unittest.TestCase):
                 "name": "Updated Event",
                 "description": "Updated description",
                 "location": "New Location",
-                "start_date": event.start_time.isoformat(),
-                "end_date": event.end_time.isoformat(),
+                "start_date": event.start_datetime.isoformat(),
+                "end_date": event.end_datetime.isoformat(),
             },
             headers={"Authorization": "Bearer mock_recruiter_token"},
         )
@@ -104,8 +104,8 @@ class TestEventBasicActions(unittest.TestCase):
             name="Delete Event",
             description="Event to delete",
             location="Delete Location",
-            start_time=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1),
-            end_time=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=2),
+            start_datetime=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1),
+            end_datetime=datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=2),
             recruiter="recruiter",
         )
         db.session.add(event)

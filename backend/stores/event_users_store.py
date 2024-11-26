@@ -15,7 +15,7 @@ class EventUsersStore:
         Assigns a worker to an event.
         """
         try:
-            event_user = EventUsers(event_id=event_id, worker_id=worker_id)
+            event_user = EventUsers(event_id=event_id, worker_id=worker_id) # TODO add job
             event_user.save()
         except Exception as e:
             raise e

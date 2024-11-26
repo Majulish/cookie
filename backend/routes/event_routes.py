@@ -34,11 +34,6 @@ def create_event():
         description = data.get("description", "")
         location = data.get("location", "")
 
-        jwt_data = get_jwt()
-        if not jwt_data or 'username' not in jwt_data:
-            return redirect('/sign_in')
-        recruiter = jwt_data["username"]
-
         start_datetime = data.get("start_datetime")
         end_datetime = data.get("end_datetime")
 
@@ -56,7 +51,7 @@ def create_event():
             "name": name,
             "description": description,
             "location": location,
-            "recruiter": recruiter,
+            "recruiter": username,
             "start_datetime": start_datetime,
             "end_datetime": end_datetime,
             "jobs": jobs_data,
@@ -83,8 +78,8 @@ def get_event(event_id: int) -> Tuple[Response, int]:
         "name": event.name,
         "description": event.description,
         "location": event.location,
-        "start_time": event.start_time.isoformat(),
-        "end_time": event.end_time.isoformat(),
+        "start_datetime": event.start_datetime.isoformat(),
+        "end_datetime": event.end_datetime.isoformat(),
         "status": event.status.value,
         "advertised": event.advertised,
         "workers": workers,
@@ -161,11 +156,13 @@ def add_worker_to_event(event_id: int) -> Response | tuple[Response, int]:
 
 @event_blueprint.route("/<int:event_id>/apply", methods=["POST"])
 @jwt_required()
-def apply_to_event(event_id: int) -> Response | tuple[Response, int] | Any:
+def apply_to_event() -> Response | tuple[Response, int] | Any:
     jwt_data = get_jwt()
     if not jwt_data or 'username' not in jwt_data:
         return redirect('/sign_in')
     username = jwt_data["username"]
+    event_id = jwt_data["event_id"]
+
     user = UserStore.find_user("username", username)
 
     if not has_permission(user.role, Permission.APPLY_FOR_JOBS):
@@ -202,13 +199,12 @@ def get_feed():
     transformed_events = [
         {
             **event,
-            "start_time": event["start_time"].isoformat(),
-            "end_time": event["end_time"].isoformat()
+            "start_datetime": event["start_datetime"].isoformat(),
+            "end_datetime": event["end_datetime"].isoformat()
         }
         for event in events
     ]
 
-    # Validate and format the response using the schema
     response = FeedResponseSchema(events=transformed_events)
     return jsonify(response.dict()), 200
 
@@ -225,7 +221,6 @@ def my_events():
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    # Fetch events based on the user's role and permissions
     if has_permission(user.role, Permission.MANAGE_APPLICATIONS):
         events = EventStore.get_events_by_recruiter(recruiter_username=username)
     elif has_permission(user.role, Permission.ASSIGN_WORKERS):
@@ -238,13 +233,12 @@ def my_events():
     transformed_events = [
         {
             **event,
-            "start_time": event["start_time"].isoformat(),
-            "end_time": event["end_time"].isoformat()
+            "start_datetime": event["start_datetime"].isoformat(),
+            "end_datetime": event["end_datetime"].isoformat()
         }
         for event in events
     ]
 
-    # Validate and format the response using the schema
     response = MyEventsResponseSchema(events=transformed_events)
     return jsonify(response.dict()), 200
 
