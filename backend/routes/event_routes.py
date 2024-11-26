@@ -7,9 +7,8 @@ from datetime import datetime
 from werkzeug import Response
 
 from backend.models.event import Event
-from backend.models.user import User
 from backend.models.roles import Permission, Role, has_permission
-from backend.models.schemas import UpdateEvent
+from backend.models.schemas import UpdateEvent, FeedResponseSchema, MyEventsResponseSchema
 from backend.stores import EventStore
 from backend.stores import UserStore
 
@@ -200,9 +199,18 @@ def get_feed():
     filters = request.args.to_dict()
     events = EventStore.get_available_events_for_worker(worker_id=user.personal_id, filters=filters)
 
-    events = [{**event, "start_time": event["start_time"].isoformat(), "end_time": event["end_time"].isoformat()}
-              for event in events]
-    return jsonify({"events": events}), 200
+    transformed_events = [
+        {
+            **event,
+            "start_time": event["start_time"].isoformat(),
+            "end_time": event["end_time"].isoformat()
+        }
+        for event in events
+    ]
+
+    # Validate and format the response using the schema
+    response = FeedResponseSchema(events=transformed_events)
+    return jsonify(response.dict()), 200
 
 
 @event_blueprint.route('/my_events', methods=['GET'])
@@ -214,19 +222,30 @@ def my_events():
     username = jwt_data["username"]
     user = UserStore.find_user("username", username)
 
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Fetch events based on the user's role and permissions
     if has_permission(user.role, Permission.MANAGE_APPLICATIONS):
         events = EventStore.get_events_by_recruiter(recruiter_username=username)
-    elif has_permission(user.role, Permission.MANAGE_EVENTS):
+    elif has_permission(user.role, Permission.ASSIGN_WORKERS):
         events = EventStore.get_all_events()
     elif has_permission(user.role, Permission.APPLY_FOR_JOBS):
-        user = UserStore.find_user("username", username)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
         events = EventStore.get_events_for_worker(worker_id=user.personal_id)
     else:
         return jsonify({"error": "Unauthorized"}), 403
 
-    events = [{**event, "start_time": event["start_time"].isoformat(), "end_time": event["end_time"].isoformat()}
-              for event in events]
-    return jsonify({"events": events}), 200
+    transformed_events = [
+        {
+            **event,
+            "start_time": event["start_time"].isoformat(),
+            "end_time": event["end_time"].isoformat()
+        }
+        for event in events
+    ]
+
+    # Validate and format the response using the schema
+    response = MyEventsResponseSchema(events=transformed_events)
+    return jsonify(response.dict()), 200
+
 

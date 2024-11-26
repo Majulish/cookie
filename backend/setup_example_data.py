@@ -1,74 +1,96 @@
-from backend.stores import UserStore
-from backend.models import Role
 from backend.db import db
-from backend.main import create_app
+from backend.models.user import User
+from backend.models.event import Event
+from backend.models.roles import Role
+from backend.models.event_job import EventJob
 
 
-def setup_users():
-    app = create_app()
-    with app.app_context():
-        db.create_all()
+def setup_example_data():
+    # Create workers
+    worker1 = User(
+        username="worker1",
+        email="worker1@example.com",
+        password_hash="hashed_password1",  # Replace with a hashed password
+        role=Role.WORKER,
+        first_name="Worker",
+        family_name="One",
+        personal_id="111111111"
+    )
+    worker2 = User(
+        username="worker2",
+        email="worker2@example.com",
+        password_hash="hashed_password2",  # Replace with a hashed password
+        role=Role.WORKER,
+        first_name="Worker",
+        family_name="Two",
+        personal_id="222222222"
+    )
 
-        users = [
-            {
-                'username': 'worker1',
-                'email': 'worker1@example.com',
-                'password': 'Password123!',
-                'role': Role.WORKER,
-                'first_name': 'Worker',
-                'family_name': 'One',
-                'personal_id': '123456789',
-                'phone_number': '0501234567',
-                'birthdate': '1990-01-01',
-                'city': 'CityA',
-                'company_id': 1
-            },
-            {
-                'username': 'worker2',
-                'email': 'worker2@example.com',
-                'password': 'Password123!',
-                'role': Role.WORKER,
-                'first_name': 'Worker',
-                'family_name': 'Two',
-                'personal_id': '987654321',
-                'phone_number': '0509876543',
-                'birthdate': '1992-02-02',
-                'city': 'CityB',
-                'company_id': 1
-            },
-            {
-                'username': 'hrmanager',
-                'email': 'hrmanager@example.com',
-                'password': 'Password123!',
-                'role': Role.HR_MANAGER,
-                'first_name': 'HR',
-                'family_name': 'Manager',
-                'personal_id': '192837465',
-                'phone_number': '0512345678',
-                'birthdate': '1985-03-03',
-                'city': 'CityC',
-                'company_id': 2
-            },
-            {
-                'username': 'recruiter',
-                'email': 'recruiter@example.com',
-                'password': 'Password123!',
-                'role': Role.RECRUITER,
-                'first_name': 'Recruiter',
-                'family_name': 'One',
-                'personal_id': '111222333',
-                'phone_number': '0523456789',
-                'birthdate': '1988-04-04',
-                'city': 'CityD',
-                'company_id': 2
-            }
-        ]
+    # Create recruiters
+    recruiter1 = User(
+        username="recruiter1",
+        email="recruiter1@example.com",
+        password_hash="hashed_password3",  # Replace with a hashed password
+        role=Role.RECRUITER,
+        first_name="Recruiter",
+        family_name="One",
+        personal_id="333333333"
+    )
+    recruiter2 = User(
+        username="recruiter2",
+        email="recruiter2@example.com",
+        password_hash="hashed_password4",  # Replace with a hashed password
+        role=Role.RECRUITER,
+        first_name="Recruiter",
+        family_name="Two",
+        personal_id="444444444"
+    )
 
-        for user_data in users:
-            existing_personal_id = UserStore.find_user_by_id(user_data['personal_id'])
-            if not existing_personal_id:
-                UserStore.create_user(user_data)
+    # Create HR Manager
+    hr_manager = User(
+        username="hrmanager",
+        email="hrmanager@example.com",
+        password_hash="hashed_password5",  # Replace with a hashed password
+        role=Role.HR_MANAGER,
+        first_name="HR",
+        family_name="Manager",
+        personal_id="555555555"
+    )
+
+    # Add users to the database
+    db.session.add_all([worker1, worker2, recruiter1, recruiter2, hr_manager])
+    db.session.commit()
+
+    # Create events for recruiters
+    event1 = Event(
+        name="Event by Recruiter 1",
+        description="An event created by recruiter1.",
+        location="Location A",
+        start_time="2024-12-01T10:00:00",
+        end_time="2024-12-01T14:00:00",
+        recruiter="recruiter1",
+        status="planned"
+    )
+    event2 = Event(
+        name="Event by Recruiter 2",
+        description="An event created by recruiter2.",
+        location="Location B",
+        start_time="2024-12-02T10:00:00",
+        end_time="2024-12-02T14:00:00",
+        recruiter="recruiter2",
+        status="planned"
+    )
+
+    # Add events to the database
+    db.session.add_all([event1, event2])
+    db.session.commit()
+
+    # Create event jobs for the events
+    job1 = EventJob.create_event_job(event_id=event1.id, job_title="Cook", slots=5)
+    job2 = EventJob.create_event_job(event_id=event2.id, job_title="Waiter", slots=3)
+
+    print("Example data setup complete.")
 
 
-if __name__ == '__main__':
-    setup_users()
+if __name__ == "__main__":
+    setup_example_data()

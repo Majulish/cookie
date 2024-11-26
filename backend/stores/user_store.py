@@ -9,7 +9,6 @@ class UserStore:
     @staticmethod
     def create_user(data: Dict) -> Tuple[Response, int]:
         try:
-            # Hash the password before creating the user
             if "password" in data:
                 data["password_hash"] = hash_data(data.pop("password"))
 
