@@ -1,7 +1,8 @@
 import datetime
 from typing import Optional, Dict
-from backend.db import db
 from sqlalchemy import Enum
+
+from backend.db import db
 from backend.models.roles import Role
 from backend.app.auth import check_password
 

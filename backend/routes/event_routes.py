@@ -9,8 +9,7 @@ from werkzeug import Response
 from backend.models.event import Event
 from backend.models.roles import Permission, Role, has_permission
 from backend.models.schemas import UpdateEvent, FeedResponseSchema, MyEventsResponseSchema
-from backend.stores import EventStore
-from backend.stores import UserStore
+from backend.stores import EventStore, UserStore, EventUsersStore
 
 event_blueprint = Blueprint('events', __name__)
 JOB_TITLES = ["cook", "cashier", "waiter"]
@@ -242,4 +241,31 @@ def my_events():
     response = MyEventsResponseSchema(events=transformed_events)
     return jsonify(response.dict()), 200
 
+
+@event_blueprint.route('/<int:event_id>/my_job', methods=['GET'])
+@jwt_required()
+def get_my_job(event_id: int):
+    """
+    Retrieves the job assigned to the currently authenticated worker for a specific event.
+    """
+    jwt_data = get_jwt()
+    if not jwt_data or 'username' not in jwt_data:
+        return jsonify({"error": "Unauthorized. Please log in."}), 401
+
+    username = jwt_data["username"]
+    user = UserStore.find_user("username", username)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if user.role != Role.WORKER:
+        return jsonify({"error": "Only workers can access this endpoint."}), 403
+
+    try:
+        worker_job = EventUsersStore.get_worker_job_by_event(event_id=event_id, worker_id=user.personal_id)
+        if not worker_job:
+            return jsonify({"message": "No job assigned for this worker in the specified event."}), 404
+
+        return jsonify(worker_job), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 

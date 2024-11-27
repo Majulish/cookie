@@ -57,6 +57,15 @@ class Event(db.Model):
             "end_datetime": self.end_datetime.isoformat(),
             "recruiter": self.recruiter,
             "status": self.status,
+            "jobs": [
+                {
+                    "job_id": job.id,
+                    "job_title": job.job_title,
+                    "slots": job.slots,
+                    "openings": job.openings
+                }
+                for job in EventJob.query.filter_by(event_id=self.id).all()
+            ],
         }
 
     @staticmethod
