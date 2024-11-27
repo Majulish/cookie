@@ -10,7 +10,7 @@ class EventUsers(db.Model):
 
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), primary_key=True)
     worker_id = db.Column(db.String, db.ForeignKey('users.personal_id'), primary_key=True)
-    job_id = db.Column(db.Integer, db.ForeignKey('event_jobs.id'), nullable=False)  # New column to reference the job
+    job_id = db.Column(db.Integer, db.ForeignKey('event_jobs.id'), nullable=False)
 
     def add_worker(self, worker_id: str, job_id: int) -> None:
         """
