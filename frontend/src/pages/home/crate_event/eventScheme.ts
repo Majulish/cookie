@@ -32,19 +32,23 @@ export const convertFromISOString = (isoString: string): {
   };
 };
 
-// Function to convert API response to form format
-export const convertAPIEventToFormEvent = (apiEvent: EventAPIPayload): EventFormInputs => {
+//!!!!!!!!!!!!!!!!!!
+// Function to convert API response to form format - change it to recieve the new interface
+export const convertAPIEventToFormEvent = (apiEvent: RecievedEvent): MyEvent => {
   const startDateTime = convertFromISOString(apiEvent.start_datetime);
   const endDateTime = convertFromISOString(apiEvent.end_datetime);
   
   return {
-    event_name: apiEvent.event_name,
-    event_description: apiEvent.event_description,
+    id: apiEvent.id,
+    name: apiEvent.name,
+    description: apiEvent.description,
+    location: apiEvent.location,
     start_date: startDateTime.date,
     start_time: startDateTime.time,
     end_date: endDateTime.date,
     end_time: endDateTime.time,
-    location: apiEvent.location,
+    recruiter: apiEvent.recruiter,
+    status: apiEvent.status,
     jobs: apiEvent.jobs
   };
 };
@@ -70,6 +74,43 @@ export interface EventAPIPayload {
   location: string;
   jobs?: Record<string, number>;
 }
+
+export interface RecievedEvent{
+  id: number;
+  name: string;
+  description: string;
+  location: string;
+  start_datetime: string;  // ISO string
+  end_datetime: string;    // ISO string
+  recruiter: string;
+  status: string;
+  jobs: {
+    id: number;
+    job_title: string;
+    slots: number;
+    openings: number;
+  }[];
+ }
+
+ export interface MyEvent{
+  id: number;
+  name: string;
+  description: string;
+  location: string;
+  start_date: string;
+  start_time: string;
+  end_date: string;
+  end_time: string;
+  recruiter: string;
+  status: string;
+  jobs: {
+    id: number;
+    job_title: string;
+    slots: number;
+    openings: number;
+  }[];
+ }
+
 
 export const eventSchema = z.object({
   event_name: z.string().min(4, "Event name must be at least 4 characters"),

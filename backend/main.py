@@ -11,7 +11,15 @@ from backend.db import db
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, supports_credentials=True, resources={r"/*": {"origins": "http://localhost:3000"}})
+    # CORS(app, supports_credentials=True, resources={r"/*": {"origins": "http://localhost:3000"}})
+    CORS(app, resources={
+        r"/*": {
+            "origins": "http://localhost:3000",
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type"],
+            "supports_credentials": True
+        }
+    })
 
     # JWT Configuration
     app.config['JWT_SECRET_KEY'] = JWT_TOKEN

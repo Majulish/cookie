@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {  EventAPIPayload, EventFormInputs, convertAPIEventToFormEvent  } from '../pages/home/crate_event/eventScheme';
+import {  EventAPIPayload, RecievedEvent, convertAPIEventToFormEvent , MyEvent } from '../pages/home/crate_event/eventScheme';
 import { API_BASE_URL } from './config';
 
 export const createEvent = async (data: EventAPIPayload) => {
@@ -14,14 +14,31 @@ export const createEvent = async (data: EventAPIPayload) => {
     }
 };
 
-export const getMyEvents = async (): Promise<EventFormInputs[]> => {
+export const getMyEvents = async (): Promise<MyEvent[]> => {
     try {
         const response = await axios.get(`${API_BASE_URL}/events/my_events`, {
             withCredentials: true,
         });
-        return response.data.map((event: EventAPIPayload) => convertAPIEventToFormEvent(event));
+        return response.data.map((event: RecievedEvent) => convertAPIEventToFormEvent(event));
     } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+            console.error('Session expired - please log in again');
+            throw new Error('Authentication required');
+        }
         console.error('Error fetching events:', error);
+        throw error;
+    }
+};
+
+export const generateDescription = async (prompt: string): Promise<string> => {
+    try {
+        const response = await axios.post(
+            `${API_BASE_URL}/events/generate_description`,
+            { prompt }
+        );
+        return response.data.description;
+    } catch (error) {
+        console.error("Error generating description:", error);
         throw error;
     }
 };

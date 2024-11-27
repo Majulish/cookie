@@ -14,7 +14,7 @@ class SignupRequest(BaseModel):
     role: Role
     first_name: constr(min_length=1, max_length=50)
     family_name: constr(min_length=1, max_length=50)
-    birthdate: Optional[datetime]
+    birthdate: str
     phone_number: Optional[constr(max_length=20)]
     personal_id: Optional[constr(min_length=9, max_length=9)]  # Ensure numeric-only if required
     company_id: Optional[str]

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Container, Typography, Grid, IconButton, Button } from '@mui/material';
 import { useQuery, useQueryClient } from 'react-query';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
@@ -24,7 +24,6 @@ const HomePage: React.FC = () => {
     const handleOpen = () => setModalOpen(true);
     const handleClose = () => setModalOpen(false);
 
- // In your HomePage component:
  const handleEventSubmit = async (data: EventFormInputs) => {
     try {
         const apiPayload = convertFormDataToAPIPayload(data);

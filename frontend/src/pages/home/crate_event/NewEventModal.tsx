@@ -14,12 +14,12 @@ import {
   IconButton,
   Box,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { eventSchema, EventFormInputs } from "./eventScheme";
-import useEventModal from "./useEventModal";
+import { EventFormInputs } from "./eventScheme";
+import { useEventJobs } from "./useEventJob";
+import { useEventForm } from "./useEventForm";
 
 interface NewEventDialogProps {
   open: boolean;
@@ -27,73 +27,42 @@ interface NewEventDialogProps {
   onSubmit: (data: EventFormInputs) => void;
 }
 
-const NewEventDialog: React.FC<NewEventDialogProps> = ({
-  open,
-  onClose,
-  onSubmit,
-}) => {
+const NewEventDialog: React.FC<NewEventDialogProps> = ({ open, onClose, onSubmit }) => {
   const {
     jobList,
     handleAddJob,
     handleJobChange,
     handleRemoveJob,
-    handleFormSubmit,
-    resetModalState,
+    getJobsObject,
+    resetJobs,
     availableJobs,
-  } = useEventModal(onSubmit);
+  } = useEventJobs();
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    errors,
+    prompt,
+    setPrompt,
+    isGenerating,
+    handleGenerateDescription,
     reset,
-    watch,
-    trigger,
-  } = useForm<EventFormInputs>({
-    resolver: zodResolver(eventSchema),
-    mode: 'onChange',
-    defaultValues: {
-      start_date: '',
-      start_time: '',
-      end_date: '',
-      end_time: '',
-    }
+  } = useEventForm({
+    onSubmit,
+    getJobsObject,
+    resetJobs,
   });
-
-  // Watch date/time fields
-  const startDate = watch('start_date');
-  const startTime = watch('start_time');
-  const endDate = watch('end_date');
-  const endTime = watch('end_time');
-
-  // Validate dates when they change
-  React.useEffect(() => {
-    if (startDate && startTime && endDate && endTime) {
-      console.log('Form Values Changed:');
-      console.log('Start:', startDate, startTime);
-      console.log('End:', endDate, endTime);
-      console.log('Current Errors:', {
-        start_date: errors.start_date,
-        start_time: errors.start_time,
-        end_date: errors.end_date,
-        end_time: errors.end_time,
-      });
-      trigger(['start_date', 'start_time', 'end_date', 'end_time']);
-    }
-  }, [startDate, startTime, endDate, endTime, errors, trigger]);
 
   const handleClose = () => {
     reset();
-    resetModalState();
     onClose();
   };
 
-
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>New Event</DialogTitle>
       <DialogContent>
-       <form id="new-event-form" onSubmit={handleSubmit(handleFormSubmit)}>
+        <form id="new-event-form" onSubmit={handleSubmit}>
           <TextField
             label="Event Name"
             fullWidth
@@ -102,16 +71,63 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
             error={!!errors.event_name}
             helperText={errors.event_name?.message}
           />
-          <TextField
-            label="Event Description"
-            fullWidth
-            margin="normal"
-            multiline
-            rows={4}
-            {...register("event_description")}
-            error={!!errors.event_description}
-            helperText={errors.event_description?.message}
-          />
+          
+          <Box sx={{ mt: 2 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1,
+              '& .MuiInputBase-root': {
+                minHeight: '60px',
+                height: 'auto',
+                backgroundColor: '#f5f5f5'
+              }
+            }}>
+              <TextField
+                label="Generate Description with AI"
+                fullWidth
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Enter prompt for AI description generation"
+                multiline
+                rows={2}
+                sx={{
+                  '& .MuiInputLabel-root': {
+                    background: 'white',
+                    padding: '0 4px',
+                  }
+                }}
+              />
+              <Button
+                onClick={handleGenerateDescription}
+                variant="outlined"
+                disabled={isGenerating}
+                sx={{ minWidth: '120px' }}
+              >
+                {isGenerating ? <CircularProgress size={16} /> : "AI Generate"}
+              </Button>
+            </Box>
+            
+            <TextField
+              label="Event Description"
+              fullWidth
+              multiline
+              {...register("event_description")}
+              error={!!errors.event_description}
+              helperText={errors.event_description?.message}
+              sx={{
+                mt: '-1px',
+                '& .MuiInputBase-root': {
+                  minHeight: '200px',
+                  height: 'auto'
+                },
+                '& .MuiInputLabel-root': {
+                  background: 'white',
+                  padding: '0 4px',
+                }
+              }}
+            />
+          </Box>
+          
           <TextField
             label="Location"
             fullWidth
@@ -121,7 +137,6 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
             helperText={errors.location?.message}
           />
 
-          {/* Date and Time Fields */}
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <TextField
@@ -146,6 +161,7 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
               />
             </Grid>
           </Grid>
+          
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <TextField
@@ -171,7 +187,6 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
             </Grid>
           </Grid>
 
-          {/* Choose Workers Section */}
           <Typography variant="h6" sx={{ mt: 3 }}>
             Choose Workers
           </Typography>
@@ -202,7 +217,7 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({
               </IconButton>
             </Box>
           ))}
-          <Button startIcon={<AddCircleOutlineIcon />} onClick={handleAddJob}>
+          <Button startIcon={<AddCircleOutlineIcon />} onClick={handleAddJob} sx={{ mt: 2 }}>
             Add Job
           </Button>
         </form>
