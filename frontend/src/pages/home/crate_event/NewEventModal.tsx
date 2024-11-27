@@ -14,12 +14,12 @@ import {
   IconButton,
   Box,
   Typography,
-  CircularProgress,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { EventFormInputs } from "./eventScheme";
-import { useEventJobs } from "./useEventJob";
+import { useEventJobs } from "./useEventJobs";
 import { useEventForm } from "./useEventForm";
+import GenerateButton from "../../../components/GenerateButton";
 
 interface NewEventDialogProps {
   open: boolean;
@@ -73,57 +73,58 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({ open, onClose, onSubmit
           />
           
           <Box sx={{ mt: 2 }}>
-            <Box sx={{ 
-              display: 'flex', 
-              gap: 1,
-              '& .MuiInputBase-root': {
-                minHeight: '60px',
-                height: 'auto',
-                backgroundColor: '#f5f5f5'
-              }
-            }}>
-              <TextField
-                label="Generate Description with AI"
-                fullWidth
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Enter prompt for AI description generation"
-                multiline
-                rows={2}
-                sx={{
-                  '& .MuiInputLabel-root': {
-                    background: 'white',
-                    padding: '0 4px',
-                  }
-                }}
-              />
-              <Button
-                onClick={handleGenerateDescription}
-                variant="outlined"
-                disabled={isGenerating}
-                sx={{ minWidth: '120px' }}
-              >
-                {isGenerating ? <CircularProgress size={16} /> : "AI Generate"}
-              </Button>
-            </Box>
+  <Box sx={{ 
+    display: 'flex', 
+    gap: 1,
+  }}>
+    <TextField
+      label="Generate Description with AI"
+      fullWidth
+      value={prompt}
+      onChange={(e) => setPrompt(e.target.value)}
+      placeholder="Enter prompt for AI description generation"
+      multiline
+      minRows={2}
+      maxRows={10}
+      variant="outlined"
+      InputLabelProps={{
+        shrink: true,
+      }}
+      sx={{
+        backgroundColor: '#f5f5f5',
+        '& .MuiInputBase-root': {
+          minHeight: '60px',
+          height: 'auto',
+        },
+        '& .MuiOutlinedInput-root': {
+          backgroundColor: '#f5f5f5',
+        }
+      }}
+    />
+    <GenerateButton 
+      onClick={handleGenerateDescription}
+      loading={isGenerating}
+    />
+  </Box>
             
             <TextField
               label="Event Description"
               fullWidth
               multiline
+              minRows={8}
+              variant="outlined"
+              InputLabelProps={{
+                shrink: true,
+              }}
               {...register("event_description")}
               error={!!errors.event_description}
               helperText={errors.event_description?.message}
               sx={{
-                mt: '-1px',
+                mt: 2,
                 '& .MuiInputBase-root': {
                   minHeight: '200px',
-                  height: 'auto'
+                  height: 'auto',
                 },
-                '& .MuiInputLabel-root': {
-                  background: 'white',
-                  padding: '0 4px',
-                }
               }}
             />
           </Box>

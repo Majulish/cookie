@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {  EventAPIPayload, RecievedEvent, convertAPIEventToFormEvent , MyEvent } from '../pages/home/crate_event/eventScheme';
+import {  EventAPIPayload, RecievedEvent, convertRecivedEventToMyEvent , MyEventScheme } from '../pages/home/crate_event/eventScheme';
 import { API_BASE_URL } from './config';
 
 export const createEvent = async (data: EventAPIPayload) => {
@@ -14,12 +14,12 @@ export const createEvent = async (data: EventAPIPayload) => {
     }
 };
 
-export const getMyEvents = async (): Promise<MyEvent[]> => {
+export const getMyEvents = async (): Promise<MyEventScheme[]> => {
     try {
         const response = await axios.get(`${API_BASE_URL}/events/my_events`, {
             withCredentials: true,
         });
-        return response.data.map((event: RecievedEvent) => convertAPIEventToFormEvent(event));
+        return response.data.map((event: RecievedEvent) => convertRecivedEventToMyEvent(event));
     } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 401) {
             console.error('Session expired - please log in again');

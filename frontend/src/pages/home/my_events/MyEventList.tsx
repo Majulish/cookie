@@ -1,10 +1,10 @@
 import React from "react";
 import { Box } from "@mui/material";
 import Event from "./MyEvent";
-import { EventFormInputs } from "../crate_event/eventScheme";
+import {  MyEventScheme } from "../crate_event/eventScheme";
 
 interface EventListProps {
-  events: EventFormInputs[];
+  events: MyEventScheme[];
 }
 
 const MyEventList: React.FC<EventListProps> = ({ events }) => (

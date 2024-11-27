@@ -34,7 +34,7 @@ export const convertFromISOString = (isoString: string): {
 
 //!!!!!!!!!!!!!!!!!!
 // Function to convert API response to form format - change it to recieve the new interface
-export const convertAPIEventToFormEvent = (apiEvent: RecievedEvent): MyEvent => {
+export const convertRecivedEventToMyEvent = (apiEvent: RecievedEvent): MyEventScheme => {
   const startDateTime = convertFromISOString(apiEvent.start_datetime);
   const endDateTime = convertFromISOString(apiEvent.end_datetime);
   
@@ -92,7 +92,7 @@ export interface RecievedEvent{
   }[];
  }
 
- export interface MyEvent{
+ export interface MyEventScheme{
   id: number;
   name: string;
   description: string;
