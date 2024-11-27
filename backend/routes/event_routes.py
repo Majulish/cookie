@@ -7,12 +7,13 @@ from datetime import datetime
 from werkzeug import Response
 
 from backend.models.event import Event
-from backend.models.user import User
 from backend.models.roles import Permission, Role, has_permission
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
 from backend.stores import UserStore
 from backend.openai_utils import generate_event_description  # Import the utility
+from backend.models.schemas import UpdateEvent, FeedResponseSchema, MyEventsResponseSchema
+from backend.stores import EventStore, UserStore, EventUsersStore
 
 event_blueprint = Blueprint('events', __name__)
 JOB_TITLES = ["cook", "cashier", "waiter"]
@@ -56,11 +57,6 @@ def create_event():
         description = data.get("description", "")
         location = data.get("location", "")
 
-        jwt_data = get_jwt()
-        if not jwt_data or 'username' not in jwt_data:
-            return redirect('/sign_in')
-        recruiter = jwt_data["username"]
-
         start_datetime = data.get("start_datetime")
         end_datetime = data.get("end_datetime")
 
@@ -78,7 +74,7 @@ def create_event():
             "name": name,
             "description": description,
             "location": location,
-            "recruiter": recruiter,
+            "recruiter": username,
             "start_datetime": start_datetime,
             "end_datetime": end_datetime,
             "jobs": jobs_data,
@@ -105,8 +101,8 @@ def get_event(event_id: int) -> Tuple[Response, int]:
         "name": event.name,
         "description": event.description,
         "location": event.location,
-        "start_time": event.start_time.isoformat(),
-        "end_time": event.end_time.isoformat(),
+        "start_datetime": event.start_datetime.isoformat(),
+        "end_datetime": event.end_datetime.isoformat(),
         "status": event.status.value,
         "advertised": event.advertised,
         "workers": workers,
@@ -183,11 +179,13 @@ def add_worker_to_event(event_id: int) -> Response | tuple[Response, int]:
 
 @event_blueprint.route("/<int:event_id>/apply", methods=["POST"])
 @jwt_required()
-def apply_to_event(event_id: int) -> Response | tuple[Response, int] | Any:
+def apply_to_event() -> Response | tuple[Response, int] | Any:
     jwt_data = get_jwt()
     if not jwt_data or 'username' not in jwt_data:
         return redirect('/sign_in')
     username = jwt_data["username"]
+    event_id = jwt_data["event_id"]
+
     user = UserStore.find_user("username", username)
 
     if not has_permission(user.role, Permission.APPLY_FOR_JOBS):
@@ -221,9 +219,17 @@ def get_feed():
     filters = request.args.to_dict()
     events = EventStore.get_available_events_for_worker(worker_id=user.personal_id, filters=filters)
 
-    events = [{**event, "start_time": event["start_time"].isoformat(), "end_time": event["end_time"].isoformat()}
-              for event in events]
-    return jsonify({"events": events}), 200
+    transformed_events = [
+        {
+            **event,
+            "start_datetime": event["start_datetime"].isoformat(),
+            "end_datetime": event["end_datetime"].isoformat()
+        }
+        for event in events
+    ]
+
+    response = FeedResponseSchema(events=transformed_events)
+    return jsonify(response.dict()), 200
 
 
 @event_blueprint.route('/my_events', methods=['GET'])
@@ -235,19 +241,55 @@ def my_events():
     username = jwt_data["username"]
     user = UserStore.find_user("username", username)
 
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
     if has_permission(user.role, Permission.MANAGE_APPLICATIONS):
         events = EventStore.get_events_by_recruiter(recruiter_username=username)
-    elif has_permission(user.role, Permission.MANAGE_EVENTS):
+    elif has_permission(user.role, Permission.ASSIGN_WORKERS):
         events = EventStore.get_all_events()
     elif has_permission(user.role, Permission.APPLY_FOR_JOBS):
-        user = UserStore.find_user("username", username)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
         events = EventStore.get_events_for_worker(worker_id=user.personal_id)
     else:
         return jsonify({"error": "Unauthorized"}), 403
 
-    events = [{**event, "start_time": event["start_time"].isoformat(), "end_time": event["end_time"].isoformat()}
-              for event in events]
-    return jsonify({"events": events}), 200
+    transformed_events = [
+        {
+            **event,
+            "start_datetime": event["start_datetime"].isoformat(),
+            "end_datetime": event["end_datetime"].isoformat()
+        }
+        for event in events
+    ]
+
+    response = MyEventsResponseSchema(events=transformed_events)
+    return jsonify(response.dict()), 200
+
+
+@event_blueprint.route('/<int:event_id>/my_job', methods=['GET'])
+@jwt_required()
+def get_my_job(event_id: int):
+    """
+    Retrieves the job assigned to the currently authenticated worker for a specific event.
+    """
+    jwt_data = get_jwt()
+    if not jwt_data or 'username' not in jwt_data:
+        return jsonify({"error": "Unauthorized. Please log in."}), 401
+
+    username = jwt_data["username"]
+    user = UserStore.find_user("username", username)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if user.role != Role.WORKER:
+        return jsonify({"error": "Only workers can access this endpoint."}), 403
+
+    try:
+        worker_job = EventUsersStore.get_worker_job_by_event(event_id=event_id, worker_id=user.personal_id)
+        if not worker_job:
+            return jsonify({"message": "No job assigned for this worker in the specified event."}), 404
+
+        return jsonify(worker_job), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 

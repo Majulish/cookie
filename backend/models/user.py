@@ -1,7 +1,8 @@
 import datetime
 from typing import Optional, Dict
-from backend.db import db
 from sqlalchemy import Enum
+
+from backend.db import db
 from backend.models.roles import Role
 from backend.app.auth import check_password
 
@@ -15,7 +16,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
 
     role = db.Column(Enum(Role), nullable=False)
-    birthdate = db.Column(db.String(80), nullable=True)
+    birthdate = db.Column(db.String(20), nullable=True)
     bank_number = db.Column(db.String(20), nullable=True)
     bank_branch_number = db.Column(db.String(10), nullable=True)
     credit_card_account_number = db.Column(db.String(20), nullable=True)
