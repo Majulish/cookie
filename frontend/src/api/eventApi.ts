@@ -21,9 +21,15 @@ export const getMyEvents = async (): Promise<MyEventScheme[]> => {
         });
         return response.data.map((event: RecievedEvent) => convertRecivedEventToMyEvent(event));
     } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
-            console.error('Session expired - please log in again');
-            throw new Error('Authentication required');
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                console.error('Session expired - please log in again');
+                throw new Error('Authentication required');
+            }
+            if (error.response?.status === 404) {
+                console.error('Endpoint not found');
+                throw new Error('API endpoint not found');
+            }
         }
         console.error('Error fetching events:', error);
         throw error;
