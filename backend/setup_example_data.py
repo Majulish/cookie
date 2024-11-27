@@ -3,6 +3,8 @@ from backend.models.user import User
 from backend.models.event import Event
 from backend.models.roles import Role
 from backend.models.event_job import EventJob
+from backend.models.event_users import EventUsers
+from datetime import datetime
 
 
 def setup_example_data():
@@ -66,8 +68,8 @@ def setup_example_data():
         name="Event by Recruiter 1",
         description="An event created by recruiter1.",
         location="Location A",
-        start_datetime="2024-12-01T10:00:00",
-        end_datetime="2024-12-01T14:00:00",
+        start_datetime=datetime.fromisoformat("2024-12-01T10:00:00"),
+        end_datetime=datetime.fromisoformat("2024-12-01T14:00:00"),
         recruiter="recruiter1",
         status="planned"
     )
@@ -75,8 +77,8 @@ def setup_example_data():
         name="Event by Recruiter 2",
         description="An event created by recruiter2.",
         location="Location B",
-        start_datetime="2024-12-02T10:00:00",
-        end_datetime="2024-12-02T14:00:00",
+        start_datetime=datetime.fromisoformat("2024-12-02T10:00:00"),
+        end_datetime=datetime.fromisoformat("2024-12-02T14:00:00"),
         recruiter="recruiter2",
         status="planned"
     )
@@ -88,6 +90,13 @@ def setup_example_data():
     # Create event jobs for the events
     job1 = EventJob.create_event_job(event_id=event1.id, job_title="Cook", slots=5)
     job2 = EventJob.create_event_job(event_id=event2.id, job_title="Waiter", slots=3)
+
+    # Assign workers to jobs in events
+    assignment1 = EventUsers(event_id=event1.id, worker_id=worker1.personal_id, job_id=job1.id)
+    assignment2 = EventUsers(event_id=event2.id, worker_id=worker2.personal_id, job_id=job2.id)
+
+    db.session.add_all([assignment1, assignment2])
+    db.session.commit()
 
     print("Example data setup complete.")
 
