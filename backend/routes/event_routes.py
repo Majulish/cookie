@@ -4,6 +4,7 @@ from pydantic import ValidationError
 from typing import Tuple, Any
 from datetime import datetime
 
+from sqlalchemy import Integer
 from werkzeug import Response
 
 from backend.models.event import Event
@@ -11,8 +12,8 @@ from backend.models.roles import Permission, Role, has_permission
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
 from backend.stores import UserStore
-from backend.openai_utils import generate_event_description  # Import the utility
-from backend.models.schemas import UpdateEvent, FeedResponseSchema, MyEventsResponseSchema
+from backend.openai_utils import generate_event_description
+from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore, UserStore, EventUsersStore
 
 event_blueprint = Blueprint('events', __name__)
@@ -42,9 +43,9 @@ def generate_description():
 @event_blueprint.route("/create_event", methods=["POST"])
 @jwt_required()
 def create_event():
-    jwt_data = get_jwt()
+    jwt_data = get_jwt()["sub"]
     if not jwt_data or 'username' not in jwt_data:
-        return redirect('/sign_in')
+        return jsonify({"error": "Authentication required"}), 401
     username = jwt_data["username"]
     user = UserStore.find_user("username", username)
 
@@ -85,6 +86,7 @@ def create_event():
         return jsonify({"message": "Event created successfully", "event_id": event.id}), 201
 
     except Exception as e:
+        print(e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -179,12 +181,11 @@ def add_worker_to_event(event_id: int) -> Response | tuple[Response, int]:
 
 @event_blueprint.route("/<int:event_id>/apply", methods=["POST"])
 @jwt_required()
-def apply_to_event() -> Response | tuple[Response, int] | Any:
-    jwt_data = get_jwt()
+def apply_to_event(event_id) -> Response | tuple[Response, int] | Any:
+    jwt_data = get_jwt()["sub"]
     if not jwt_data or 'username' not in jwt_data:
-        return redirect('/sign_in')
+        return jsonify({"error": "Authentication required"}), 401
     username = jwt_data["username"]
-    event_id = jwt_data["event_id"]
 
     user = UserStore.find_user("username", username)
 
@@ -197,19 +198,20 @@ def apply_to_event() -> Response | tuple[Response, int] | Any:
         if not job_title:
             return jsonify({"error": "Job title is required"}), 400
 
-        result = EventStore.apply_to_event(event_id=event_id, worker_id=user.id, job_title=job_title)
+        result = EventStore.apply_to_event(event_id, user.id, job_title)
         return result
 
     except Exception as e:
+        print(jsonify({"error": str(e)}))
         return jsonify({"error": str(e)}), 500
 
 
 @event_blueprint.route('/feed', methods=['GET'])
 @jwt_required()
 def get_feed():
-    jwt_data = get_jwt()
+    jwt_data = get_jwt()["sub"]
     if not jwt_data or 'username' not in jwt_data:
-        return redirect('/sign_in')
+        return jsonify({"error": "Authentication required"}), 401
     username = jwt_data["username"]
     user = UserStore.find_user("username", username)
 
@@ -219,25 +221,15 @@ def get_feed():
     filters = request.args.to_dict()
     events = EventStore.get_available_events_for_worker(worker_id=user.personal_id, filters=filters)
 
-    transformed_events = [
-        {
-            **event,
-            "start_datetime": event["start_datetime"].isoformat(),
-            "end_datetime": event["end_datetime"].isoformat()
-        }
-        for event in events
-    ]
-
-    response = FeedResponseSchema(events=transformed_events)
-    return jsonify(response.dict()), 200
+    return jsonify(events), 200
 
 
 @event_blueprint.route('/my_events', methods=['GET'])
 @jwt_required()
 def my_events():
-    jwt_data = get_jwt()
+    jwt_data =  get_jwt()["sub"]
     if not jwt_data or 'username' not in jwt_data:
-        return redirect('/sign_in')
+        return jsonify({"error": "Authentication required"}), 401
     username = jwt_data["username"]
     user = UserStore.find_user("username", username)
 
@@ -256,14 +248,13 @@ def my_events():
     transformed_events = [
         {
             **event,
-            "start_datetime": event["start_datetime"].isoformat(),
-            "end_datetime": event["end_datetime"].isoformat()
+            "start_datetime": event["start_datetime"],
+            "end_datetime": event["end_datetime"]
         }
         for event in events
     ]
 
-    response = MyEventsResponseSchema(events=transformed_events)
-    return jsonify(response.dict()), 200
+    return jsonify(transformed_events), 200
 
 
 @event_blueprint.route('/<int:event_id>/my_job', methods=['GET'])

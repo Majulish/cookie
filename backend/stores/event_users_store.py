@@ -8,10 +8,13 @@ class EventUsersStore:
         """
         Checks if a worker is already assigned to an event for any job.
         """
-        return EventUsers.query.filter_by(event_id=event_id, worker_id=worker_id).first() is not None
+        try:
+            return EventUsers.query.filter_by(event_id=event_id, worker_id=worker_id).first() is not None
+        except Exception as e:
+            print(f"Error is: {e}")
 
     @staticmethod
-    def add_worker_to_event(event_id: int, worker_id: str, job_id: int) -> None:
+    def add_worker_to_event(event_id: int, worker_id: int, job_id: int) -> None:
         """
         Assigns a worker to a specific job in an event.
         """

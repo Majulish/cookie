@@ -98,8 +98,8 @@ class EventStore:
         Handles worker application to an event for a specific job.
         """
         try:
-            # Check if the event exists
-            event = EventStore.get_event_by({"id": event_id})
+            filter = {"id": event_id}
+            event = EventStore.get_event_by(**filter)
             if not event:
                 return jsonify({"error": "Event not found"}), 404
 
@@ -112,8 +112,7 @@ class EventStore:
             if job.openings <= 0:
                 return jsonify({"error": "No openings available for this job"}), 400
 
-            # Check if the worker is already assigned to the event for any job
-            if EventUsersStore.is_worker_assigned(event_id=event_id, worker_id=worker_id):
+            if EventUsersStore.is_worker_assigned(event_id=event_id, worker_id=job_title):
                 return jsonify({"message": "You have already applied for this event"}), 200
 
             # Assign the worker to the job in the event
@@ -129,8 +128,8 @@ class EventStore:
             return jsonify({"error": str(e)}), 500
 
     @staticmethod
-    def get_event_by(filter: dict) -> Optional[Event]:
-        return Event.query.filter_by(filter).first()
+    def get_event_by(**filter) -> Optional[Event]:
+        return Event.query.filter_by(**filter).first()
 
     @staticmethod
     def get_all_events() -> List[Dict]:

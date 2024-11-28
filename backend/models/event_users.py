@@ -9,7 +9,7 @@ class EventUsers(db.Model):
     __tablename__ = 'event_users'
 
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), primary_key=True)
-    worker_id = db.Column(db.String, db.ForeignKey('users.personal_id'), primary_key=True)
+    worker_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('event_jobs.id'), nullable=False)
 
     def add_worker(self, worker_id: str, job_id: int) -> None:
@@ -104,3 +104,7 @@ class EventUsers(db.Model):
             return EventUsers.query.filter_by(event_id=event_id, worker_id=worker_id).first()
         except Exception as e:
             raise Exception(f"Error fetching worker job: {e}")
+
+    def save_to_db(self) -> None:
+        db.session.add(self)
+        db.session.commit()
