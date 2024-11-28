@@ -43,14 +43,14 @@ class EventUsers(db.Model):
         Deletes a worker from all events by their personal ID.
         """
         try:
-            EventUsers.query.filter_by(worker_id=personal_id).delete()
+            EventUsers.query.filter_by(worker_id=id).delete()
             db.session.commit()
         except SQLAlchemyError as e:
             db.session.rollback()
             raise e
 
     @staticmethod
-    def add_worker_to_event(event_id: int, worker_id: str, job_id: int) -> bool:
+    def add_worker_to_event(event_id: int, worker_id: int, job_id: int) -> bool:
         """
         Adds a worker to a specific job in an event.
         """
@@ -85,7 +85,7 @@ class EventUsers(db.Model):
 
             return [
                 {
-                    "worker_id": worker.personal_id,
+                    "worker_id": worker.id,
                     "name": f"{worker.first_name} {worker.family_name}",
                     "job_title": job.job_title
                 }
@@ -96,7 +96,7 @@ class EventUsers(db.Model):
             raise e
 
     @staticmethod
-    def get_worker_job(event_id: int, worker_id: str):
+    def get_worker_job(event_id: int, worker_id: int):
         """
         Retrieves the job assigned to a specific worker for a specific event.
         """

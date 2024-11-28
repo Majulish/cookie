@@ -93,7 +93,7 @@ class EventStore:
         return jsonify(worker_data), 200
 
     @staticmethod
-    def apply_to_event(event_id: int, worker_id: str, job_title: str) -> tuple[Response, int]:
+    def apply_to_event(event_id: int, worker_id: int, job_title: str) -> tuple[Response, int]:
         """
         Handles worker application to an event for a specific job.
         """
@@ -103,29 +103,24 @@ class EventStore:
             if not event:
                 return jsonify({"error": "Event not found"}), 404
 
-            # Find the job in the event
             job = EventJob.query.filter_by(event_id=event_id, job_title=job_title).first()
             if not job:
                 return jsonify({"error": f"Job '{job_title}' not found in this event"}), 404
-
-            # Check if the job has openings
             if job.openings <= 0:
                 return jsonify({"error": "No openings available for this job"}), 400
 
-            if EventUsersStore.is_worker_assigned(event_id=event_id, worker_id=job_title):
-                return jsonify({"message": "You have already applied for this event"}), 200
+            if EventUsersStore.is_worker_assigned(event_id=event_id, worker_id=worker_id):
+                return jsonify({"message": "You have already applied for this job in the event"}), 200
 
-            # Assign the worker to the job in the event
             EventUsersStore.add_worker_to_event(event_id=event_id, worker_id=worker_id, job_id=job.id)
 
-            # Reduce the job openings
             job.openings -= 1
             job.save()
 
-            return jsonify({"message": f"Successfully applied to the event for the job '{job_title}'"}), 201
+            return jsonify({"message": "Successfully applied to the event"}), 201
 
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            raise e
 
     @staticmethod
     def get_event_by(**filter) -> Optional[Event]:

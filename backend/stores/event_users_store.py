@@ -4,7 +4,7 @@ from backend.models.event_job import EventJob
 
 class EventUsersStore:
     @staticmethod
-    def is_worker_assigned(event_id: int, worker_id: str) -> bool:
+    def is_worker_assigned(event_id: int, worker_id: int) -> bool:
         """
         Checks if a worker is already assigned to an event for any job.
         """
@@ -36,7 +36,7 @@ class EventUsersStore:
 
     class EventUsersStore:
         @staticmethod
-        def get_worker_job_by_event(event_id: int, worker_id: str) -> dict | None:
+        def get_worker_job_by_event(event_id: int, worker_id: int) -> dict | None:
             """
             Fetches the job assigned to a worker for a specific event.
             """
