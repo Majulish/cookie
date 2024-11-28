@@ -57,19 +57,3 @@ class MyEventJobSchema(BaseModel):
     job_title: constr(max_length=80)
     openings: int
 
-
-class MyEventSchema(BaseModel):
-    id: int
-    name: constr(max_length=80)
-    description: Optional[constr(max_length=200)]
-    location: Optional[constr(max_length=100)]
-    start_datetime: str  # ISO format
-    end_datetime: str  # ISO format
-    status: constr(max_length=20)
-    advertised: Optional[bool]
-    workers: List[int]
-    jobs: List[MyEventJobSchema]
-
-
-class MyEventsResponseSchema(BaseModel):
-    events: List[MyEventSchema]

@@ -11,7 +11,7 @@ class Event(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
-    description = db.Column(db.String(200), nullable=True)
+    description = db.Column(db.String(1000), nullable=True)
     location = db.Column(db.String(100), nullable=True)
     start_datetime = db.Column(db.DateTime, nullable=False)
     end_datetime = db.Column(db.DateTime, nullable=False)
@@ -91,7 +91,7 @@ class Event(db.Model):
             raise e
 
     @staticmethod
-    def get_events_by_worker(worker_id: str) -> List['Event']:
+    def get_events_by_worker(worker_id: int) -> List['Event']:
         """
         Retrieves all events that a specific worker is signed up for.
         """

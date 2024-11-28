@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 interface TokenPayload {
-    username: string;
-    role: string;
+    sub: {
+        username: string;
+        role: string;
+    };
 }
 
 const useUserRole = () => {
@@ -17,15 +19,19 @@ const useUserRole = () => {
 
         if (token) {
             try {
+                console.log('Token found:', token);
                 const decodedToken = jwtDecode<TokenPayload>(token);
-                setUserRole(decodedToken.role);
-                console.log(userRole);
+                console.log('Decoded token:', decodedToken);
+                setUserRole(decodedToken.sub.role);
             } catch (error) {
                 console.error('Failed to decode token:', error);
-                setUserRole(null); 
+                setUserRole(null);
             }
+        } else {
+            console.log('No token found in cookies');
         }
     }, []);
+
 
     return userRole;
 };

@@ -149,7 +149,7 @@ class EventStore:
             raise e
 
     @staticmethod
-    def get_events_for_worker(worker_id: str) -> List[Dict]:
+    def get_events_for_worker(worker_id: int) -> List[Dict]:
         """
         Retrieves a list of events the worker is signed up for, using model capabilities.
         """

@@ -241,7 +241,7 @@ def my_events():
     elif has_permission(user.role, Permission.ASSIGN_WORKERS):
         events = EventStore.get_all_events()
     elif has_permission(user.role, Permission.APPLY_FOR_JOBS):
-        events = EventStore.get_events_for_worker(worker_id=user.personal_id)
+        events = EventStore.get_events_for_worker(worker_id=user.id)
     else:
         return jsonify({"error": "Unauthorized"}), 403
 
