@@ -115,7 +115,7 @@ class EventStore:
             EventUsersStore.add_worker_to_event(event_id=event_id, worker_id=worker_id, job_id=job.id)
 
             job.openings -= 1
-            job.save()
+            job.save_to_db()
 
             return jsonify({"message": "Successfully applied to the event"}), 201
 

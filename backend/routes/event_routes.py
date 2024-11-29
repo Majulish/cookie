@@ -202,6 +202,7 @@ def apply_to_event(event_id) -> Response | tuple[Response, int] | Any:
         return result
 
     except Exception as e:
+        print(e)
         print(jsonify({"error": str(e)}))
         return jsonify({"error": str(e)}), 500
 

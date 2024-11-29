@@ -36,3 +36,7 @@ class EventJob(db.Model):
         except SQLAlchemyError as e:
             db.session.rollback()
             raise e
+
+    def save_to_db(self) -> None:
+        db.session.add(self)
+        db.session.commit()

@@ -26,3 +26,6 @@ class Job(db.Model):
         return "Job added successfully"
 
 
+    def save_to_db(self) -> None:
+        db.session.add(self)
+        db.session.commit()
