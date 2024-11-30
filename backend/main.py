@@ -11,7 +11,16 @@ from backend.db import db
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, supports_credentials=True, resources={r"/*": {"origins": "http://localhost:3000"}})
+    # CORS(app, supports_credentials=True, resources={r"/*": {"origins": "http://localhost:3000"}})
+    CORS(app, resources={
+        r"/*": {
+            "origins": "http://localhost:3000",
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type"],
+            "expose_headers": ["Set-Cookie"],
+            "supports_credentials": True
+        }
+    })
 
     # JWT Configuration
     app.config['JWT_SECRET_KEY'] = JWT_TOKEN
@@ -20,7 +29,7 @@ def create_app():
     app.config['JWT_REFRESH_COOKIE_PATH'] = '/users/refresh'
     app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Set True in production
     app.config['JWT_COOKIE_SECURE'] = False  # Set True in production (requires HTTPS)
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=15)
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=15) #TODO change to minutes
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
     jwt = JWTManager(app)
 

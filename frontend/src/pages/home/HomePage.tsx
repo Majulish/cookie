@@ -1,54 +1,156 @@
-import React from 'react';
-import {Container, Typography, Grid, Paper, useMediaQuery, useTheme} from '@mui/material';
+import React, { useState } from 'react';
+import { Container, Typography, Grid, IconButton, Button, Box } from '@mui/material';
+import { useQuery, useQueryClient } from 'react-query';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
 import SideTab from '../../components/SideTab';
+import NewEventModal from './crate_event/NewEventModal';
+import { EventFormInputs, convertFormDataToAPIPayload } from './crate_event/eventScheme';
+import { createEvent, getMyEvents, getEventsFeed } from '../../api/eventApi';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import useUserRole from './hooks/useUserRole';
+import FeedList from './feed/FeedList';
+import MyEventList from './my_events/MyEventList';
+import LoadingPage from './LoadingPage';
+import ErrorPage from './ErrorPage'
+
 
 const HomePage: React.FC = () => {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [modalOpen, setModalOpen] = useState(false);
+    const queryClient = useQueryClient();
+    const { data: events = [], isLoading, isError } = useQuery(['events'], getMyEvents);
+    const userRole = useUserRole();
+    const { data: feedEvents = [] } = useQuery(
+        ['eventsFeed'], 
+        getEventsFeed,
+        { enabled: userRole === 'worker' }
+    );
+
+    const handleOpen = () => setModalOpen(true);
+    const handleClose = () => setModalOpen(false);
+
+    const handleEventSubmit = async (data: EventFormInputs): Promise<boolean> => {
+        try {
+            const apiPayload = convertFormDataToAPIPayload(data);
+            await createEvent(apiPayload);
+            await queryClient.invalidateQueries(['events']);
+            setModalOpen(false);
+            return true; 
+        } catch (error) {
+            console.error("Failed to create event:", error);
+            alert('Failed to create event. Please try again.');
+            return false; 
+        }
+    };
+
+    const renderWorkerView = () => (
+        <Grid container spacing={8} justifyContent="space-between">
+            <Grid item xs={5}>
+                <Box sx={{ position: 'sticky', top: '84px' }}>
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        Upcoming Events
+                    </Typography>
+                    <Box sx={{ mt: 8, maxHeight: '70vh', overflowY: 'auto', pr: 2 }}>
+                        {events.length === 0 ? (
+                            <Typography variant="body1" color="textSecondary">
+                                No events yet
+                            </Typography>
+                        ) : (
+                            <MyEventList events={events} />
+                        )}
+                    </Box>
+                </Box>
+            </Grid>
+            <Grid item xs={5}>
+                <Box sx={{ position: 'sticky', top: '84px' }}>
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        Sign Up For Events
+                    </Typography>
+                    <Box sx={{ mt: 8, maxHeight: '70vh', overflowY: 'auto', pr: 2 }}>
+                        {feedEvents.length === 0 ? (
+                            <Typography variant="body1" color="textSecondary">
+                                No events yet
+                            </Typography>
+                        ) : (
+                            <FeedList events={feedEvents} />
+                        )}
+                    </Box>
+                </Box>
+            </Grid>
+        </Grid>
+    );
+
+    const renderRecruiterView = () => (
+        <Grid container spacing={4}>
+            <Grid item xs={8}>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Upcoming Events
+                </Typography>
+                <Box mt={8}>
+                    {events.length === 0 ? (
+                        <Typography variant="body1" color="textSecondary">
+                            No events yet
+                        </Typography>
+                    ) : (
+                        <MyEventList events={events} />
+                    )}
+                </Box>
+                <Box mt={4}>
+                    <FeedList events={feedEvents} />
+                </Box>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    onClick={handleOpen}
+                    sx={{ mt: 2 }}
+                >
+                    Create Event
+                </Button>
+            </Grid>
+            <Grid item xs={4}>
+                <SideTab />
+            </Grid>
+        </Grid>
+    );
+
+    if(isLoading){
+        return <LoadingPage/>;
+    }
+
+    
 
     return (
-        <Container style={{paddingTop: isMobile ? '56px' : '64px', paddingBottom: isMobile ? '56px' : '0px'}}>
+        <Container maxWidth="xl" sx={{ pt: 8, pb: 0, minHeight: '100vh' }}>
             <Grid container spacing={3}>
                 <Grid item xs={12}>
-                    {isMobile ? (
-                        <div style={{position: 'fixed', bottom: 0, width: '100%'}}>
-                            <ResponsiveTabs/>
-                        </div>
-                    ) : (
-                        <div style={{position: 'fixed', top: 0, width: '100%'}}>
-                            <ResponsiveTabs/>
-                        </div>
-                    )}
+                    <ResponsiveTabs />
                 </Grid>
-
-                <Grid item xs={12} style={{textAlign: 'right'}}>
-                    <div>
-                        <Typography variant="h6">🔔 Notification Bell</Typography>
-                    </div>
-                </Grid>
-
-                <Grid item xs={12} md={8}>
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        Events here
-                    </Typography>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} sm={6} md={6}>
-                            <Paper elevation={3} style={{padding: '16px', textAlign: 'center'}}>
-                                <Typography variant="h6">title of block</Typography>
-                                <Typography>This is the content of the text block</Typography>
-                            </Paper>
-                        </Grid>
-                    </Grid>
-                </Grid>
-
-
-                <Grid item xs={12} md={4}>
-                    <div style={{position: 'fixed', right: 0}}>
-                        <SideTab/>
-                    </div>
+                <Grid item xs={12} sx={{ mt: 3 }}>
+                    {userRole === 'worker' ? renderWorkerView() : renderRecruiterView()}
                 </Grid>
             </Grid>
+
+            <IconButton
+                sx={{
+                    position: 'fixed',
+                    bottom: 16,
+                    right: 16,
+                    bgcolor: 'background.paper',
+                    borderRadius: '50%',
+                    boxShadow: 2,
+                    '&:hover': {
+                        bgcolor: 'background.paper',
+                    }
+                }}
+            >
+                <NotificationsIcon />
+            </IconButton>
+
+            <NewEventModal 
+                open={modalOpen} 
+                onClose={handleClose} 
+                onSubmit={handleEventSubmit} 
+            />
         </Container>
     );
 };

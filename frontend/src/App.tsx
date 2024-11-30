@@ -4,19 +4,23 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import SignIn from './pages/signin/SignIn';
 import SignUp from './pages/signup/SignUp';
 import HomePage from './pages/home/HomePage';
+import LoadingPage from './pages/home/LoadingPage';
+import ErrorPage from './pages/home/ErrorPage';
 
 const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
-  {path: '/',element: <HomePage />},
+  { path: '/', element: <HomePage /> },
   { path: '/sign-up', element: <SignUp /> },
   { path: '/sign-in', element: <SignIn /> },
+  { path: '/loading', element: <LoadingPage /> },
+  { path: '/error', element: <ErrorPage /> },
 ]);
 
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+      <RouterProvider router={router} />
     </QueryClientProvider>
   );
 };
