@@ -10,11 +10,14 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import useUserRole from './hooks/useUserRole';
 import FeedList from './feed/FeedList';
 import MyEventList from './my_events/MyEventList';
+import LoadingPage from './LoadingPage';
+import ErrorPage from './ErrorPage'
+
 
 const HomePage: React.FC = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const queryClient = useQueryClient();
-    const { data: events = [] } = useQuery(['events'], getMyEvents);
+    const { data: events = [], isLoading, isError } = useQuery(['events'], getMyEvents);
     const userRole = useUserRole();
     const { data: feedEvents = [] } = useQuery(
         ['eventsFeed'], 
@@ -109,6 +112,12 @@ const HomePage: React.FC = () => {
             </Grid>
         </Grid>
     );
+
+    if(isLoading){
+        return <LoadingPage/>;
+    }
+
+    
 
     return (
         <Container maxWidth="xl" sx={{ pt: 8, pb: 0, minHeight: '100vh' }}>

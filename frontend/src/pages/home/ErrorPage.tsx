@@ -1,21 +1,72 @@
 import React from 'react';
-import { Typography, Box, Button } from '@mui/material';
-import { useNavigate , useRouteError} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Box,
+  Button,
+  Container,
+  Paper,
+  Typography,
+  useTheme
+} from '@mui/material';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
-const ErrorPage: React.FC = () => {
-    const navigate = useNavigate();
-    const error = useRouteError();
-    console.error(error);
+const AuthRequired: React.FC = () => {
+  const navigate = useNavigate();
+  const theme = useTheme();
 
-    return (
-        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh">
-            <Typography variant="h4" color="error">An error occurred</Typography>
-            <Typography variant="body1" style={{ marginTop: 8 }}>We couldn’t load the requested page.</Typography>
-            <Button variant="contained" color="primary" onClick={() => navigate('/sign-in') } style={{ marginTop: 16 }}>
-                Go Back
-            </Button>
-        </Box>
-    );
+  return (
+    <Container component="main" maxWidth="xs">
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            padding: theme.spacing(4),
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: theme.spacing(2)
+          }}
+        >
+          <Box
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              borderRadius: '50%',
+              padding: theme.spacing(2),
+              marginBottom: theme.spacing(1)
+            }}
+          >
+            <LockOutlinedIcon sx={{ color: 'white' }} />
+          </Box>
+          
+          <Typography component="h1" variant="h5">
+            Authentication Required
+          </Typography>
+          
+          <Typography color="text.secondary">
+            Please log in to continue
+          </Typography>
+
+          <Button
+            variant="contained"
+            size="large"
+            fullWidth
+            onClick={() => navigate('/sign-in')}
+            sx={{ mt: 2 }}
+          >
+            Log in
+          </Button>
+        </Paper>
+      </Box>
+    </Container>
+  );
 };
 
-export default ErrorPage;
+export default AuthRequired;
