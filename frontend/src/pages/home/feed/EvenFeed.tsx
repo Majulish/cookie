@@ -11,7 +11,7 @@ import {
     Paper
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { MyEventScheme } from '../crate_event/eventScheme';
+import { MyEventScheme } from '../create_event/eventScheme';
 import { applyForJob } from '../../../api/eventApi';
 import { useQueryClient } from 'react-query';
 import ApplicationSuccessModal from '../../../components/ApplicationSuccessModal';
@@ -68,7 +68,10 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                             From: {event.start_date} {event.start_time}
                             <br />
                             To: {event.end_date} {event.end_time}
+                            <br />
+                            Location: {event.location}
                         </Typography>
+                        
 
                         <Box mt={2}>
                             <Typography variant="subtitle1" gutterBottom>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Box } from "@mui/material";
 import Event from "./MyEvent";
-import {  MyEventScheme } from "../crate_event/eventScheme";
+import {  MyEventScheme } from "../create_event/eventScheme";
 
 interface EventListProps {
   events: MyEventScheme[];

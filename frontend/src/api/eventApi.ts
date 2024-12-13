@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {  EventAPIPayload, RecievedEvent, convertRecivedEventToMyEvent , MyEventScheme } from '../pages/home/crate_event/eventScheme';
+import {  EventAPIPayload, RecievedEvent, convertRecivedEventToMyEvent , MyEventScheme } from '../pages/home/create_event/eventScheme';
 import { API_BASE_URL } from './config';
 
 export const createEvent = async (data: EventAPIPayload) => {
@@ -25,6 +25,7 @@ export const getMyEvents = async (): Promise<MyEventScheme[]> => {
         if (axios.isAxiosError(error)) {
             if (error.response?.status === 401) {
                 console.error('Session expired - please log in again');
+                window.location.href = 'http://localhost:3000/sign-in';
                 throw new Error('Authentication required');
             }
             if (error.response?.status === 404) {
@@ -60,6 +61,7 @@ export const getEventsFeed = async (): Promise<MyEventScheme[]> => {
         if (axios.isAxiosError(error)) {
             if (error.response?.status === 401) {
                 console.error('Session expired - please log in again');
+                window.location.href = 'http://localhost:3000/sign-in';
                 throw new Error('Authentication required');
             }
             if (error.response?.status === 403) {

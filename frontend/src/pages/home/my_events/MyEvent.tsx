@@ -1,7 +1,7 @@
 import React from "react";
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import {  MyEventScheme } from "../crate_event/eventScheme";
+import {  MyEventScheme } from "../create_event/eventScheme";
 
 interface EventProps {
   event: MyEventScheme;
@@ -13,16 +13,17 @@ const MyEvent: React.FC<EventProps> = ({ event }) => (
       <Typography variant="h6">{event.name}</Typography>
     </AccordionSummary>
     <AccordionDetails>
-      <Typography>{event.description}</Typography>
-      <Typography variant="body2">
+    <Typography variant="body1" color="textSecondary" gutterBottom>
         Start: {event.start_date} {event.start_time}
-      </Typography>
-      <Typography variant="body2">
+        <br />
         End: {event.end_date} {event.end_time}
-      </Typography>
-      <Typography variant="body2">
+        <br />
         Location: {event.location}
       </Typography>
+      <Typography variant="subtitle1" gutterBottom>
+        Description:
+      </Typography>
+      <Typography>{event.description}</Typography>
     </AccordionDetails>
   </Accordion>
 );

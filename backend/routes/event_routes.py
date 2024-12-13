@@ -115,9 +115,9 @@ def get_event(event_id: int) -> Tuple[Response, int]:
 @event_blueprint.route("/<int:event_id>", methods=["PUT"])
 @jwt_required()
 def update_event(event_id: int) -> Response | tuple[Response, int]:
-    jwt_data = get_jwt()
+    jwt_data = get_jwt()["sub"]
     if not jwt_data or 'username' not in jwt_data:
-        return redirect('/sign_in')
+        return jsonify({"error": "Authentication required"}), 401
     username = jwt_data["username"]
     user = UserStore.find_user("username", username)
 
@@ -136,9 +136,9 @@ def update_event(event_id: int) -> Response | tuple[Response, int]:
 @event_blueprint.route('/<int:event_id>', methods=['DELETE'])
 @jwt_required()
 def delete_event(event_id: int) -> Tuple[Response, int]:
-    jwt_data = get_jwt()
+    jwt_data = get_jwt()["sub"]
     if not jwt_data or 'username' not in jwt_data:
-        return redirect('/sign_in')
+        return jsonify({"error": "Authentication required"}), 401
     username = jwt_data["username"]
     user = UserStore.find_user("username", username)
 
@@ -152,9 +152,9 @@ def delete_event(event_id: int) -> Tuple[Response, int]:
 @event_blueprint.route('/<int:event_id>/workers', methods=['POST'])
 @jwt_required()
 def add_worker_to_event(event_id: int) -> Response | tuple[Response, int]:
-    jwt_data = get_jwt()
+    jwt_data = get_jwt()["sub"]
     if not jwt_data or 'username' not in jwt_data:
-        return redirect('/sign_in')
+        return jsonify({"error": "Authentication required"}), 401
     username = jwt_data["username"]
     user = UserStore.find_user("username", username)
 
@@ -229,6 +229,7 @@ def get_feed():
 @jwt_required()
 def my_events():
     jwt_data =  get_jwt()["sub"]
+    #Here redirect to http://localhost:3000/sign-in
     if not jwt_data or 'username' not in jwt_data:
         return jsonify({"error": "Authentication required"}), 401
     username = jwt_data["username"]

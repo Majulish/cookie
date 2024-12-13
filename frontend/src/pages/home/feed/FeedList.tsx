@@ -1,7 +1,7 @@
 import React from 'react';
 import { Stack } from '@mui/material';
 import EventFeed from '../feed/EvenFeed';
-import { MyEventScheme } from '../crate_event/eventScheme';
+import { MyEventScheme } from '../create_event/eventScheme';
 
 interface FeedListProps {
     events: MyEventScheme[];

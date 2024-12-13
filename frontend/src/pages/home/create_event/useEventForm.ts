@@ -61,9 +61,9 @@ export const useEventForm = ({ onSubmit, getJobsObject, resetJobs }: UseEventFor
       
       // Clean up the generated description before setting it
       const cleanedDescription = generatedDescription
-          .replace(/\n+/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
+          // .replace(/\n+/g, ' ')
+          // .replace(/\s+/g, ' ')
+          // .trim();
           
       console.log('Original generated description:', generatedDescription);
       console.log('Cleaned generated description:', cleanedDescription);

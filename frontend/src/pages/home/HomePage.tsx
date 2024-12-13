@@ -3,8 +3,8 @@ import { Container, Typography, Grid, IconButton, Button, Box } from '@mui/mater
 import { useQuery, useQueryClient } from 'react-query';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
 import SideTab from '../../components/SideTab';
-import NewEventModal from './crate_event/NewEventModal';
-import { EventFormInputs, convertFormDataToAPIPayload } from './crate_event/eventScheme';
+import NewEventModal from './create_event/NewEventModal';
+import { EventFormInputs, convertFormDataToAPIPayload } from './create_event/eventScheme';
 import { createEvent, getMyEvents, getEventsFeed } from '../../api/eventApi';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import useUserRole from './hooks/useUserRole';
@@ -116,6 +116,12 @@ const HomePage: React.FC = () => {
     if(isLoading){
         return <LoadingPage/>;
     }
+
+    // if(isError){
+    //     return <ErrorPage/>
+    // }
+
+
 
     
 
