@@ -56,7 +56,7 @@ class EventUsers(db.Model):
         """
         from backend.models.event import Event  # Lazy import to prevent circular imports
         try:
-            event = Event.find_by(id=event_id)
+            event = Event.find_by("id", event_id)
             if event:
                 db.session.execute(
                     EventUsers.__table__.insert().values(event_id=event_id, worker_id=worker_id, job_id=job_id)

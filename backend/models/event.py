@@ -1,9 +1,15 @@
 import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional, Tuple
+
+from flask import Response, jsonify
 
 from backend.db import db
 from backend.models.event_users import EventUsers
 from backend.models.event_job import EventJob
+
+
+class SQLAlchemyError:
+    pass
 
 
 class Event(db.Model):
@@ -39,13 +45,20 @@ class Event(db.Model):
         db.session.commit()
         return event  # Return the created event
 
-    def delete(self) -> None:
-        db.session.delete(self)
-        db.session.commit()
+    def delete(self) -> Tuple[Response, int]:
+        try:
+            db.session.delete(self)
+            db.session.commit()
+            return jsonify({"message": "Event deleted successfully"}), 200
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
 
     def save_to_db(self) -> None:
         db.session.add(self)
         db.session.commit()
+
 
     def to_dict(self):
         return {
@@ -67,6 +80,15 @@ class Event(db.Model):
                 for job in EventJob.query.filter_by(event_id=self.id).all()
             ],
         }
+
+    @classmethod
+    def find_by(cls, field: str, value: any) -> Optional['Event']:
+        try:
+            return cls.query.filter_by(**{field: value}).first()
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            raise e
 
     @staticmethod
     def get_future_events_excluding_signed(worker_id: str, filters: Dict) -> List["Event"]:
