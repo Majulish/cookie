@@ -73,7 +73,7 @@ def get_event(user, event_id):
         "end_datetime": event.end_datetime.isoformat(),
         "status": event.status,
         "workers": workers,
-        "jobs": [{"job_id": j.id, "job_title": j.job_title, "openings": j.openings} for j in event_jobs]
+        "jobs": [{"job_id": j.id, "job_title": j.job_title, "openings": j.openings, "slots": j.slots} for j in event_jobs]
     }), 200
 
 
