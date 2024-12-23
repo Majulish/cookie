@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Tuple, List
+from typing import Optional, Dict, Tuple, List, Any
 from flask import jsonify, Response
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -71,14 +71,14 @@ class EventStore:
             return jsonify({"error": str(e)}), 500
 
     @staticmethod
-    def get_workers_by_event(event_id: int) -> tuple[Response, int]:
-        event = EventStore.get_event_by({"id": event_id})
+    def get_workers_by_event(event_id: int) -> None | list[dict[str, Any]]:
+        event = EventStore.get_event_by(**{"id": event_id})
         if not event:
-            return jsonify({"error": "Event not found."}), 404
+            return None
 
         workers = (
             User.query
-            .join(EventUsers, User.id == EventUsers.user_id)
+            .join(EventUsers, User.id == EventUsers.worker_id)
             .filter(EventUsers.event_id == event_id)
             .all()
         )
@@ -90,7 +90,12 @@ class EventStore:
             "role": worker.role.value
         } for worker in workers]
 
-        return jsonify(worker_data), 200
+        return worker_data
+
+    @staticmethod
+    def get_event_job_by(**filters):
+        """Returns a list of event jobs filtered by the given kwargs."""
+        return EventJob.query.filter_by(**filters).all()
 
     @staticmethod
     def apply_to_event(event_id: int, worker_id: int, job_title: str) -> tuple[Response, int]:

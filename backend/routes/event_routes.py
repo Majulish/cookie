@@ -1,4 +1,3 @@
-# event_routes.py
 from flask import request, jsonify, Blueprint
 from pydantic import ValidationError
 from datetime import datetime
@@ -63,7 +62,8 @@ def get_event(user, event_id):
     event = Event.query.get(event_id)
     if not event:
         return jsonify({"error": "Event not found"}), 404
-    workers = [w.id for w in event.workers]
+    workers = EventStore.get_workers_by_event(event_id)
+    event_jobs = EventStore.get_event_job_by(event_id=event_id)
     return jsonify({
         "id": event.id,
         "name": event.name,
@@ -73,7 +73,7 @@ def get_event(user, event_id):
         "end_datetime": event.end_datetime.isoformat(),
         "status": event.status,
         "workers": workers,
-        "jobs": [{"job_id": j.id, "openings": j.openings} for j in event.jobs]
+        "jobs": [{"job_id": j.id, "job_title": j.job_title, "openings": j.openings} for j in event_jobs]
     }), 200
 
 
