@@ -45,9 +45,9 @@ class EventStore:
             raise e
 
     @staticmethod
-    def update_event(event: Dict) -> Tuple[Response, int]:
+    def update_event(event_id: int, event: Dict) -> Tuple[Response, int]:
         try:
-            existing_event = Event.find_by(id=event.get("id"))
+            existing_event = Event.find_by(id=event_id)
             if not existing_event:
                 return jsonify({"error": "Event not found"}), 404
 
