@@ -62,21 +62,13 @@ class EventStore:
 
     @staticmethod
     def delete_event(event_id: int) -> Tuple[Response, int]:
-        try:
-            # Find the event by ID
-            event = Event.find_by("id", event_id)
-            if not event:
-                return jsonify({"error": "Event not found"}), 404
+        # Find the event by ID
+        event = Event.find_by("id", event_id)
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
 
-            # Delete the event directly (cascading will handle related rows)
-            db.session.delete(event)
-            db.session.commit()
-            return jsonify({"message": "Event deleted successfully"}), 200
+        return event.delete()
 
-        except SQLAlchemyError as e:
-            # Rollback in case of error
-            db.session.rollback()
-            return jsonify({"error": str(e)}), 500
 
     @staticmethod
     def get_workers_by_event(event_id: int) -> tuple[Response, int]:
