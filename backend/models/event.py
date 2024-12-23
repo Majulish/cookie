@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from backend.db import db
 from backend.models.event_users import EventUsers
@@ -67,6 +67,15 @@ class Event(db.Model):
                 for job in EventJob.query.filter_by(event_id=self.id).all()
             ],
         }
+
+    @classmethod
+    def find_by(cls, field: str, value: any) -> Optional['Event']:
+        try:
+            return cls.query.filter_by(**{field: value}).first()
+        except Exception as e:
+            db.session.rollback()
+            print(e)
+            raise e
 
     @staticmethod
     def get_future_events_excluding_signed(worker_id: str, filters: Dict) -> List["Event"]:

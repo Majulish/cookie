@@ -136,9 +136,9 @@ def update_event(event_id: int) -> Response | tuple[Response, int]:
 @event_blueprint.route('/<int:event_id>', methods=['DELETE'])
 @jwt_required()
 def delete_event(event_id: int) -> Tuple[Response, int]:
-    jwt_data = get_jwt()
+    jwt_data = get_jwt()["sub"]
     if not jwt_data or 'username' not in jwt_data:
-        return redirect('/sign_in')
+        return jsonify({"error": "Authentication required"}), 401
     username = jwt_data["username"]
     user = UserStore.find_user("username", username)
 
@@ -154,7 +154,7 @@ def delete_event(event_id: int) -> Tuple[Response, int]:
 def add_worker_to_event(event_id: int) -> Response | tuple[Response, int]:
     jwt_data = get_jwt()
     if not jwt_data or 'username' not in jwt_data:
-        return redirect('/sign_in')
+        return jsonify({"error": "Authentication required"}), 401
     username = jwt_data["username"]
     user = UserStore.find_user("username", username)
 
