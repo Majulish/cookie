@@ -45,28 +45,19 @@ class EventStore:
             raise e
 
     @staticmethod
-    def update_event(event_id: int, event: Dict) -> Tuple[Response, int]:
+    def update_event(event_id: int, new_data: Dict) -> Tuple:
+        existing_event = Event.find_by("id", event_id)
+        if not existing_event:
+            return jsonify({"error": "Event not found"}), 404
         try:
-            existing_event = Event.find_by("id", event.get("id"))
-            if not existing_event:
-                return jsonify({"error": "Event not found"}), 404
-
-            for key, value in event.items():
-                if hasattr(existing_event, key):
-                    setattr(existing_event, key, value)
-            existing_event.save()
+            existing_event.update_event(new_data)
             return jsonify({"message": "Event updated successfully"}), 200
         except SQLAlchemyError as e:
             return jsonify({"error": str(e)}), 500
 
     @staticmethod
     def delete_event(event_id: int) -> Tuple[Response, int]:
-        # Find the event by ID
-        event = Event.find_by("id", event_id)
-        if not event:
-            return jsonify({"error": "Event not found"}), 404
-
-        return event.delete()
+        return Event.delete(event_id)
 
 
     @staticmethod

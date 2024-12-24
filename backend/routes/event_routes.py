@@ -85,7 +85,7 @@ def update_event(user, event_id):
     try:
         data = request.get_json()
         updated_data = UpdateEvent(**data)
-        result = EventStore.update_event(event_id, updated_data.model_dump())
+        result = EventStore.update_event(event_id, data)
         return result
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
@@ -150,7 +150,7 @@ def my_events(user):
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(events), 200
 
-
+# TODO: Delete this route as job should be included in /my events
 @event_blueprint.route('/<int:event_id>/my_job', methods=['GET'])
 @load_user
 def get_my_job(user, event_id):
