@@ -27,13 +27,12 @@ class LoginRequest(BaseModel):
 
 
 class UpdateEvent(BaseModel):
-    id: constr(min_length=1, max_length=256)
-    name: constr(min_length=1, max_length=100)
+    name: Optional[constr(min_length=1, max_length=100)]
     description: Optional[constr(min_length=1, max_length=500)]
-    location: constr(min_length=1, max_length=200)
-    start_datetime: datetime
-    end_datetime: datetime
-    status: Optional[EventStatus] = EventStatus.PLANNED
+    location: Optional[constr(min_length=1, max_length=200)]
+    start_datetime: Optional[datetime]
+    end_datetime: Optional[datetime]
+    status: Optional[EventStatus] = Optional[EventStatus.PLANNED]
     advertised: Optional[bool] = False
 
 

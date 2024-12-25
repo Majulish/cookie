@@ -1,16 +1,12 @@
 import datetime
 from typing import List, Dict, Optional, Tuple
-
 from flask import Response, jsonify
+from sqlalchemy.exc import SQLAlchemyError
 
 from backend.db import db
 from backend.models.event_users import EventUsers
 from backend.models.event_job import EventJob
-
-
-class SQLAlchemyError:
-    pass
-
+from backend.models.event_status import EventStatus  # If you have a separate enum file
 
 class Event(db.Model):
     __tablename__ = "events"
@@ -28,11 +24,12 @@ class Event(db.Model):
                            onupdate=datetime.datetime.now(datetime.UTC))
 
     @staticmethod
-    def create_event(name: str, description: str, location: str, start_datetime: datetime, end_datetime: datetime,
+    def create_event(name: str,
+                     description: str,
+                     location: str,
+                     start_datetime: datetime.datetime,
+                     end_datetime: datetime.datetime,
                      recruiter: str) -> "Event":
-        """
-        Creates and returns a new event.
-        """
         event = Event(
             name=name,
             description=description,
@@ -43,22 +40,38 @@ class Event(db.Model):
         )
         db.session.add(event)
         db.session.commit()
-        return event  # Return the created event
+        return event
 
-    def delete(self) -> Tuple[Response, int]:
+    def update_event(self, data: dict) -> None:
+        """
+        Updates event fields. If 'status' is passed as an EventStatus enum,
+        convert it to its string representation.
+        """
+        for key, value in data.items():
+            if hasattr(self, key) and key != 'id':
+                setattr(self, key, value)
+        db.session.commit()
+
+    @staticmethod
+    def delete(event_id: int) -> Tuple[Response, int]:
+        event = Event.find_by("id", event_id)
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
         try:
-            db.session.delete(self)
+            # Remove references in event_jobs
+            EventJob.query.filter_by(event_id=event_id).delete()
+            # Remove references in event_users
+            EventUsers.query.filter_by(event_id=event_id).delete()
+            db.session.delete(event)
             db.session.commit()
             return jsonify({"message": "Event deleted successfully"}), 200
-        except SQLAlchemyError as e:
+        except Exception as e:
             db.session.rollback()
             return jsonify({"error": str(e)}), 500
-
 
     def save_to_db(self) -> None:
         db.session.add(self)
         db.session.commit()
-
 
     def to_dict(self):
         return {
@@ -92,31 +105,22 @@ class Event(db.Model):
 
     @staticmethod
     def get_future_events_excluding_signed(worker_id: str, filters: Dict) -> List["Event"]:
-        """
-        Fetches future events that a worker can apply to, excluding events they're already signed up for.
-        """
         try:
             signed_event_ids = db.session.query(EventUsers.event_id).filter_by(worker_id=worker_id).subquery()
             query = Event.query.filter(
                 Event.start_datetime > datetime.datetime.now(datetime.UTC),
                 ~Event.id.in_(signed_event_ids)
             )
-
             if "location" in filters:
                 query = query.filter(Event.location == filters["location"])
             if "job_title" in filters:
                 query = query.join(EventJob).filter(EventJob.job_title == filters["job_title"])
-
             return query.all()
-
         except Exception as e:
             raise e
 
     @staticmethod
     def get_events_by_worker(worker_id: int) -> List['Event']:
-        """
-        Retrieves all events that a specific worker is signed up for.
-        """
         try:
             return (
                 db.session.query(Event)

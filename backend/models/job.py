@@ -10,8 +10,12 @@ class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
 
-    events = relationship("Event", secondary="event_job", back_populates="jobs")
-
+    events = relationship(
+        "Event",
+        secondary="event_job",
+        back_populates="jobs",
+        cascade="all, delete-orphan"
+    )
     def create_job(self) -> None:
         db.session.add(self)
         db.session.commit()
