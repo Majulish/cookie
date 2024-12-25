@@ -2,6 +2,7 @@ from typing import Optional, Dict, Tuple, List
 from flask import jsonify, Response
 from sqlalchemy.exc import SQLAlchemyError
 
+from backend.db import db
 from backend.models.event import Event
 from backend.models.user import User
 from backend.models.event_users import EventUsers
@@ -47,7 +48,7 @@ class EventStore:
     @staticmethod
     def update_event(event: Dict) -> Tuple[Response, int]:
         try:
-            existing_event = Event.find_by(id=event.get("id"))
+            existing_event = Event.find_by("id", event.get("id"))
             if not existing_event:
                 return jsonify({"error": "Event not found"}), 404
 
@@ -61,14 +62,13 @@ class EventStore:
 
     @staticmethod
     def delete_event(event_id: int) -> Tuple[Response, int]:
-        try:
-            event = Event.find_by(id=event_id)
-            if event:
-                event.delete()
-                return jsonify({"message": "Event deleted successfully"}), 200
+        # Find the event by ID
+        event = Event.find_by("id", event_id)
+        if not event:
             return jsonify({"error": "Event not found"}), 404
-        except SQLAlchemyError as e:
-            return jsonify({"error": str(e)}), 500
+
+        return event.delete()
+
 
     @staticmethod
     def get_workers_by_event(event_id: int) -> tuple[Response, int]:
