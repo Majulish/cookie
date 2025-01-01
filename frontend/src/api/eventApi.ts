@@ -25,6 +25,7 @@ export const createEvent = async (data: EventAPIPayload) => {
             }
         }
         console.error('Error creating event:', error);
+        window.location.href = SIGN_IN_URL;
         throw error;
     }
 };
@@ -49,6 +50,7 @@ export const getMyEvents = async (): Promise<MyEventScheme[]> => {
             }
         }
         console.error('Error fetching my events:', error);
+        window.location.href = SIGN_IN_URL;
         throw error;
     }
 };
