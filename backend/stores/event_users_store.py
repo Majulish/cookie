@@ -34,21 +34,20 @@ class EventUsersStore:
         except Exception as e:
             raise Exception(f"Failed to get workers by event: {e}")
 
-    class EventUsersStore:
-        @staticmethod
-        def get_worker_job_by_event(event_id: int, worker_id: int) -> dict | None:
-            """
-            Fetches the job assigned to a worker for a specific event.
-            """
-            try:
-                worker_job = EventUsers.get_worker_job(event_id=event_id, worker_id=worker_id)
-                if worker_job:
-                    job = EventJob.query.get(worker_job["job_id"])
-                    return {
-                        "worker_id": worker_job["worker_id"],
-                        "job_id": worker_job["job_id"],
-                        "job_title": job.job_title,
-                    }
-            except Exception as e:
-                raise Exception(f"Failed to retrieve worker's job: {e}")
+    @staticmethod
+    def get_worker_job_by_event(event_id: int, worker_id: int) -> dict | None:
+        """
+        Fetches the job assigned to a worker for a specific event.
+        """
+        try:
+            worker_job = EventUsers.get_worker_job(event_id=event_id, worker_id=worker_id)
+            if worker_job:
+                job = EventJob.query.get(worker_job["job_id"])
+                return {
+                    "worker_id": worker_job["worker_id"],
+                    "job_id": worker_job["job_id"],
+                    "job_title": job.job_title,
+                }
+        except Exception as e:
+            raise Exception(f"Failed to retrieve worker's job: {e}")
 

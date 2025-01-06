@@ -1,7 +1,8 @@
 import openai
+from SECRETS import OPEN_AI_KEY
 
 # Set the OpenAI API key
-openai.api_key = "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"
+openai.api_key = OPEN_AI_KEY
 
 def generate_event_description(prompt: str) -> str:
     """
