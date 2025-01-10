@@ -1,5 +1,6 @@
-from backend.models.event_users import EventUsers
 from backend.models.event_job import EventJob
+from backend.models.event_users import EventUsers
+from backend.models.event_users import WorkerStatus
 
 
 class EventUsersStore:
@@ -14,13 +15,31 @@ class EventUsersStore:
             print(f"Error is: {e}")
 
     @staticmethod
-    def add_worker_to_event(event_id: int, worker_id: int, job_id: int) -> None:
+    def add_worker_to_event(event_id: int, worker_id: int, job_title: str, status: WorkerStatus) -> None:
         """
-        Assigns a worker to a specific job in an event.
+        Adds a worker to a specific job in an event with a status.
         """
         try:
-            event_user = EventUsers(event_id=event_id, worker_id=worker_id, job_id=job_id)
+            # Resolve EventJob
+            event_job = EventJob.query.filter_by(event_id=event_id, job_title=job_title).first()
+            if not event_job:
+                raise ValueError(f"Job '{job_title}' not found for this event.")
+            if event_job.openings <= 0:
+                raise ValueError(f"Job '{job_title}' doesn't have any openings left.")
+
+            existing_entry = EventUsers.query.filter_by(event_id=event_id, worker_id=worker_id,
+                                                        job_id=event_job.id).first()
+            if existing_entry:
+                raise ValueError("Worker is already assigned to this job in the event.")
+
+            event_user = EventUsers(
+                event_id=event_id,
+                worker_id=worker_id,
+                job_id=event_job.id,
+                status=status
+            )
             event_user.save_to_db()
+            event_job.reduce_openings()
         except Exception as e:
             raise Exception(f"Failed to add worker to event: {e}")
 
@@ -33,21 +52,3 @@ class EventUsersStore:
             return EventUsers.get_workers_by_event(event_id)
         except Exception as e:
             raise Exception(f"Failed to get workers by event: {e}")
-
-    @staticmethod
-    def get_worker_job_by_event(event_id: int, worker_id: int) -> dict | None:
-        """
-        Fetches the job assigned to a worker for a specific event.
-        """
-        try:
-            worker_job = EventUsers.get_worker_job(event_id=event_id, worker_id=worker_id)
-            if worker_job:
-                job = EventJob.query.get(worker_job["job_id"])
-                return {
-                    "worker_id": worker_job["worker_id"],
-                    "job_id": worker_job["job_id"],
-                    "job_title": job.job_title,
-                }
-        except Exception as e:
-            raise Exception(f"Failed to retrieve worker's job: {e}")
-

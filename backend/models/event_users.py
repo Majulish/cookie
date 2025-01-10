@@ -3,6 +3,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Dict
 from backend.models.user import User
 from backend.models.event_job import EventJob
+from enum import Enum
+
+
+class WorkerStatus(Enum):
+    APPROVED = "APPROVED"
+    BACKUP = "BACKUP"
+    DONE = "DONE"
 
 
 class EventUsers(db.Model):
@@ -11,6 +18,7 @@ class EventUsers(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'), primary_key=True)
     worker_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('event_jobs.id'), nullable=False)
+    status = db.Column(db.Enum(WorkerStatus), default=WorkerStatus.BACKUP, nullable=False)
 
     def add_worker(self, worker_id: str, job_id: int) -> None:
         """
@@ -106,5 +114,9 @@ class EventUsers(db.Model):
             raise Exception(f"Error fetching worker job: {e}")
 
     def save_to_db(self) -> None:
-        db.session.add(self)
-        db.session.commit()
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e

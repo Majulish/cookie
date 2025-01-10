@@ -2,10 +2,11 @@ from flask import request, jsonify, Blueprint
 from pydantic import ValidationError
 from datetime import datetime
 from backend.app.decorators import load_user
+from backend.models.event_users import WorkerStatus
 from backend.models.roles import Permission, Role, has_permission
 from backend.openai_utils import generate_event_description
 from backend.models.schemas import UpdateEvent
-from backend.stores import EventStore, EventUsersStore
+from backend.stores import EventStore, EventUsersStore, UserStore
 from backend.models.event import Event
 
 event_blueprint = Blueprint('events', __name__)
@@ -99,20 +100,42 @@ def delete_event(user, event_id):
     return EventStore.delete_event(event_id)
 
 
-@event_blueprint.route('/<int:event_id>/workers', methods=['POST'])
+@event_blueprint.route('/assign_worker', methods=['POST'])
 @load_user
-def add_worker_to_event(user, event_id):
+def add_worker_to_event(user):
     if not has_permission(user.role, Permission.MANAGE_EVENTS):
         return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
     data = request.get_json()
-    worker_id = data.get('worker_id')
-    if not worker_id:
-        return jsonify({"error": "Worker ID is required"}), 400
-    event = Event.query.get(event_id)
-    if not event:
-        return jsonify({"error": "Event not found"}), 404
-    event.add_worker(worker_id)  # Should pass worker_id, not user.id
-    return jsonify({"message": "Worker added"}), 200
+    try:
+        job_title = data.get("job_title")
+        worker_id = data.get("worker_id")
+        event_id = data.get("event_id")
+        status = data.get("status")
+
+        if not all([job_title, worker_id, event_id, status]):
+            return jsonify({"error": "Missing required fields (job_title, worker_id, event_id, status)."}), 400
+        worker = UserStore.find_user("id", worker_id)
+        if not worker:
+            return jsonify({"error": "Worker not found."}), 404
+        try:
+            worker_status = WorkerStatus(status.upper())  # Convert to Enum
+        except ValueError:
+            return jsonify({"error": f"Invalid status '{status}'. Valid statuses are: approved, backup, done."}), 400
+        event = Event.query.get(event_id)
+        if not event:
+            return jsonify({"error": "Event not found"}), 404
+
+        EventUsersStore.add_worker_to_event(
+            event_id=event_id,
+            worker_id=worker_id,
+            job_title=job_title,
+            status=worker_status
+        )
+
+        event.add_worker(worker_id)  # Should pass worker_id, not user.id
+        return jsonify({"message": "Worker added"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @event_blueprint.route("/<int:event_id>/apply", methods=["POST"])
@@ -149,17 +172,3 @@ def my_events(user):
     else:
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(events), 200
-
-# TODO: Delete this route as job should be included in /my events
-@event_blueprint.route('/<int:event_id>/my_job', methods=['GET'])
-@load_user
-def get_my_job(user, event_id):
-    if user.role != Role.WORKER:
-        return jsonify({"error": "Unauthorized"}), 403
-    try:
-        job = EventUsersStore.get_worker_job_by_event(event_id, user.personal_id)
-        if not job:
-            return jsonify({"message": "No job assigned"}), 404
-        return jsonify(job), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
