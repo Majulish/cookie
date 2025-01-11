@@ -75,7 +75,7 @@ class EventStore:
 
         worker_data = [{
             "id": worker.id,
-            "name": worker.name,
+            "name": f"{worker.first_name} + {worker.last_name}",
             "email": worker.email,
             "role": worker.role.value
         } for worker in workers]
