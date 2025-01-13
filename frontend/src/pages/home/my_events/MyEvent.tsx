@@ -1,3 +1,4 @@
+// MyEvent.tsx
 import React, { useState } from "react";
 import { 
   Accordion, 
@@ -13,15 +14,20 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { MyEventScheme } from "../create_event/eventScheme";
 import NewEventDialog from "../create_event/NewEventModal";
 import { EventFormInputs } from "../create_event/eventScheme";
+import DeleteConfirmationModal from "../../../components/DeleteConfirmationModal";
+import DeleteSuccessModal from "../../../components/DeleteSuccessModal";
 
 interface EventProps {
   event: MyEventScheme;
   onEventUpdate: (eventId: number, data: EventFormInputs) => Promise<boolean>;
+  onEventDelete: (eventId: number) => Promise<boolean>;
 }
 
-const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate }) => {
+const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate, onEventDelete }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeleteSuccessOpen, setIsDeleteSuccessOpen] = useState(false);
   const open = Boolean(anchorEl);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -37,6 +43,19 @@ const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate }) => {
   const handleEditClick = (event: React.MouseEvent<HTMLElement>) => {
     handleClose(event);
     setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
+    handleClose(event);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    const success = await onEventDelete(event.id);
+    setIsDeleteConfirmOpen(false);
+    if (success) {
+      setIsDeleteSuccessOpen(true);
+    }
   };
 
   const handleEditSubmit = async (data: EventFormInputs) => {
@@ -76,7 +95,7 @@ const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate }) => {
             onClick={handleClose}
           >
             <MenuItem onClick={handleEditClick}>Edit</MenuItem>
-            <MenuItem onClick={handleClose}>Delete</MenuItem>
+            <MenuItem onClick={handleDeleteClick}>Delete</MenuItem>
           </Menu>
         </AccordionSummary>
         <AccordionDetails>
@@ -100,6 +119,18 @@ const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate }) => {
         onSubmit={handleEditSubmit}
         mode="edit"
         eventData={event}
+      />
+
+      <DeleteConfirmationModal
+        open={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        eventName={event.name}
+      />
+
+      <DeleteSuccessModal
+        open={isDeleteSuccessOpen}
+        onClose={() => setIsDeleteSuccessOpen(false)}
       />
     </>
   );

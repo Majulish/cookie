@@ -7,15 +7,17 @@ import { EventFormInputs } from "../create_event/eventScheme";
 interface EventListProps {
   events: MyEventScheme[];
   onEventUpdate: (eventId: number, data: EventFormInputs) => Promise<boolean>;
+  onEventDelete: (eventId: number) => Promise<boolean>;
 }
 
-const MyEventList: React.FC<EventListProps> = ({ events, onEventUpdate }) => (
+const MyEventList: React.FC<EventListProps> = ({ events, onEventUpdate, onEventDelete }) => (
   <Box sx={{ padding: 2 }}>
     {events.map((event, index) => (
       <Event 
         key={index} 
         event={event}
         onEventUpdate={onEventUpdate}
+        onEventDelete={onEventDelete}
       />
     ))}
   </Box>

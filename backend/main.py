@@ -15,7 +15,7 @@ def create_app():
     CORS(app, resources={
         r"/*": {
             "origins": "http://localhost:3000",
-            "methods": ["GET", "POST", "OPTIONS", "PUT"],
+            "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
             "allow_headers": ["Content-Type"],
             "expose_headers": ["Set-Cookie"],
             "supports_credentials": True

@@ -5,7 +5,7 @@ import ResponsiveTabs from '../../components/ResponsiveTabs';
 import SideTab from '../../components/SideTab';
 import NewEventModal from './create_event/NewEventModal';
 import { EventFormInputs, convertFormDataToAPIPayload } from './create_event/eventScheme';
-import { createEvent, getMyEvents, getEventsFeed, editEvent } from '../../api/eventApi';
+import { createEvent, getMyEvents, getEventsFeed, editEvent,deleteEvent } from '../../api/eventApi';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import useUserRole from './hooks/useUserRole';
 import FeedList from './feed/FeedList';
@@ -69,6 +69,22 @@ const HomePage: React.FC = () => {
         }
       };
 
+      const handleEventDelete = async (eventId: number): Promise<boolean> => {
+        try {
+            await deleteEvent(eventId);
+            await queryClient.invalidateQueries(['events']);
+            return true;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error('Error Response Data:', error.response?.data);
+                console.error('Error Status:', error.response?.status);
+            }
+            console.error("Failed to delete event: ", error);
+            alert('Failed to delete event. Please try again.');
+            return false;
+        }
+    };
+
     const renderWorkerView = () => (
         <Grid container spacing={8} justifyContent="space-between">
             <Grid item xs={5}>
@@ -84,6 +100,7 @@ const HomePage: React.FC = () => {
                         ) : (
                             <MyEventList events={events}
                             onEventUpdate={handleEventUpdate}
+                            onEventDelete={handleEventDelete}
                             />
                         )}
                     </Box>
@@ -122,6 +139,7 @@ const HomePage: React.FC = () => {
                     ) : (
                         <MyEventList events={events} 
                         onEventUpdate={handleEventUpdate}
+                        onEventDelete={handleEventDelete}
                         />
                     )}
                 </Box>

@@ -57,7 +57,32 @@ export const editEvent = async (id: number ,data: EventAPIPayload) => {
     }
 };
 
-
+export const deleteEvent = async (id: number) => {
+    try {
+        const response = await axios.delete(`${API_BASE_URL}/events/${id}`, {
+            withCredentials: true,
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            if (error.response?.status === 401) {
+                console.error('Session expired - please log in again');
+                window.location.href = SIGN_IN_URL;
+                throw new Error('Authentication required');
+            }
+            if (error.response?.status === 403) {
+                console.error('Only recruiters and hr managers can access this endpoint');
+                throw new Error('Unauthorized access');
+            }
+            if (error.response?.status === 404) {
+                console.error('Endpoint not found');
+                throw new Error('API endpoint not found');
+            }
+        }
+        console.error('Error editing event:', error);
+        throw error;
+    }
+};
 
 
 export const getMyEvents = async (): Promise<MyEventScheme[]> => {
