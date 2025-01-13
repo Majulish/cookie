@@ -6,7 +6,8 @@ import {
   Typography,
   IconButton,
   Menu,
-  MenuItem
+  MenuItem,
+  Button
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -15,15 +16,21 @@ import NewEventDialog from "../create_event/NewEventModal";
 import { EventFormInputs } from "../create_event/eventScheme";
 import DeleteConfirmationModal from "../../../components/DeleteConfirmationModal";
 import DeleteSuccessModal from "../../../components/DeleteSuccessModal";
-import  useUserRole from '../hooks/useUserRole'; 
+import useUserRole from '../hooks/useUserRole';
 
 interface EventProps {
   event: MyEventScheme;
   onEventUpdate: (eventId: number, data: EventFormInputs) => Promise<boolean>;
   onEventDelete: (eventId: number) => Promise<boolean>;
+  isPastWeekEvent?: boolean;  // New prop to identify past week events
 }
 
-const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate, onEventDelete }) => {
+const MyEvent: React.FC<EventProps> = ({ 
+  event, 
+  onEventUpdate, 
+  onEventDelete,
+  isPastWeekEvent = false  // Default to false
+}) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -31,7 +38,6 @@ const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate, onEventDelete }) 
   const open = Boolean(anchorEl);
   const userRole = useUserRole();
   
-  // Check if user has permission to edit/delete
   const hasEditPermission = userRole !== 'worker';
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -52,6 +58,11 @@ const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate, onEventDelete }) 
   const handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
     handleClose(event);
     setIsDeleteConfirmOpen(true);
+  };
+
+  const handleRateWorkersClick = () => {
+    // Add your rate workers logic here
+    console.log('Rate workers clicked for event:', event.id);
   };
 
   const handleConfirmDelete = async () => {
@@ -81,30 +92,52 @@ const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate, onEventDelete }) 
           }}
         >
           <Typography variant="h6">{event.name}</Typography>
-          {hasEditPermission && (
-            <>
-              <IconButton
-                aria-label="more"
-                aria-controls={open ? 'event-menu' : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? 'true' : undefined}
-                onClick={handleClick}
-                sx={{ ml: 2 }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Rate Workers button - only shown for past week events */}
+            {isPastWeekEvent && hasEditPermission && (
+              <Button
+                variant="contained"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRateWorkersClick();
+                }}
+                sx={{
+                  backgroundColor: '#FFD700',
+                  '&:hover': {
+                    backgroundColor: '#FFB700',
+                  },
+                  color: 'black',
+                  mr: 2
+                }}
               >
-                <MoreVertIcon />
-              </IconButton>
-              <Menu
-                id="event-menu"
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-                onClick={handleClose}
-              >
-                <MenuItem onClick={handleEditClick}>Edit</MenuItem>
-                <MenuItem onClick={handleDeleteClick}>Delete</MenuItem>
-              </Menu>
-            </>
-          )}
+                Rate Workers
+              </Button>
+            )}
+            {/* Existing menu button */}
+            {hasEditPermission && (
+              <>
+                <IconButton
+                  aria-label="more"
+                  aria-controls={open ? 'event-menu' : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open ? 'true' : undefined}
+                  onClick={handleClick}
+                >
+                  <MoreVertIcon />
+                </IconButton>
+                <Menu
+                  id="event-menu"
+                  anchorEl={anchorEl}
+                  open={open}
+                  onClose={handleClose}
+                  onClick={handleClose}
+                >
+                  <MenuItem onClick={handleEditClick}>Edit</MenuItem>
+                  <MenuItem onClick={handleDeleteClick}>Delete</MenuItem>
+                </Menu>
+              </>
+            )}
+          </div>
         </AccordionSummary>
         <AccordionDetails>
           <Typography variant="body1" color="textSecondary" gutterBottom>
@@ -147,5 +180,6 @@ const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate, onEventDelete }) 
     </>
   );
 };
+
 
 export default MyEvent;
