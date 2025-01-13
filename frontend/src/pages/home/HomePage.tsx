@@ -5,13 +5,14 @@ import ResponsiveTabs from '../../components/ResponsiveTabs';
 import SideTab from '../../components/SideTab';
 import NewEventModal from './create_event/NewEventModal';
 import { EventFormInputs, convertFormDataToAPIPayload } from './create_event/eventScheme';
-import { createEvent, getMyEvents, getEventsFeed } from '../../api/eventApi';
+import { createEvent, getMyEvents, getEventsFeed, editEvent } from '../../api/eventApi';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import useUserRole from './hooks/useUserRole';
 import FeedList from './feed/FeedList';
 import MyEventList from './my_events/MyEventList';
 import LoadingPage from './LoadingPage';
 import ErrorPage from './ErrorPage'
+import axios from 'axios';
 
 
 const HomePage: React.FC = () => {
@@ -42,6 +43,32 @@ const HomePage: React.FC = () => {
         }
     };
 
+    const handleEventUpdate = async (eventId: number, data: EventFormInputs) => {
+        try {
+            console.log('Raw form data received:', data);
+            console.log('Event ID:', eventId);
+            
+            const apiPayload = convertFormDataToAPIPayload(data);
+            console.log('Converted API payload:', apiPayload);
+            
+            const result = await editEvent(eventId, apiPayload);
+            console.log('API response:', result);
+            
+            await queryClient.invalidateQueries(['events']);
+            setModalOpen(false);
+            return true;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error('Error Response Data:', error.response?.data);
+                console.error('Error Status:', error.response?.status);
+                console.error('Error Headers:', error.response?.headers);
+            }
+            console.error("Failed to edit event: ", error);
+            alert('Failed to edit event. Please try again.');
+            return false;
+        }
+      };
+
     const renderWorkerView = () => (
         <Grid container spacing={8} justifyContent="space-between">
             <Grid item xs={5}>
@@ -55,7 +82,9 @@ const HomePage: React.FC = () => {
                                 No events yet
                             </Typography>
                         ) : (
-                            <MyEventList events={events} />
+                            <MyEventList events={events}
+                            onEventUpdate={handleEventUpdate}
+                            />
                         )}
                     </Box>
                 </Box>
@@ -91,7 +120,9 @@ const HomePage: React.FC = () => {
                             No events yet
                         </Typography>
                     ) : (
-                        <MyEventList events={events} />
+                        <MyEventList events={events} 
+                        onEventUpdate={handleEventUpdate}
+                        />
                     )}
                 </Box>
                 <Box mt={4}>
@@ -156,6 +187,7 @@ const HomePage: React.FC = () => {
                 open={modalOpen} 
                 onClose={handleClose} 
                 onSubmit={handleEventSubmit} 
+                mode="create"
             />
         </Container>
     );

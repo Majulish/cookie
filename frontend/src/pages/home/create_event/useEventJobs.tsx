@@ -10,6 +10,10 @@ export interface Job {
 export const useEventJobs = () => {
   const [jobList, setJobList] = useState<Job[]>([]);
 
+  const setInitialJobs = (jobs: Job[]) => {
+    setJobList(jobs);
+  };
+
   const handleAddJob = () => {
     if (jobList.some((job) => job.job === "")) {
       alert("Please select a job type for the previous entry before adding another.");
@@ -69,5 +73,6 @@ export const useEventJobs = () => {
     getJobsObject,
     resetJobs,
     availableJobs,
+    setInitialJobs,
   };
 };

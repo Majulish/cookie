@@ -84,12 +84,39 @@ def update_event(user, event_id):
         return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
     try:
         data = request.get_json()
-        updated_data = UpdateEvent(**data)
-        result = EventStore.update_event(event_id, data)
-        return result
-    except ValidationError as e:
-        return jsonify({"error": str(e)}), 400
+        print("Received data for update:", data)
 
+        if not isinstance(data, dict):
+            return jsonify({"error": "Invalid data format. Expected JSON object"}), 400
+
+        # Convert ISO strings to datetime objects
+        if "start_datetime" in data:
+            try:
+                data["start_datetime"] = datetime.fromisoformat(data["start_datetime"])
+            except ValueError:
+                return jsonify({"error": "Invalid start date format"}), 400
+
+        if "end_datetime" in data:
+            try:
+                data["end_datetime"] = datetime.fromisoformat(data["end_datetime"])
+            except ValueError:
+                return jsonify({"error": "Invalid end date format"}), 400
+
+        try:
+            updated_data = UpdateEvent(**data)
+        except Exception as ve:
+            return jsonify({"error": str(ve), "details": "Validation failed"}), 400
+
+        result, status_code = EventStore.update_event(event_id, updated_data.dict())
+        return jsonify(result), status_code
+
+    except ValidationError as e:
+        return jsonify({
+            "error": "Validation error",
+            "details": e.errors()
+        }), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @event_blueprint.route('/<int:event_id>', methods=['DELETE'])
 @load_user

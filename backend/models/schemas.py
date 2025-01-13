@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from pydantic import BaseModel, EmailStr, constr, conint, field_validator
 
@@ -28,12 +28,11 @@ class LoginRequest(BaseModel):
 
 class UpdateEvent(BaseModel):
     name: Optional[constr(min_length=1, max_length=100)]
-    description: Optional[constr(min_length=1, max_length=500)]
+    description: Optional[constr(min_length=1, max_length=2000)]
     location: Optional[constr(min_length=1, max_length=200)]
     start_datetime: Optional[datetime]
     end_datetime: Optional[datetime]
-    status: Optional[EventStatus] = Optional[EventStatus.PLANNED]
-    advertised: Optional[bool] = False
+    jobs: Optional[Dict[str, int]] = None
 
 
 class FeedEventSchema(BaseModel):
