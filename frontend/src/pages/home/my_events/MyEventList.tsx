@@ -1,3 +1,4 @@
+// MyEventList.tsx
 import React from "react";
 import { Box, Typography } from "@mui/material";
 import Event from "./MyEvent";
@@ -36,8 +37,35 @@ const MyEventList: React.FC<EventListProps> = ({ events, onEventUpdate, onEventD
     });
   };
 
+  const getTodayEvents = (events: MyEventScheme[]): MyEventScheme[] => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    return events.filter(event => {
+      try {
+        const eventStartDate = parseDateString(event.start_date, event.start_time);
+        const eventEndDate = parseDateString(event.end_date, event.end_time);
+        
+        // Check if event starts today or if it's ongoing (started before but hasn't ended yet)
+        const startsToday = eventStartDate.getDate() === today.getDate() &&
+                           eventStartDate.getMonth() === today.getMonth() &&
+                           eventStartDate.getFullYear() === today.getFullYear();
+        
+        const isOngoing = eventStartDate <= now && eventEndDate >= now;
+        
+        return startsToday || isOngoing;
+      } catch (error) {
+        console.error('Error parsing date:', error);
+        return false;
+      }
+    });
+  };
+
   const pastWeekEvents = getPastWeekEvents(events);
-  const currentEvents = events.filter(event => !pastWeekEvents.includes(event));
+  const todayEvents = getTodayEvents(events);
+  const currentEvents = events.filter(event => 
+    !pastWeekEvents.includes(event) && !todayEvents.includes(event)
+  );
 
   return (
     <Box>
@@ -54,7 +82,27 @@ const MyEventList: React.FC<EventListProps> = ({ events, onEventUpdate, onEventD
         ))}
       </Box>
 
-      {/* Past Week Events Section */}
+      {/* Today's Events Section - Only for workers */}
+      {userRole === 'worker' && todayEvents.length > 0 && (
+        <Box mt={8}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Today's Events
+          </Typography>
+          <Box sx={{ padding: 2 }}>
+            {todayEvents.map((event) => (
+              <Event 
+                key={event.id} 
+                event={event}
+                onEventUpdate={onEventUpdate}
+                onEventDelete={onEventDelete}
+                isPastWeekEvent={false}
+              />
+            ))}
+          </Box>
+        </Box>
+      )}
+
+      {/* Past Week Events Section - Only for non-workers */}
       {pastWeekEvents.length > 0 && hasAccessToPastEvents && (
         <Box mt={8}>
           <Typography variant="h4" component="h1" gutterBottom>
@@ -67,7 +115,7 @@ const MyEventList: React.FC<EventListProps> = ({ events, onEventUpdate, onEventD
                 event={event}
                 onEventUpdate={onEventUpdate}
                 onEventDelete={onEventDelete}
-                isPastWeekEvent={true}  // Set to true for past week events
+                isPastWeekEvent={true}
               />
             ))}
           </Box>

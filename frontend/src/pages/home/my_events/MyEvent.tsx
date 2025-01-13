@@ -22,14 +22,14 @@ interface EventProps {
   event: MyEventScheme;
   onEventUpdate: (eventId: number, data: EventFormInputs) => Promise<boolean>;
   onEventDelete: (eventId: number) => Promise<boolean>;
-  isPastWeekEvent?: boolean;  // New prop to identify past week events
+  isPastWeekEvent?: boolean;  
 }
 
 const MyEvent: React.FC<EventProps> = ({ 
   event, 
   onEventUpdate, 
   onEventDelete,
-  isPastWeekEvent = false  // Default to false
+  isPastWeekEvent = false  
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -61,7 +61,6 @@ const MyEvent: React.FC<EventProps> = ({
   };
 
   const handleRateWorkersClick = () => {
-    // Add your rate workers logic here
     console.log('Rate workers clicked for event:', event.id);
   };
 
@@ -93,7 +92,6 @@ const MyEvent: React.FC<EventProps> = ({
         >
           <Typography variant="h6">{event.name}</Typography>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {/* Rate Workers button - only shown for past week events */}
             {isPastWeekEvent && hasEditPermission && (
               <Button
                 variant="contained"
@@ -113,7 +111,6 @@ const MyEvent: React.FC<EventProps> = ({
                 Rate Workers
               </Button>
             )}
-            {/* Existing menu button */}
             {hasEditPermission && (
               <>
                 <IconButton
