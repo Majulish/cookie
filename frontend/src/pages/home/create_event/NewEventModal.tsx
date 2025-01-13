@@ -354,6 +354,7 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
           handleCloseSuccessModal();
           onClose();
         }} 
+        mode={mode}
       />
     </>
   );

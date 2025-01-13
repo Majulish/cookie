@@ -9,18 +9,12 @@ import {
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
-interface SuccessModalProps {
+interface DeleteSuccessModalProps {
   open: boolean;
   onClose: () => void;
-  mode?: 'create' | 'edit';
 }
 
-const SuccessModal: React.FC<SuccessModalProps> = ({ open, onClose, mode = 'create' }) => {
-  const title = mode === 'create' ? 'Event Created Successfully!' : 'Event Edited Successfully!';
-  const message = mode === 'create' 
-    ? 'Your event has been added to the system.'
-    : 'Your event has been updated successfully.';
-
+const DeleteSuccessModal: React.FC<DeleteSuccessModalProps> = ({ open, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle sx={{ textAlign: 'center' }}>
@@ -28,10 +22,10 @@ const SuccessModal: React.FC<SuccessModalProps> = ({ open, onClose, mode = 'crea
       </DialogTitle>
       <DialogContent>
         <Typography variant="h6" align="center">
-          {title}
+          Event Deleted Successfully!
         </Typography>
         <Typography color="text.secondary" align="center" sx={{ mt: 1 }}>
-          {message}
+          The event has been removed from the system.
         </Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
@@ -43,4 +37,4 @@ const SuccessModal: React.FC<SuccessModalProps> = ({ open, onClose, mode = 'crea
   );
 };
 
-export default SuccessModal;
+export default DeleteSuccessModal;

@@ -1,4 +1,3 @@
-// MyEvent.tsx
 import React, { useState } from "react";
 import { 
   Accordion, 
@@ -16,6 +15,7 @@ import NewEventDialog from "../create_event/NewEventModal";
 import { EventFormInputs } from "../create_event/eventScheme";
 import DeleteConfirmationModal from "../../../components/DeleteConfirmationModal";
 import DeleteSuccessModal from "../../../components/DeleteSuccessModal";
+import  useUserRole from '../hooks/useUserRole'; 
 
 interface EventProps {
   event: MyEventScheme;
@@ -29,6 +29,10 @@ const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate, onEventDelete }) 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleteSuccessOpen, setIsDeleteSuccessOpen] = useState(false);
   const open = Boolean(anchorEl);
+  const userRole = useUserRole();
+  
+  // Check if user has permission to edit/delete
+  const hasEditPermission = userRole !== 'worker';
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -77,26 +81,30 @@ const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate, onEventDelete }) 
           }}
         >
           <Typography variant="h6">{event.name}</Typography>
-          <IconButton
-            aria-label="more"
-            aria-controls={open ? 'event-menu' : undefined}
-            aria-haspopup="true"
-            aria-expanded={open ? 'true' : undefined}
-            onClick={handleClick}
-            sx={{ ml: 2 }}
-          >
-            <MoreVertIcon />
-          </IconButton>
-          <Menu
-            id="event-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            onClick={handleClose}
-          >
-            <MenuItem onClick={handleEditClick}>Edit</MenuItem>
-            <MenuItem onClick={handleDeleteClick}>Delete</MenuItem>
-          </Menu>
+          {hasEditPermission && (
+            <>
+              <IconButton
+                aria-label="more"
+                aria-controls={open ? 'event-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? 'true' : undefined}
+                onClick={handleClick}
+                sx={{ ml: 2 }}
+              >
+                <MoreVertIcon />
+              </IconButton>
+              <Menu
+                id="event-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                onClick={handleClose}
+              >
+                <MenuItem onClick={handleEditClick}>Edit</MenuItem>
+                <MenuItem onClick={handleDeleteClick}>Delete</MenuItem>
+              </Menu>
+            </>
+          )}
         </AccordionSummary>
         <AccordionDetails>
           <Typography variant="body1" color="textSecondary" gutterBottom>
@@ -113,25 +121,29 @@ const MyEvent: React.FC<EventProps> = ({ event, onEventUpdate, onEventDelete }) 
         </AccordionDetails>
       </Accordion>
 
-      <NewEventDialog
-        open={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSubmit={handleEditSubmit}
-        mode="edit"
-        eventData={event}
-      />
+      {hasEditPermission && (
+        <>
+          <NewEventDialog
+            open={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSubmit={handleEditSubmit}
+            mode="edit"
+            eventData={event}
+          />
 
-      <DeleteConfirmationModal
-        open={isDeleteConfirmOpen}
-        onClose={() => setIsDeleteConfirmOpen(false)}
-        onConfirm={handleConfirmDelete}
-        eventName={event.name}
-      />
+          <DeleteConfirmationModal
+            open={isDeleteConfirmOpen}
+            onClose={() => setIsDeleteConfirmOpen(false)}
+            onConfirm={handleConfirmDelete}
+            eventName={event.name}
+          />
 
-      <DeleteSuccessModal
-        open={isDeleteSuccessOpen}
-        onClose={() => setIsDeleteSuccessOpen(false)}
-      />
+          <DeleteSuccessModal
+            open={isDeleteSuccessOpen}
+            onClose={() => setIsDeleteSuccessOpen(false)}
+          />
+        </>
+      )}
     </>
   );
 };
