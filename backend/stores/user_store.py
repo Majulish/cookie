@@ -54,5 +54,5 @@ class UserStore:
             return jsonify({"error": str(e)}), 500
 
     @staticmethod
-    def find_user(field: str, value: str) -> Optional[User]:
+    def find_user(field: str, value: str | int) -> Optional[User]:
         return User.find_by(field, value)
