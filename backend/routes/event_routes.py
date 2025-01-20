@@ -63,8 +63,10 @@ def get_event(user, event_id):
     event = Event.query.get(event_id)
     if not event:
         return jsonify({"error": "Event not found"}), 404
+
+    # We still retrieve basic event info from the model
     workers = EventStore.get_workers_by_event(event_id)
-    event_jobs = EventStore.get_event_job_by(event_id=event_id)
+
     return jsonify({
         "id": event.id,
         "name": event.name,
@@ -74,8 +76,9 @@ def get_event(user, event_id):
         "end_datetime": event.end_datetime.isoformat(),
         "status": event.status,
         "workers": workers,
-        "jobs": [{"job_id": j.id, "job_title": j.job_title, "openings": j.openings, "slots": j.slots} for j in event_jobs]
+        # if you want jobs, also fetch them in the store or model
     }), 200
+
 
 
 @event_blueprint.route("/<int:event_id>", methods=["PUT"])
@@ -102,40 +105,26 @@ def delete_event(user, event_id):
 
 @event_blueprint.route('/assign_worker', methods=['POST'])
 @load_user
-def add_worker_to_event(user):
+def assign_worker_route(user):
     if not has_permission(user.role, Permission.MANAGE_EVENTS):
         return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
+
     data = request.get_json()
+    job_title = data.get("job_title")
+    worker_id = data.get("worker_id")
+    event_id = data.get("event_id")
+    status = data.get("status")
+
+    if not all([job_title, worker_id, event_id, status]):
+        return jsonify({"error": "Missing required fields (job_title, worker_id, event_id, status)."}), 400
+
     try:
-        job_title = data.get("job_title")
-        worker_id = data.get("worker_id")
-        event_id = data.get("event_id")
-        status = data.get("status")
+        worker_status = WorkerStatus(status.upper())  # e.g., "approved" => WorkerStatus.APPROVED
+    except ValueError:
+        return jsonify({"error": f"Invalid status '{status}'. Valid: approved, backup, done, pending."}), 400
 
-        if not all([job_title, worker_id, event_id, status]):
-            return jsonify({"error": "Missing required fields (job_title, worker_id, event_id, status)."}), 400
-        worker = UserStore.find_user("id", worker_id)
-        if not worker:
-            return jsonify({"error": "Worker not found."}), 404
-        try:
-            worker_status = WorkerStatus(status.upper())  # Convert to Enum
-        except ValueError:
-            return jsonify({"error": f"Invalid status '{status}'. Valid statuses are: approved, backup, done."}), 400
-        event = Event.query.get(event_id)
-        if not event:
-            return jsonify({"error": "Event not found"}), 404
-
-        EventUsersStore.add_worker_to_event(
-            event_id=event_id,
-            worker_id=worker_id,
-            job_title=job_title,
-            status=worker_status
-        )
-
-        event.add_worker(worker_id)  # Should pass worker_id, not user.id
-        return jsonify({"message": "Worker added"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # Call the store method that handles job assignment
+    return EventStore.assign_worker(event_id, worker_id, job_title, worker_status)
 
 
 @event_blueprint.route("/<int:event_id>/apply", methods=["POST"])

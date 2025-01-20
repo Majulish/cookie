@@ -1,12 +1,14 @@
+import datetime
 from typing import Optional, Dict, Tuple, List, Any
 from flask import jsonify, Response
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.models.event import Event
-from backend.models.user import User
-from backend.models.event_users import EventUsers
+from backend.models.event_users import EventUsers, WorkerStatus
 from backend.models.event_job import EventJob
+from backend.stores import UserStore
 from backend.stores.event_users_store import EventUsersStore
+from backend.stores.notification_store import NotificationStore
 
 
 class EventStore:
@@ -59,63 +61,93 @@ class EventStore:
     def delete_event(event_id: int) -> Tuple[Response, int]:
         return Event.delete(event_id)
 
-
     @staticmethod
-    def get_workers_by_event(event_id: int) -> None | list[dict[str, Any]]:
-        event = EventStore.get_event_by(**{"id": event_id})
-        if not event:
-            return None
-
-        workers = (
-            User.query
-            .join(EventUsers, User.id == EventUsers.worker_id)
-            .filter(EventUsers.event_id == event_id)
-            .all()
-        )
-
-        worker_data = [{
-            "id": worker.id,
-            "name": f"{worker.first_name} + {worker.family_name}",
-            "email": worker.email,
-            "role": worker.role.value
-        } for worker in workers]
-
-        return worker_data
-
-    @staticmethod
-    def get_event_job_by(**filters):
-        """Returns a list of event jobs filtered by the given kwargs."""
-        return EventJob.query.filter_by(**filters).all()
-
-    @staticmethod
-    def apply_to_event(event_id: int, worker_id: int, job_title: str) -> tuple[Response, int]:
+    def get_workers_by_event(event_id: int) -> list[dict]:
         """
-        Handles worker application to an event for a specific job.
+        Checks if event exists, then calls the model method to fetch worker data.
+        """
+        event = Event.find_by("id", event_id)
+        if not event:
+            # If the event doesn't exist, return an empty list or handle differently
+            return []
+
+        return EventUsers.get_workers_detailed(event_id)
+
+    @staticmethod
+    def apply_to_event(event_id: int, worker_id: int, job_title: str):
+        """
+        Worker applies => set status = PENDING. No decrement of 'openings'.
         """
         try:
-            filter = {"id": event_id}
-            event = EventStore.get_event_by(**filter)
+            event = Event.find_by("id", event_id)
             if not event:
                 return jsonify({"error": "Event not found"}), 404
+
+            worker = UserStore.find_user("id", worker_id)
+            if not worker:
+                return jsonify({"error": "Worker not found"}), 404
 
             job = EventJob.query.filter_by(event_id=event_id, job_title=job_title).first()
             if not job:
                 return jsonify({"error": f"Job '{job_title}' not found in this event"}), 404
-            if job.openings <= 0:
-                return jsonify({"error": "No openings available for this job"}), 400
 
-            if EventUsersStore.is_worker_assigned(event_id=event_id, worker_id=worker_id):
-                return jsonify({"message": "You have already applied for this job in the event"}), 200
+            # Worker can apply only if they're not already assigned in ANY status
+            if EventUsersStore.is_worker_assigned(event_id, worker_id):
+                return jsonify({"message": "You already applied or are assigned to this event"}), 200
 
-            EventUsersStore.add_worker_to_event(event_id=event_id, worker_id=worker_id, job_id=job.id)
+            # Just mark them as PENDING in the relationship
+            EventUsersStore.assign_worker(event_id, worker_id, job.id, WorkerStatus.PENDING)
 
-            job.openings -= 1
-            job.save_to_db()
+            # Notify the HR manager
+            hr_user = UserStore.find_user("username", event.recruiter)
+            if hr_user:
+                full_name = f"{worker.first_name} {worker.family_name}"
+                city = worker.city if worker.city else "Unknown city"
+                age = datetime.datetime.now().year - datetime.datetime.strptime(worker.birthdate, "%d/%m/%Y").year
 
-            return jsonify({"message": "Successfully applied to the event"}), 201
+                message = f"{full_name}, {city}, {age} requests to join {event.name}."
+                NotificationStore.create_notification(hr_user.id, message)
 
+            return jsonify({"message": "Successfully applied (pending)"}), 201
         except Exception as e:
-            raise e
+            return jsonify({"error": str(e)}), 500
+
+    @staticmethod
+    def assign_worker(event_id: int, worker_id: int, job_title: str, worker_status: WorkerStatus):
+        """
+        Let an HR manager assign (approve) or set a worker as backup, etc.
+        """
+        try:
+            event = Event.find_by("id", event_id)
+            if not event:
+                return jsonify({"error": "Event not found"}), 404
+
+            worker = UserStore.find_user("id", worker_id)
+            if not worker:
+                return jsonify({"error": "Worker not found"}), 404
+
+            job = EventJob.query.filter_by(event_id=event_id, job_title=job_title).first()
+            if not job:
+                return jsonify({"error": f"Job '{job_title}' not found in this event"}), 404
+
+            # Update or create the worker-event relation
+            EventUsersStore.add_worker_to_event(event_id, worker_id, job.id, worker_status)
+
+            # Send worker a notification
+            if worker_status == WorkerStatus.APPROVED:
+                note_msg = f"You have been accepted for event '{event.name}'."
+            elif worker_status == WorkerStatus.BACKUP:
+                note_msg = f"You have been assigned as backup for event '{event.name}'."
+            else:
+                note_msg = f"Your status for event '{event.name}' is now {worker_status.name}."
+
+            NotificationStore.create_notification(worker.id, note_msg)
+
+            return jsonify({"message": f"Worker status set to {worker_status.name}"}), 200
+        except SQLAlchemyError as e:
+            return jsonify({"error": str(e)}), 500
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     @staticmethod
     def get_event_by(**filter) -> Optional[Event]:
