@@ -6,7 +6,7 @@ from backend.models.event_users import WorkerStatus
 from backend.models.roles import Permission, Role, has_permission
 from backend.openai_utils import generate_event_description
 from backend.models.schemas import UpdateEvent
-from backend.stores import EventStore, EventUsersStore, UserStore
+from backend.stores import EventStore
 from backend.models.event import Event
 
 event_blueprint = Blueprint('events', __name__)
@@ -80,7 +80,6 @@ def get_event(user, event_id):
     }), 200
 
 
-
 @event_blueprint.route("/<int:event_id>", methods=["PUT"])
 @load_user
 def update_event(user, event_id):
@@ -103,7 +102,7 @@ def delete_event(user, event_id):
     return EventStore.delete_event(event_id)
 
 
-@event_blueprint.route('/assign_worker', methods=['POST'])
+@event_blueprint.route('/assign_worker/', methods=['POST'])
 @load_user
 def assign_worker_route(user):
     if not has_permission(user.role, Permission.MANAGE_EVENTS):
@@ -123,7 +122,6 @@ def assign_worker_route(user):
     except ValueError:
         return jsonify({"error": f"Invalid status '{status}'. Valid: approved, backup, done, pending."}), 400
 
-    # Call the store method that handles job assignment
     return EventStore.assign_worker(event_id, worker_id, job_title, worker_status)
 
 

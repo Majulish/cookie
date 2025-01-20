@@ -106,7 +106,7 @@ class EventStore:
                 age = datetime.datetime.now().year - datetime.datetime.strptime(worker.birthdate, "%d/%m/%Y").year
 
                 message = f"{full_name}, {city}, {age} requests to join {event.name}."
-                NotificationStore.create_notification(hr_user.id, message)
+                NotificationStore.create_notification(hr_user.id, message, event_id=event_id)
 
             return jsonify({"message": "Successfully applied (pending)"}), 201
         except Exception as e:
@@ -131,7 +131,7 @@ class EventStore:
                 return jsonify({"error": f"Job '{job_title}' not found in this event"}), 404
 
             # Update or create the worker-event relation
-            EventUsersStore.add_worker_to_event(event_id, worker_id, job.id, worker_status)
+            EventUsersStore.assign_worker(event_id, worker_id, job.id, worker_status)
 
             # Send worker a notification
             if worker_status == WorkerStatus.APPROVED:

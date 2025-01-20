@@ -9,7 +9,7 @@ notifications_blueprint = Blueprint('notifications', __name__)
 @load_user
 def get_notifications(user):
     """Fetch current user's notifications."""
-    data = NotificationStore.get_notifications(user.id)
+    data = NotificationStore.get_user_notifications(user.id)
     return jsonify(data), 200
 
 
