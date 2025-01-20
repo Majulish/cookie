@@ -73,6 +73,7 @@ class EventStore:
 
         return EventUsers.get_workers_detailed(event_id)
 
+
     @staticmethod
     def apply_to_event(event_id: int, worker_id: int, job_title: str):
         """
