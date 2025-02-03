@@ -179,3 +179,6 @@ export const applyForJob = async (eventId: number, jobTitle: string) => {
     throw error;
 }
 };
+
+
+
