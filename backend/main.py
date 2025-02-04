@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 import redis
@@ -15,7 +15,7 @@ def create_app():
     CORS(app, resources={
         r"/*": {
             "origins": "http://localhost:3000",
-            "methods": ["GET", "POST", "OPTIONS"],
+            "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
             "allow_headers": ["Content-Type"],
             "expose_headers": ["Set-Cookie"],
             "supports_credentials": True
@@ -32,6 +32,8 @@ def create_app():
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=15) #TODO change to minutes
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
     jwt = JWTManager(app)
+
+  
 
     # SQLAlchemy configuration
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:example@localhost:5432/my_database'

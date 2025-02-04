@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Typography, Grid, IconButton, Button, Box } from '@mui/material';
 import { useQuery, useQueryClient } from 'react-query';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
 import SideTab from '../../components/SideTab';
-import NewEventModal from './crate_event/NewEventModal';
-import { EventFormInputs, convertFormDataToAPIPayload } from './crate_event/eventScheme';
-import { createEvent, getMyEvents, getEventsFeed } from '../../api/eventApi';
+import NewEventModal from './create_event/NewEventModal';
+import { EventFormInputs, convertFormDataToAPIPayload } from './create_event/eventScheme';
+import { createEvent, getMyEvents, getEventsFeed, editEvent, deleteEvent } from '../../api/eventApi';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import useUserRole from './hooks/useUserRole';
 import FeedList from './feed/FeedList';
 import MyEventList from './my_events/MyEventList';
 import LoadingPage from './LoadingPage';
-import ErrorPage from './ErrorPage'
-
+import ErrorPage from './ErrorPage';
+import EventFilters from './feed/EventFilters';
+import axios from 'axios';
 
 const HomePage: React.FC = () => {
     const [modalOpen, setModalOpen] = useState(false);
@@ -24,9 +25,30 @@ const HomePage: React.FC = () => {
         getEventsFeed,
         { enabled: userRole === 'worker' }
     );
+    const [filteredEvents, setFilteredEvents] = useState(feedEvents);
+
+    useEffect(() => {
+        setFilteredEvents(feedEvents);
+    }, [feedEvents]);
 
     const handleOpen = () => setModalOpen(true);
     const handleClose = () => setModalOpen(false);
+
+    const handleFilterChange = (location: string, jobTitle: string) => {
+        let filtered = [...feedEvents];
+        
+        if (location) {
+            filtered = filtered.filter(event => event.location === location);
+        }
+        
+        if (jobTitle) {
+            filtered = filtered.filter(event => 
+                event.jobs.some(job => job.job_title === jobTitle)
+            );
+        }
+        
+        setFilteredEvents(filtered);
+    };
 
     const handleEventSubmit = async (data: EventFormInputs): Promise<boolean> => {
         try {
@@ -39,6 +61,48 @@ const HomePage: React.FC = () => {
             console.error("Failed to create event:", error);
             alert('Failed to create event. Please try again.');
             return false; 
+        }
+    };
+
+    const handleEventUpdate = async (eventId: number, data: EventFormInputs) => {
+        try {
+            console.log('Raw form data received:', data);
+            console.log('Event ID:', eventId);
+            
+            const apiPayload = convertFormDataToAPIPayload(data);
+            console.log('Converted API payload:', apiPayload);
+            
+            const result = await editEvent(eventId, apiPayload);
+            console.log('API response:', result);
+            
+            await queryClient.invalidateQueries(['events']);
+            setModalOpen(false);
+            return true;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error('Error Response Data:', error.response?.data);
+                console.error('Error Status:', error.response?.status);
+                console.error('Error Headers:', error.response?.headers);
+            }
+            console.error("Failed to edit event: ", error);
+            alert('Failed to edit event. Please try again.');
+            return false;
+        }
+    };
+
+    const handleEventDelete = async (eventId: number): Promise<boolean> => {
+        try {
+            await deleteEvent(eventId);
+            await queryClient.invalidateQueries(['events']);
+            return true;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.error('Error Response Data:', error.response?.data);
+                console.error('Error Status:', error.response?.status);
+            }
+            console.error("Failed to delete event: ", error);
+            alert('Failed to delete event. Please try again.');
+            return false;
         }
     };
 
@@ -55,7 +119,11 @@ const HomePage: React.FC = () => {
                                 No events yet
                             </Typography>
                         ) : (
-                            <MyEventList events={events} />
+                            <MyEventList 
+                                events={events}
+                                onEventUpdate={handleEventUpdate}
+                                onEventDelete={handleEventDelete}
+                            />
                         )}
                     </Box>
                 </Box>
@@ -65,14 +133,20 @@ const HomePage: React.FC = () => {
                     <Typography variant="h4" component="h1" gutterBottom>
                         Sign Up For Events
                     </Typography>
-                    <Box sx={{ mt: 8, maxHeight: '70vh', overflowY: 'auto', pr: 2 }}>
-                        {feedEvents.length === 0 ? (
-                            <Typography variant="body1" color="textSecondary">
-                                No events yet
-                            </Typography>
-                        ) : (
-                            <FeedList events={feedEvents} />
-                        )}
+                    <Box sx={{ mt: 6 }}>
+                        <EventFilters 
+                            events={feedEvents} 
+                            onFilterChange={handleFilterChange}
+                        />
+                        <Box sx={{ mt: 4, maxHeight: '70vh', overflowY: 'auto', pr: 2 }}>
+                            {filteredEvents.length === 0 ? (
+                                <Typography variant="body1" color="textSecondary">
+                                    No events match your filters
+                                </Typography>
+                            ) : (
+                                <FeedList events={filteredEvents} />
+                            )}
+                        </Box>
                     </Box>
                 </Box>
             </Grid>
@@ -91,7 +165,11 @@ const HomePage: React.FC = () => {
                             No events yet
                         </Typography>
                     ) : (
-                        <MyEventList events={events} />
+                        <MyEventList 
+                            events={events} 
+                            onEventUpdate={handleEventUpdate}
+                            onEventDelete={handleEventDelete}
+                        />
                     )}
                 </Box>
                 <Box mt={4}>
@@ -113,11 +191,13 @@ const HomePage: React.FC = () => {
         </Grid>
     );
 
-    if(isLoading){
-        return <LoadingPage/>;
+    if (isLoading) {
+        return <LoadingPage />;
     }
 
-    
+    // if (isError) {
+    //     return <ErrorPage />
+    // }
 
     return (
         <Container maxWidth="xl" sx={{ pt: 8, pb: 0, minHeight: '100vh' }}>
@@ -150,6 +230,7 @@ const HomePage: React.FC = () => {
                 open={modalOpen} 
                 onClose={handleClose} 
                 onSubmit={handleEventSubmit} 
+                mode="create"
             />
         </Container>
     );

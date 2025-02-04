@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Dialog,
   TextField,
@@ -22,14 +22,24 @@ import { useEventJobs } from "./useEventJobs";
 import { useEventForm } from "./useEventForm";
 import GenerateButton from "../../../components/GenerateButton";
 import SuccessModal from "../../../components/SuccessModal";
+import { MyEventScheme } from "./eventScheme";
+import { Controller } from "react-hook-form";
 
-interface NewEventDialogProps {
+interface EventFormModalProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: EventFormInputs) => Promise<boolean>;
+  mode: 'create' | 'edit';
+  eventData?: MyEventScheme;
 }
 
-const NewEventDialog: React.FC<NewEventDialogProps> = ({ open, onClose, onSubmit }) => {
+const NewEventDialog: React.FC<EventFormModalProps> = ({ 
+  open, 
+  onClose, 
+  onSubmit, 
+  mode,
+  eventData 
+}) => {
   const {
     jobList,
     handleAddJob,
@@ -38,10 +48,11 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({ open, onClose, onSubmit
     getJobsObject,
     resetJobs,
     availableJobs,
+    setInitialJobs,
   } = useEventJobs();
 
   const {
-    register,
+    control,
     handleSubmit,
     errors,
     prompt,
@@ -51,11 +62,36 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({ open, onClose, onSubmit
     reset,
     showSuccessModal,
     handleCloseSuccessModal,
+    setValue,
   } = useEventForm({
     onSubmit,
     getJobsObject,
     resetJobs,
+    mode,
   });
+
+  // Initialize form with event data when in edit mode
+  useEffect(() => {
+    if (open && mode === 'edit' && eventData) {
+      // Reset form before setting new values
+      reset();
+      
+      // Set the form values
+      setValue("event_name", eventData.name);
+      setValue("event_description", eventData.description);
+      setValue("location", eventData.location);
+      setValue("start_date", eventData.start_date);
+      setValue("start_time", eventData.start_time);
+      setValue("end_date", eventData.end_date);
+      setValue("end_time", eventData.end_time);
+
+      const convertedJobs = eventData.jobs.map(job => ({
+        job: job.job_title.toLowerCase(),
+        amount: job.slots
+      }));
+      setInitialJobs(convertedJobs);
+    }
+  }, [open]); // Only run when the modal opens
 
   const handleClose = () => {
     reset();
@@ -65,16 +101,24 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({ open, onClose, onSubmit
   return (
     <>
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-        <DialogTitle>New Event</DialogTitle>
+        <DialogTitle>
+          {mode === 'create' ? 'New Event' : 'Edit Event'}
+        </DialogTitle>
         <DialogContent>
-          <form id="new-event-form" onSubmit={handleSubmit}>
-            <TextField
-              label="Event Name"
-              fullWidth
-              margin="normal"
-              {...register("event_name")}
-              error={!!errors.event_name}
-              helperText={errors.event_name?.message}
+          <form id="event-form" onSubmit={handleSubmit}>
+            <Controller
+              name="event_name"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Event Name"
+                  fullWidth
+                  margin="normal"
+                  error={!!errors.event_name}
+                  helperText={errors.event_name?.message}
+                />
+              )}
             />
             
             <Box sx={{ mt: 2 }}>
@@ -112,83 +156,119 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({ open, onClose, onSubmit
                 />
               </Box>
                 
-              <TextField
-                label="Event Description"
-                fullWidth
-                multiline
-                minRows={8}
-                variant="outlined"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                {...register("event_description")}
-                error={!!errors.event_description}
-                helperText={errors.event_description?.message}
-                sx={{
-                  mt: 2,
-                  '& .MuiInputBase-root': {
-                    minHeight: '200px',
-                    height: 'auto',
-                  },
-                }}
+              <Controller
+                name="event_description"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Event Description"
+                    fullWidth
+                    multiline
+                    minRows={8}
+                    variant="outlined"
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    error={!!errors.event_description}
+                    helperText={errors.event_description?.message}
+                    sx={{
+                      mt: 2,
+                      '& .MuiInputBase-root': {
+                        minHeight: '200px',
+                        height: 'auto',
+                      },
+                    }}
+                  />
+                )}
               />
             </Box>
             
-            <TextField
-              label="Location"
-              fullWidth
-              margin="normal"
-              {...register("location")}
-              error={!!errors.location}
-              helperText={errors.location?.message}
+            <Controller
+              name="location"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Location"
+                  fullWidth
+                  margin="normal"
+                  error={!!errors.location}
+                  helperText={errors.location?.message}
+                />
+              )}
             />
 
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <TextField
-                  label="Start Date"
-                  fullWidth
-                  margin="normal"
-                  {...register("start_date")}
-                  error={!!errors.start_date}
-                  helperText={errors.start_date?.message || "Format: DD/MM/YYYY"}
-                  placeholder="DD/MM/YYYY"
+                <Controller
+                  name="start_date"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Start Date"
+                      fullWidth
+                      margin="normal"
+                      error={!!errors.start_date}
+                      helperText={errors.start_date?.message || "Format: DD/MM/YYYY"}
+                      placeholder="DD/MM/YYYY"
+                    />
+                  )}
                 />
               </Grid>
               <Grid item xs={6}>
-                <TextField
-                  label="Start Time"
-                  fullWidth
-                  margin="normal"
-                  {...register("start_time")}
-                  error={!!errors.start_time}
-                  helperText={errors.start_time?.message || "Format: HH:mm (24-hour)"}
-                  placeholder="HH:mm"
+                <Controller
+                  name="start_time"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Start Time"
+                      fullWidth
+                      margin="normal"
+                      error={!!errors.start_time}
+                      helperText={errors.start_time?.message || "Format: HH:mm (24-hour)"}
+                      placeholder="HH:mm"
+                    />
+                  )}
                 />
               </Grid>
             </Grid>
             
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <TextField
-                  label="End Date"
-                  fullWidth
-                  margin="normal"
-                  {...register("end_date")}
-                  error={!!errors.end_date}
-                  helperText={errors.end_date?.message || "Format: DD/MM/YYYY"}
-                  placeholder="DD/MM/YYYY"
+                <Controller
+                  name="end_date"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="End Date"
+                      fullWidth
+                      margin="normal"
+                      error={!!errors.end_date}
+                      helperText={errors.end_date?.message || "Format: DD/MM/YYYY"}
+                      placeholder="DD/MM/YYYY"
+                    />
+                  )}
                 />
               </Grid>
               <Grid item xs={6}>
-                <TextField
-                  label="End Time"
-                  fullWidth
-                  margin="normal"
-                  {...register("end_time")}
-                  error={!!errors.end_time}
-                  helperText={errors.end_time?.message || "Format: HH:mm (24-hour)"}
-                  placeholder="HH:mm"
+                <Controller
+                  name="end_time"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="End Time"
+                      fullWidth
+                      margin="normal"
+                      error={!!errors.end_time}
+                      helperText={errors.end_time?.message || "Format: HH:mm (24-hour)"}
+                      placeholder="HH:mm"
+                    />
+                  )}
                 />
               </Grid>
             </Grid>
@@ -259,11 +339,11 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({ open, onClose, onSubmit
           </Button>
           <Button
             type="submit"
-            form="new-event-form"
+            form="event-form"
             variant="contained"
             color="primary"
           >
-            Create Event
+            {mode === 'create' ? 'Create Event' : 'Save Changes'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -274,6 +354,7 @@ const NewEventDialog: React.FC<NewEventDialogProps> = ({ open, onClose, onSubmit
           handleCloseSuccessModal();
           onClose();
         }} 
+        mode={mode}
       />
     </>
   );

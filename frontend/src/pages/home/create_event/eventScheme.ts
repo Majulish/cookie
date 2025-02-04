@@ -7,7 +7,7 @@ const timeRegex = /^([01][0-9]|2[0-3]):([0-5][0-9])$/;
 const convertToISOString = (date: string, time: string): string => {
   const [day, month, year] = date.split('/').map(Number);
   const [hours, minutes] = time.split(':').map(Number);
-  
+
   // Create date in local timezone
   const localDate = new Date(year, month - 1, day, hours, minutes);
   
@@ -20,6 +20,7 @@ const convertToISOString = (date: string, time: string): string => {
   return localDate.toISOString();
 };
 
+// Helper function to convert ISO string to DD/MM/YYYY HH:mm
 export const convertFromISOString = (isoString: string): {
   date: string;  // DD/MM/YYYY
   time: string;  // HH:mm
@@ -41,7 +42,7 @@ export const convertFromISOString = (isoString: string): {
   };
 };
 
-// Interface for the form inputs (what user enters)
+// Interface for the form inputs (what the user enters)
 export interface EventFormInputs {
   event_name: string;
   event_description: string;
@@ -63,6 +64,7 @@ export interface EventAPIPayload {
   jobs?: Record<string, number>;
 }
 
+//Interface for what being recieved from the backend
 export interface RecievedEvent {
   id: number;
   name: string;
@@ -80,6 +82,7 @@ export interface RecievedEvent {
   }[];
 }
 
+//Interface for the recived event from the backend, after conversion
 export interface MyEventScheme {
   id: number;
   name: string;
@@ -99,6 +102,7 @@ export interface MyEventScheme {
   }[];
 }
 
+//Function to Convert RecievedEvent to MyEventScheme
 export const convertRecivedEventToMyEvent = (apiEvent: RecievedEvent): MyEventScheme => {
   const startDateTime = convertFromISOString(apiEvent.start_datetime);
   const endDateTime = convertFromISOString(apiEvent.end_datetime);
@@ -118,6 +122,7 @@ export const convertRecivedEventToMyEvent = (apiEvent: RecievedEvent): MyEventSc
   };
 };
 
+//Z object for handeling errors in the form of the new event
 export const eventSchema = z.object({
   event_name: z.string().min(4, "Event name must be at least 4 characters"),
   event_description: z.string().min(10, "Event description must be at least 10 characters"),
@@ -167,6 +172,7 @@ export const eventSchema = z.object({
   }
 });
 
+//Converts the event form to the format that should be sent to the backend
 export const convertFormDataToAPIPayload = (formData: EventFormInputs): EventAPIPayload => {
   // Clean up the description by replacing newlines with spaces and trimming
   const cleanedDescription = formData.event_description

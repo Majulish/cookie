@@ -8,10 +8,14 @@ import {
     AccordionDetails,
     Box,
     Button,
-    Paper
+    Paper,
+    FormControl,
+    Select,
+    MenuItem,
+    SelectChangeEvent
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { MyEventScheme } from '../crate_event/eventScheme';
+import { MyEventScheme } from '../create_event/eventScheme';
 import { applyForJob } from '../../../api/eventApi';
 import { useQueryClient } from 'react-query';
 import ApplicationSuccessModal from '../../../components/ApplicationSuccessModal';
@@ -24,14 +28,25 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
     const availableJobs = event.jobs.filter(job => job.openings > 0);
     const queryClient = useQueryClient();
     const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    const [selectedJob, setSelectedJob] = useState('');
 
-    const handleApply = async (jobTitle: string) => {
+    const handleJobChange = (event: SelectChangeEvent) => {
+        setSelectedJob(event.target.value);
+    };
+
+    const handleApply = async () => {
+        if (!selectedJob) {
+            alert('Please select a job position first');
+            return;
+        }
+
         try {
             console.log('Attempting to apply...');
-            await applyForJob(event.id, jobTitle);
+            await applyForJob(event.id, selectedJob);
             console.log('Application successful');
             await queryClient.invalidateQueries(['events']);
             setIsSuccessModalOpen(true);
+            setSelectedJob(''); // Reset selection after successful application
         } catch (error) {
             console.error("Failed to apply for job:", error);
             alert('Failed to apply for job. Please try again.');
@@ -68,6 +83,8 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                             From: {event.start_date} {event.start_time}
                             <br />
                             To: {event.end_date} {event.end_time}
+                            <br />
+                            Location: {event.location}
                         </Typography>
 
                         <Box mt={2}>
@@ -75,22 +92,36 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                 Available Jobs:
                             </Typography>
                             {availableJobs.length > 0 ? (
-                                <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                                    {availableJobs.map((job, index) => (
-                                        <li key={`${event.id}-${job.id}-${index}`} style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                                            <Typography variant="body2" style={{ marginRight: '16px' }}>
-                                                {job.job_title} ({job.openings} positions available)
-                                            </Typography>
-                                            <Button
-                                                variant="contained"
-                                                size="small"
-                                                onClick={() => handleApply(job.job_title)}
-                                            >
-                                                Apply
-                                            </Button>
-                                        </li>
-                                    ))}
-                                </ul>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <FormControl sx={{ minWidth: 200 }}>
+                                        <Select
+                                            value={selectedJob}
+                                            onChange={handleJobChange}
+                                            displayEmpty
+                                            size="small"
+                                        >
+                                            <MenuItem value="">
+                                                <em>Select a position</em>
+                                            </MenuItem>
+                                            {availableJobs.map((job, index) => (
+                                                <MenuItem 
+                                                    key={`${event.id}-${job.id}-${index}`} 
+                                                    value={job.job_title}
+                                                >
+                                                    {job.job_title}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        onClick={handleApply}
+                                        disabled={!selectedJob}
+                                    >
+                                        Apply
+                                    </Button>
+                                </Box>
                             ) : (
                                 <Typography variant="body2" color="textSecondary">
                                     No available positions at this time

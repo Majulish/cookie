@@ -85,14 +85,23 @@ def get_event(user, event_id):
 def update_event(user, event_id):
     if not has_permission(user.role, Permission.MANAGE_EVENTS):
         return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
+
     try:
         data = request.get_json()
+        start_str = data.get("start_datetime")
+        end_str = data.get("end_datetime")
+
+        try:
+            data["start_datetime"] = datetime.fromisoformat(start_str)
+            data["end_datetime"] = datetime.fromisoformat(end_str)
+        except ValueError:
+            return jsonify({"error": "Invalid date format"}), 400
+
         updated_data = UpdateEvent(**data)
         result = EventStore.update_event(event_id, data)
         return result
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
-
 
 @event_blueprint.route('/<int:event_id>', methods=['DELETE'])
 @load_user

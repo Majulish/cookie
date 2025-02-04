@@ -8,20 +8,21 @@ interface UseEventFormProps {
   onSubmit: (data: EventFormInputs) => Promise<boolean>;
   getJobsObject: () => Record<string, number>;
   resetJobs: () => void;
+  mode: 'create' | 'edit';
 }
 
-export const useEventForm = ({ onSubmit, getJobsObject, resetJobs }: UseEventFormProps) => {
+export const useEventForm = ({ onSubmit, getJobsObject, resetJobs, mode }: UseEventFormProps) => {
   const [prompt, setPrompt] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
 
   const {
-    register,
-    handleSubmit,
+    control,
     setValue,
     getValues,
     formState: { errors },
     reset: resetForm,
+    handleSubmit,
   } = useForm<EventFormInputs>({
     resolver: zodResolver(eventSchema),
     mode: "onChange",
@@ -56,31 +57,21 @@ export const useEventForm = ({ onSubmit, getJobsObject, resetJobs }: UseEventFor
 
     setIsGenerating(true);
     try {
-      console.log('Generating description with prompt:', prompt);
       const generatedDescription = await generateDescription(prompt);
       
-      // Clean up the generated description before setting it
       const cleanedDescription = generatedDescription
           .replace(/\n+/g, ' ')
           .replace(/\s+/g, ' ')
           .trim();
-          
-      console.log('Original generated description:', generatedDescription);
-      console.log('Cleaned generated description:', cleanedDescription);
 
       setValue("event_description", cleanedDescription, {
         shouldValidate: true,
         shouldDirty: true,
       });
 
-      console.log('Form values after setting cleaned description:', getValues());
-
     } catch (err) {
       const error = err as Error;
-      console.error("Error generating description:", {
-        error,
-        message: error.message || 'Unknown error occurred'
-      });
+      console.error("Error generating description:", error);
       alert("Failed to generate description. Please try again.");
     } finally {
       setIsGenerating(false);
@@ -88,46 +79,28 @@ export const useEventForm = ({ onSubmit, getJobsObject, resetJobs }: UseEventFor
   };
 
   const processSubmit = async (data: EventFormInputs) => {
-    console.log('Starting form submission. Current prompt state:', prompt);
-    console.log('Form data at submission:', data);
-    console.log('Form data event_description:', {
-      content: data.event_description,
-      length: data.event_description?.length,
-      type: typeof data.event_description
-    });
-    
     const jobsObject = getJobsObject();
-    console.log('Jobs object:', jobsObject);
     
     const formDataWithJobs = {
       ...data,
       jobs: jobsObject,
     };
-
-    console.log('Complete form data with jobs:', JSON.stringify(formDataWithJobs, null, 2));
     
     try {
       const success = await onSubmit(formDataWithJobs);
-      console.log('Form submission result:', success);
       
       if (success) {
-        console.log('Setting success modal to true');
         setShowSuccessModal(true);
-      } else {
-        console.log('Form submission returned false, not showing success modal');
       }
     } catch (err) {
       const error = err as Error;
-      console.error("Error submitting form:", {
-        error,
-        message: error.message || 'Unknown error occurred'
-      });
-      alert("Failed to create event. Please try again.");
+      console.error("Error submitting form:", error);
+      alert(`Failed to ${mode === 'create' ? 'create' : 'update'} event. Please try again.`);
     }
   };
 
   return {
-    register,
+    control,
     handleSubmit: handleSubmit(processSubmit),
     errors,
     prompt,

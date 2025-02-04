@@ -47,7 +47,7 @@ const AuthRequired: React.FC = () => {
           </Box>
           
           <Typography component="h1" variant="h5">
-            Authentication Required
+            An Unexpected Error Has Happened
           </Typography>
           
           <Typography color="text.secondary">
