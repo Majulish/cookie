@@ -27,9 +27,9 @@ def signup() -> Tuple[Response, int]:
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
 
-    existing_user = UserStore.find_user("username", data.username)
-    if existing_user:
-        return jsonify({"message": "Username already exists"}), 400
+    user_exists_result = UserStore.user_exists(data)
+    if user_exists_result:
+        return jsonify({"message": user_exists_result}), 400
 
     UserStore.create_user(data.model_dump())
     return jsonify({"message": "User registered successfully"}), 201

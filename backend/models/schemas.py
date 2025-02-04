@@ -28,7 +28,7 @@ class LoginRequest(BaseModel):
 
 class UpdateEvent(BaseModel):
     name: Optional[constr(min_length=1, max_length=100)]
-    description: Optional[constr(min_length=1, max_length=2000)]
+    description: Optional[constr(min_length=1, max_length=1000)]
     location: Optional[constr(min_length=1, max_length=200)]
     start_datetime: Optional[datetime]
     end_datetime: Optional[datetime]

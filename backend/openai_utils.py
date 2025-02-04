@@ -1,5 +1,5 @@
 import openai
-from backend.SECRETS import OPEN_AI_KEY
+from SECRETS import OPEN_AI_KEY
 
 # Set the OpenAI API key
 openai.api_key = OPEN_AI_KEY

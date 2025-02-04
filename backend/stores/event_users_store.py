@@ -1,5 +1,6 @@
-from backend.models.event_users import EventUsers
 from backend.models.event_job import EventJob
+from backend.models.event_users import EventUsers
+from backend.models.event_users import WorkerStatus
 
 
 class EventUsersStore:
@@ -14,15 +15,11 @@ class EventUsersStore:
             print(f"Error is: {e}")
 
     @staticmethod
-    def add_worker_to_event(event_id: int, worker_id: int, job_id: int) -> None:
+    def assign_worker(event_id: int, worker_id: int, job_id: int, status: WorkerStatus):
         """
-        Assigns a worker to a specific job in an event.
+        Store-level method simply delegates to the EventUsers model.
         """
-        try:
-            event_user = EventUsers(event_id=event_id, worker_id=worker_id, job_id=job_id)
-            event_user.save_to_db()
-        except Exception as e:
-            raise Exception(f"Failed to add worker to event: {e}")
+        return EventUsers.assign_worker(event_id, worker_id, job_id, status)
 
     @staticmethod
     def get_workers_by_event(event_id: int):
@@ -33,21 +30,3 @@ class EventUsersStore:
             return EventUsers.get_workers_by_event(event_id)
         except Exception as e:
             raise Exception(f"Failed to get workers by event: {e}")
-
-    @staticmethod
-    def get_worker_job_by_event(event_id: int, worker_id: int) -> dict | None:
-        """
-        Fetches the job assigned to a worker for a specific event.
-        """
-        try:
-            worker_job = EventUsers.get_worker_job(event_id=event_id, worker_id=worker_id)
-            if worker_job:
-                job = EventJob.query.get(worker_job["job_id"])
-                return {
-                    "worker_id": worker_job["worker_id"],
-                    "job_id": worker_job["job_id"],
-                    "job_title": job.job_title,
-                }
-        except Exception as e:
-            raise Exception(f"Failed to retrieve worker's job: {e}")
-

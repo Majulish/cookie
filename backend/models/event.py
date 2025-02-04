@@ -114,7 +114,13 @@ class Event(db.Model):
             if "location" in filters:
                 query = query.filter(Event.location == filters["location"])
             if "job_title" in filters:
-                query = query.join(EventJob).filter(EventJob.job_title == filters["job_title"])
+                query = query.join(EventJob).filter(
+                    EventJob.job_title == filters["job_title"],
+                    EventJob.openings > 0
+                )
+            else:
+                # If no job_title filter, still ensure openings > 0
+                query = query.join(EventJob).filter(EventJob.openings > 0)
             return query.all()
         except Exception as e:
             raise e

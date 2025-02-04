@@ -40,3 +40,17 @@ class EventJob(db.Model):
     def save_to_db(self) -> None:
         db.session.add(self)
         db.session.commit()
+
+    def reduce_openings(self) -> None:
+        """
+        Reduces the number of openings for the job by 1.
+        Ensures that openings do not drop below zero.
+        """
+        if self.openings <= 0:
+            raise ValueError(f"No openings available for job '{self.job_title}'.")
+        try:
+            self.openings -= 1
+            self.save_to_db()
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            raise e

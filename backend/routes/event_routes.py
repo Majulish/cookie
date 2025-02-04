@@ -2,10 +2,11 @@ from flask import request, jsonify, Blueprint
 from pydantic import ValidationError
 from datetime import datetime
 from backend.app.decorators import load_user
+from backend.models.event_users import WorkerStatus
 from backend.models.roles import Permission, Role, has_permission
 from backend.openai_utils import generate_event_description
 from backend.models.schemas import UpdateEvent
-from backend.stores import EventStore, EventUsersStore
+from backend.stores import EventStore
 from backend.models.event import Event
 
 event_blueprint = Blueprint('events', __name__)
@@ -62,8 +63,10 @@ def get_event(user, event_id):
     event = Event.query.get(event_id)
     if not event:
         return jsonify({"error": "Event not found"}), 404
+
+    # We still retrieve basic event info from the model
     workers = EventStore.get_workers_by_event(event_id)
-    event_jobs = EventStore.get_event_job_by(event_id=event_id)
+
     return jsonify({
         "id": event.id,
         "name": event.name,
@@ -73,7 +76,7 @@ def get_event(user, event_id):
         "end_datetime": event.end_datetime.isoformat(),
         "status": event.status,
         "workers": workers,
-        "jobs": [{"job_id": j.id, "job_title": j.job_title, "openings": j.openings, "slots": j.slots} for j in event_jobs]
+        # if you want jobs, also fetch them in the store or model
     }), 200
 
 
@@ -82,41 +85,23 @@ def get_event(user, event_id):
 def update_event(user, event_id):
     if not has_permission(user.role, Permission.MANAGE_EVENTS):
         return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
+
     try:
         data = request.get_json()
-        print("Received data for update:", data)
-
-        if not isinstance(data, dict):
-            return jsonify({"error": "Invalid data format. Expected JSON object"}), 400
-
-        # Convert ISO strings to datetime objects
-        if "start_datetime" in data:
-            try:
-                data["start_datetime"] = datetime.fromisoformat(data["start_datetime"])
-            except ValueError:
-                return jsonify({"error": "Invalid start date format"}), 400
-
-        if "end_datetime" in data:
-            try:
-                data["end_datetime"] = datetime.fromisoformat(data["end_datetime"])
-            except ValueError:
-                return jsonify({"error": "Invalid end date format"}), 400
+        start_str = data.get("start_datetime")
+        end_str = data.get("end_datetime")
 
         try:
-            updated_data = UpdateEvent(**data)
-        except Exception as ve:
-            return jsonify({"error": str(ve), "details": "Validation failed"}), 400
+            data["start_datetime"] = datetime.fromisoformat(start_str)
+            data["end_datetime"] = datetime.fromisoformat(end_str)
+        except ValueError:
+            return jsonify({"error": "Invalid date format"}), 400
 
-        result, status_code = EventStore.update_event(event_id, updated_data.dict())
-        return jsonify(result), status_code
-
+        updated_data = UpdateEvent(**data)
+        result = EventStore.update_event(event_id, data)
+        return result
     except ValidationError as e:
-        return jsonify({
-            "error": "Validation error",
-            "details": e.errors()
-        }), 400
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 400
 
 @event_blueprint.route('/<int:event_id>', methods=['DELETE'])
 @load_user
@@ -126,20 +111,27 @@ def delete_event(user, event_id):
     return EventStore.delete_event(event_id)
 
 
-@event_blueprint.route('/<int:event_id>/workers', methods=['POST'])
+@event_blueprint.route('/assign_worker/', methods=['POST'])
 @load_user
-def add_worker_to_event(user, event_id):
+def assign_worker_route(user):
     if not has_permission(user.role, Permission.MANAGE_EVENTS):
         return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
+
     data = request.get_json()
-    worker_id = data.get('worker_id')
-    if not worker_id:
-        return jsonify({"error": "Worker ID is required"}), 400
-    event = Event.query.get(event_id)
-    if not event:
-        return jsonify({"error": "Event not found"}), 404
-    event.add_worker(worker_id)  # Should pass worker_id, not user.id
-    return jsonify({"message": "Worker added"}), 200
+    job_title = data.get("job_title")
+    worker_id = data.get("worker_id")
+    event_id = data.get("event_id")
+    status = data.get("status")
+
+    if not all([job_title, worker_id, event_id, status]):
+        return jsonify({"error": "Missing required fields (job_title, worker_id, event_id, status)."}), 400
+
+    try:
+        worker_status = WorkerStatus(status.upper())  # e.g., "approved" => WorkerStatus.APPROVED
+    except ValueError:
+        return jsonify({"error": f"Invalid status '{status}'. Valid: approved, backup, done, pending."}), 400
+
+    return EventStore.assign_worker(event_id, worker_id, job_title, worker_status)
 
 
 @event_blueprint.route("/<int:event_id>/apply", methods=["POST"])
@@ -176,17 +168,3 @@ def my_events(user):
     else:
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(events), 200
-
-# TODO: Delete this route as job should be included in /my events
-@event_blueprint.route('/<int:event_id>/my_job', methods=['GET'])
-@load_user
-def get_my_job(user, event_id):
-    if user.role != Role.WORKER:
-        return jsonify({"error": "Unauthorized"}), 403
-    try:
-        job = EventUsersStore.get_worker_job_by_event(event_id, user.personal_id)
-        if not job:
-            return jsonify({"message": "No job assigned"}), 404
-        return jsonify(job), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
