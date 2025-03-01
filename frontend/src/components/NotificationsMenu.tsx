@@ -80,7 +80,7 @@ const NotificationsMenu: React.FC = () => {
       // Only fetch when popover is open
       enabled: open,
       // Reduce refetch frequency
-      staleTime: 60000, // 1 minute
+      staleTime: 300000, // 5 minutes
       refetchOnWindowFocus: false
     }
   );
