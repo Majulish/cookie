@@ -12,8 +12,9 @@ import {
   styled
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { getUserNotifications } from '../api/notificationsApi';
+import { getUserNotifications, Notification } from '../api/notificationsApi';
 import { useQuery, useQueryClient } from 'react-query';
+import { useNavigate } from 'react-router-dom';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -28,10 +29,11 @@ interface NotificationItemProps {
   message: string;
   created_at: string;
   is_read: boolean;
+  event_id: number | null;
   onClick: () => void;
 }
 
-const NotificationItem: React.FC<NotificationItemProps> = ({ message, created_at, is_read, onClick }) => (
+const NotificationItem: React.FC<NotificationItemProps> = ({ message, created_at, is_read, event_id, onClick }) => (
   <ListItem 
     onClick={onClick}
     sx={{ 
@@ -48,13 +50,22 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ message, created_at
   >
     <ListItemText
       primary={message}
-      secondary={new Date(created_at).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })}
+      secondary={
+        <>
+          {new Date(created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
+          {event_id === null && (
+            <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+              (No event linked)
+            </Typography>
+          )}
+        </>
+      }
       primaryTypographyProps={{
         sx: { fontWeight: is_read ? 'normal' : 'bold' }
       }}
@@ -65,21 +76,22 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ message, created_at
 const NotificationsMenu: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
-  // Only fetch notifications when the popover is open to prevent excessive API calls
+  // The open state for the popover
   const open = Boolean(anchorEl);
   
+  // Always fetch notifications on component mount
   const { 
     data: notifications = [], 
-    isLoading, 
+    isLoading: isLoadingDetails, 
     isError 
   } = useQuery(
     'notifications', 
     getUserNotifications,
     {
-      // Only fetch when popover is open
-      enabled: open,
-      // Reduce refetch frequency
+      // Enable fetching on component mount regardless of popover state
+      // This ensures we get the notification count immediately
       staleTime: 300000, // 5 minutes
       refetchOnWindowFocus: false
     }
@@ -89,25 +101,29 @@ const NotificationsMenu: React.FC = () => {
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
-    // Manually refetch notifications when opening the menu
-    if (!open) {
-      queryClient.invalidateQueries('notifications');
-    }
+    // Refresh notifications when opening the menu to ensure data is fresh
+    queryClient.invalidateQueries('notifications');
   };
 
   const handleClose = () => {
     setAnchorEl(null);
   };
 
-  const handleNotificationClick = (notificationId: number) => {
-    // For now, this just logs the notification ID
-    console.log(`Clicked on notification ${notificationId}`);
+  const handleNotificationClick = (notification: Notification) => {
+    console.log(`Clicked on notification ${notification.id}`);
     
-    // You could add functionality here like:
-    // - Mark notification as read
-    // - Navigate to related event or page
-    // - Open related modal or detailed view
+    // Navigate to event page if notification has an event_id
+    if (notification.event_id) {
+      navigate(`/event-page/${notification.event_id}`);
+      handleClose(); // Close the notification menu after navigating
+    } else {
+      console.log('This notification has no associated event');
+      // You could add a toast notification here
+    }
   };
+
+  // Determine if we're loading the initial badge count
+  const isLoadingBadge = notifications.length === 0 && !isError;
 
   return (
     <>
@@ -125,9 +141,13 @@ const NotificationsMenu: React.FC = () => {
           }
         }}
       >
-        <StyledBadge badgeContent={unreadCount} color="error">
-          <NotificationsIcon />
-        </StyledBadge>
+        {isLoadingBadge ? (
+          <CircularProgress size={24} />
+        ) : (
+          <StyledBadge badgeContent={unreadCount} color="error">
+            <NotificationsIcon />
+          </StyledBadge>
+        )}
       </IconButton>
 
       <Popover
@@ -154,7 +174,7 @@ const NotificationsMenu: React.FC = () => {
           <Typography variant="h6">Notifications</Typography>
         </Box>
 
-        {isLoading ? (
+        {isLoadingDetails && open ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress />
           </Box>
@@ -174,7 +194,8 @@ const NotificationsMenu: React.FC = () => {
                 message={notification.message}
                 created_at={notification.created_at}
                 is_read={notification.is_read}
-                onClick={() => handleNotificationClick(notification.id)}
+                event_id={notification.event_id}
+                onClick={() => handleNotificationClick(notification)}
               />
             ))}
           </List>
