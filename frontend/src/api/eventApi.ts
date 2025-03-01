@@ -90,6 +90,7 @@ export const getMyEvents = async (): Promise<MyEventScheme[]> => {
         const response = await axios.get(`${API_BASE_URL}/events/my_events`, {
             withCredentials: true,
         });
+        console.log('Response:', response);
 
         return response.data.map((event: RecievedEvent) => convertRecivedEventToMyEvent(event));
     } catch (error) {

@@ -14,6 +14,7 @@ import LoadingPage from './LoadingPage';
 import ErrorPage from './ErrorPage';
 import EventFilters from './feed/EventFilters';
 import axios from 'axios';
+import NotificationsMenu from '../../components/NotificationsMenu';
 
 const HomePage: React.FC = () => {
     const [modalOpen, setModalOpen] = useState(false);
@@ -25,11 +26,14 @@ const HomePage: React.FC = () => {
         getEventsFeed,
         { enabled: userRole === 'worker' }
     );
-    const [filteredEvents, setFilteredEvents] = useState(feedEvents);
+    const [filteredEvents, setFilteredEvents] = useState<any[]>([]);
 
+    // Fix: Add proper dependency array to useEffect
     useEffect(() => {
-        setFilteredEvents(feedEvents);
-    }, [feedEvents]);
+        if (feedEvents && feedEvents.length > 0) {
+            setFilteredEvents(feedEvents);
+        }
+    }, [feedEvents]); // Only run when feedEvents changes
 
     const handleOpen = () => setModalOpen(true);
     const handleClose = () => setModalOpen(false);
@@ -173,7 +177,7 @@ const HomePage: React.FC = () => {
                     )}
                 </Box>
                 <Box mt={4}>
-                    <FeedList events={feedEvents} />
+                    {feedEvents.length > 0 && <FeedList events={feedEvents} />}
                 </Box>
                 <Button
                     variant="contained"
@@ -210,21 +214,7 @@ const HomePage: React.FC = () => {
                 </Grid>
             </Grid>
 
-            <IconButton
-                sx={{
-                    position: 'fixed',
-                    bottom: 16,
-                    right: 16,
-                    bgcolor: 'background.paper',
-                    borderRadius: '50%',
-                    boxShadow: 2,
-                    '&:hover': {
-                        bgcolor: 'background.paper',
-                    }
-                }}
-            >
-                <NotificationsIcon />
-            </IconButton>
+            <NotificationsMenu />
 
             <NewEventModal 
                 open={modalOpen} 
