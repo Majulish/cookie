@@ -1,7 +1,7 @@
 from flask import request, jsonify, Blueprint
 from pydantic import ValidationError
 from datetime import datetime
-from backend.app.decorators import load_user
+from backend.app.decorators import load_user, permission_required
 from backend.models.event_users import WorkerStatus
 from backend.models.roles import Permission, Role, has_permission
 from backend.openai_utils import generate_event_description
@@ -59,12 +59,14 @@ def create_event(user):
 
 @event_blueprint.route('/<int:event_id>', methods=['GET'])
 @load_user
+@permission_required(Permission.MANAGE_EVENTS)
 def get_event(user, event_id):
+    if not has_permission(user.role, Permission.MANAGE_EVENTS):
+        return jsonify({"error": f"Unauthorized. {user.role} can't manage events"}), 403
     event = Event.query.get(event_id)
     if not event:
         return jsonify({"error": "Event not found"}), 404
 
-    # We still retrieve basic event info from the model
     workers = EventStore.get_workers_by_event(event_id)
 
     return jsonify({
@@ -76,7 +78,6 @@ def get_event(user, event_id):
         "end_datetime": event.end_datetime.isoformat(),
         "status": event.status,
         "workers": workers,
-        # if you want jobs, also fetch them in the store or model
     }), 200
 
 
@@ -102,6 +103,7 @@ def update_event(user, event_id):
         return result
     except ValidationError as e:
         return jsonify({"error": str(e)}), 400
+
 
 @event_blueprint.route('/<int:event_id>', methods=['DELETE'])
 @load_user

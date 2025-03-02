@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from backend.models.event import Event
 from backend.models.event_users import EventUsers, WorkerStatus
 from backend.models.event_job import EventJob
+from backend.models.roles import Role
 from backend.stores import UserStore
 from backend.stores.event_users_store import EventUsersStore
 from backend.stores.notification_store import NotificationStore
@@ -73,7 +74,6 @@ class EventStore:
 
         return EventUsers.get_workers_detailed(event_id)
 
-
     @staticmethod
     def apply_to_event(event_id: int, worker_id: int, job_title: str):
         """
@@ -106,7 +106,7 @@ class EventStore:
                 city = worker.city if worker.city else "Unknown city"
                 age = datetime.datetime.now().year - datetime.datetime.strptime(worker.birthdate, "%d/%m/%Y").year
 
-                message = f"{full_name}, {city}, {age} requests to join {event.name}."
+                message = f"{full_name}, from {city}, age {age}, requests to join {event.name}."
                 NotificationStore.create_notification(hr_user.id, message, event_id=event_id)
 
             return jsonify({"message": "Successfully applied (pending)"}), 201
@@ -115,9 +115,6 @@ class EventStore:
 
     @staticmethod
     def assign_worker(event_id: int, worker_id: int, job_title: str, worker_status: WorkerStatus):
-        """
-        Let an HR manager assign (approve) or set a worker as backup, etc.
-        """
         try:
             event = Event.find_by("id", event_id)
             if not event:
@@ -127,11 +124,14 @@ class EventStore:
             if not worker:
                 return jsonify({"error": "Worker not found"}), 404
 
+            if worker.role != Role.WORKER:
+                return jsonify({"error": "Only users with role WORKER can be approved for worker positions."}), 400
+
             job = EventJob.query.filter_by(event_id=event_id, job_title=job_title).first()
             if not job:
                 return jsonify({"error": f"Job '{job_title}' not found in this event"}), 404
 
-            # Update or create the worker-event relation
+            # Update or create the worker-event relation with proper handling of openings.
             EventUsersStore.assign_worker(event_id, worker_id, job.id, worker_status)
 
             # Send worker a notification
@@ -145,8 +145,6 @@ class EventStore:
             NotificationStore.create_notification(worker.id, note_msg)
 
             return jsonify({"message": f"Worker status set to {worker_status.name}"}), 200
-        except SQLAlchemyError as e:
-            return jsonify({"error": str(e)}), 500
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 

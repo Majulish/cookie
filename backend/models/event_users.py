@@ -67,7 +67,12 @@ class EventUsers(db.Model):
         """
         try:
             existing = EventUsers.query.filter_by(event_id=event_id, worker_id=worker_id).first()
+            is_already_approved = existing and existing.status == WorkerStatus.APPROVED
+            is_job_new = existing and existing.job_id != job_id
             if existing:
+                if is_already_approved and is_job_new:
+                    old_job = EventJob.query.get(existing.job_id)
+                    old_job.openings += 1
                 existing.job_id = job_id
                 existing.status = status.value
             else:
@@ -79,8 +84,8 @@ class EventUsers(db.Model):
                 )
                 db.session.add(new_entry)
 
-            # Decrement openings if status == APPROVED
-            if status == WorkerStatus.APPROVED:
+            # Decrement openings
+            if status == WorkerStatus.APPROVED and (not is_already_approved or is_job_new):
                 job = EventJob.query.get(job_id)
                 if job and job.openings > 0:
                     job.openings -= 1

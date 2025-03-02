@@ -85,7 +85,6 @@ class Event(db.Model):
             "status": self.status,
             "jobs": [
                 {
-                    "job_id": job.id,
                     "job_title": job.job_title,
                     "slots": job.slots,
                     "openings": job.openings
