@@ -36,7 +36,7 @@ class EventStore:
             raise e
 
     @staticmethod
-    def get_available_events_for_worker(worker_id: str, filters: Dict) -> List[Dict]:
+    def get_available_events_for_worker(worker_id: int, filters: Dict) -> List[Dict]:
         """
         Returns a list of future events that the worker can apply to, excluding events they're already signed up for.
         """

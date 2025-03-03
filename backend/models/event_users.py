@@ -1,3 +1,5 @@
+import datetime
+
 from backend.db import db
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Dict
@@ -119,6 +121,10 @@ class EventUsers(db.Model):
                     "worker_id": user.id,
                     "name": f"{user.first_name} {user.family_name}",
                     "job_title": job.job_title,
+                    "age": datetime.datetime.now().year - datetime.datetime.strptime
+                    (user.birthdate, "%d/%m/%Y").year,
+                    "city": user.city or "unknown",
+                    "phone": user.phone_number,
                     "status": status_str
                 })
 

@@ -1,12 +1,12 @@
 import datetime
 from typing import List, Dict, Optional, Tuple
+
 from flask import Response, jsonify
-from sqlalchemy.exc import SQLAlchemyError
 
 from backend.db import db
-from backend.models.event_users import EventUsers
 from backend.models.event_job import EventJob
-from backend.models.event_status import EventStatus  # If you have a separate enum file
+from backend.models.event_users import EventUsers
+
 
 class Event(db.Model):
     __tablename__ = "events"
@@ -103,7 +103,7 @@ class Event(db.Model):
             raise e
 
     @staticmethod
-    def get_future_events_excluding_signed(worker_id: str, filters: Dict) -> List["Event"]:
+    def get_future_events_excluding_signed(worker_id: int, filters: Dict) -> List["Event"]:
         try:
             signed_event_ids = db.session.query(EventUsers.event_id).filter_by(worker_id=worker_id).subquery()
             query = Event.query.filter(

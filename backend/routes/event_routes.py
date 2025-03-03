@@ -70,14 +70,8 @@ def get_event(user, event_id):
     workers = EventStore.get_workers_by_event(event_id)
 
     return jsonify({
-        "id": event.id,
-        "name": event.name,
-        "description": event.description,
-        "location": event.location,
-        "start_datetime": event.start_datetime.isoformat(),
-        "end_datetime": event.end_datetime.isoformat(),
-        "status": event.status,
         "workers": workers,
+        **event.to_dict()
     }), 200
 
 
@@ -154,7 +148,7 @@ def get_feed(user):
     if user.role != Role.WORKER:
         return jsonify({"error": "Unauthorized"}), 403
     filters = request.args.to_dict()
-    events = EventStore.get_available_events_for_worker(user.personal_id, filters)
+    events = EventStore.get_available_events_for_worker(user.id, filters)
     return jsonify(events), 200
 
 
