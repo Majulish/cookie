@@ -14,7 +14,8 @@ class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.String(2000), nullable=True)
-    location = db.Column(db.String(100), nullable=True)
+    address = db.Column(db.String(100), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
     start_datetime = db.Column(db.DateTime, nullable=False)
     end_datetime = db.Column(db.DateTime, nullable=False)
     recruiter = db.Column(db.String(80), nullable=False)
@@ -27,7 +28,8 @@ class Event(db.Model):
     @staticmethod
     def create_event(name: str,
                      description: str,
-                     location: str,
+                     city: str,
+                     address: str,
                      start_datetime: datetime.datetime,
                      end_datetime: datetime.datetime,
                      recruiter: str,
@@ -35,7 +37,8 @@ class Event(db.Model):
         event = Event(
             name=name,
             description=description,
-            location=location,
+            city=city,
+            address=address,
             start_datetime=start_datetime,
             end_datetime=end_datetime,
             recruiter=recruiter,
@@ -81,7 +84,8 @@ class Event(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "location": self.location,
+            "address": self.address,
+            "city": self.city,
             "start_datetime": self.start_datetime.isoformat(),
             "end_datetime": self.end_datetime.isoformat(),
             "recruiter": self.recruiter,

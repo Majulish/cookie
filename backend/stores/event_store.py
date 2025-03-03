@@ -21,7 +21,8 @@ class EventStore:
             event = Event.create_event(
                 name=data["name"],
                 description=data["description"],
-                location=data["location"],
+                address=data["address"],
+                city=data["city"],
                 start_datetime=data["start_datetime"],
                 end_datetime=data["end_datetime"],
                 recruiter=data["recruiter"],

@@ -29,7 +29,7 @@ class User(db.Model):
     personal_id = db.Column(db.String(256), unique=True, nullable=False)
     company_name = db.Column(db.String(50), nullable=True)
     company_id = db.Column(db.String(50), default="0")
-    city = db.Column(db.String(50), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC),

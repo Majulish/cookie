@@ -45,7 +45,8 @@ def create_event(user):
         event_data = {
             "name": data.get("name"),
             "description": data.get("description", ""),
-            "location": data.get("location", ""),
+            "city": data.get("city", "Unknown city"),
+            "address": data.get("address", "Unknown address"),
             "recruiter": user.username,
             "start_datetime": start,
             "end_datetime": end,
