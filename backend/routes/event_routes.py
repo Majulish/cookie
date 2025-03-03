@@ -49,7 +49,8 @@ def create_event(user):
             "recruiter": user.username,
             "start_datetime": start,
             "end_datetime": end,
-            "jobs": data.get("jobs", {})
+            "jobs": data.get("jobs", {}),
+            "company_id": data.get("company_id", "0")
         }
         event = EventStore.create_event(event_data)
         return jsonify({"message": "Event created", "event_id": event.id}), 201

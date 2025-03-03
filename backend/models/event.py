@@ -22,6 +22,7 @@ class Event(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC),
                            onupdate=datetime.datetime.now(datetime.UTC))
+    company_id = db.Column(db.String(50), default="0")
 
     @staticmethod
     def create_event(name: str,
@@ -29,7 +30,8 @@ class Event(db.Model):
                      location: str,
                      start_datetime: datetime.datetime,
                      end_datetime: datetime.datetime,
-                     recruiter: str) -> "Event":
+                     recruiter: str,
+                     company_id: str) -> "Event":
         event = Event(
             name=name,
             description=description,
@@ -37,6 +39,7 @@ class Event(db.Model):
             start_datetime=start_datetime,
             end_datetime=end_datetime,
             recruiter=recruiter,
+            company_id=company_id,
         )
         db.session.add(event)
         db.session.commit()

@@ -1,8 +1,9 @@
 import datetime
-from typing import Optional, Dict, Tuple, List, Any
+from typing import Optional, Dict, Tuple, List
 from flask import jsonify, Response
 from sqlalchemy.exc import SQLAlchemyError
 
+from backend.models.user import User
 from backend.models.event import Event
 from backend.models.event_users import EventUsers, WorkerStatus
 from backend.models.event_job import EventJob
@@ -24,12 +25,12 @@ class EventStore:
                 start_datetime=data["start_datetime"],
                 end_datetime=data["end_datetime"],
                 recruiter=data["recruiter"],
+                company_id=data["company_id"]
             )
 
             # Add associated jobs
             for job_title, slots in data["jobs"].items():
                 EventJob.create_event_job(event_id=event.id, job_title=job_title, slots=slots)
-
             return event
 
         except Exception as e:
@@ -100,7 +101,7 @@ class EventStore:
             EventUsersStore.assign_worker(event_id, worker_id, job.id, WorkerStatus.PENDING)
 
             # Notify the HR manager
-            hr_user = UserStore.find_user("username", event.recruiter)
+            hr_user = User.find_by({"company_id": worker.company_id, "role": Role.HR_MANAGER})
             if hr_user:
                 full_name = f"{worker.first_name} {worker.family_name}"
                 city = worker.city if worker.city else "Unknown city"
