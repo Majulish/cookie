@@ -7,6 +7,7 @@ export const signUpSchema = z.object({
     family_name: z.string().min(2, 'Last name must be at least 2 characters'),
     personal_id: z.string().regex(/^\d{9}$/, 'ID must be 9 digits'),
     phone_number: z.string().regex(/^\d{10}$/, 'Phone number must be 10 digits'),
+    city: z.string().min(2, 'City must be at least 2 characters'),
     birthdate: z
       .string()
       .regex(/^\d{2}[./]\d{2}[./]\d{4}$/, 'Date of birth must be in DD/MM/YYYY or DD.MM.YYYY format')
