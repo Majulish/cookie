@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Grid, IconButton, Button, Box } from '@mui/material';
+import { Container, Typography, Grid, Button, Box } from '@mui/material';
 import { useQuery, useQueryClient } from 'react-query';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
 import SideTab from '../../components/SideTab';
 import NewEventModal from './create_event/NewEventModal';
 import { EventFormInputs, convertFormDataToAPIPayload } from './create_event/eventScheme';
 import { createEvent, getMyEvents, getEventsFeed, editEvent, deleteEvent } from '../../api/eventApi';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import useUserRole from './hooks/useUserRole';
 import FeedList from './feed/FeedList';
 import MyEventList from './my_events/MyEventList';
@@ -28,7 +27,6 @@ const HomePage: React.FC = () => {
     );
     const [filteredEvents, setFilteredEvents] = useState<any[]>([]);
 
-    // Fix: Add proper dependency array to useEffect
     useEffect(() => {
         if (feedEvents && feedEvents.length > 0) {
             setFilteredEvents(feedEvents);
@@ -38,16 +36,20 @@ const HomePage: React.FC = () => {
     const handleOpen = () => setModalOpen(true);
     const handleClose = () => setModalOpen(false);
 
-    const handleFilterChange = (location: string, jobTitle: string) => {
+    const handleFilterChange = (cities: string[], jobTitles: string[]) => {
         let filtered = [...feedEvents];
         
-        if (location) {
-            filtered = filtered.filter(event => event.location === location);
+        // Filter by cities (if any selected)
+        if (cities.length > 0) {
+            filtered = filtered.filter(event => 
+                cities.includes(event.city)
+            );
         }
         
-        if (jobTitle) {
+        // Filter by job titles (if any selected)
+        if (jobTitles.length > 0) {
             filtered = filtered.filter(event => 
-                event.jobs.some(job => job.job_title === jobTitle)
+                event.jobs.some(job => jobTitles.includes(job.job_title))
             );
         }
         

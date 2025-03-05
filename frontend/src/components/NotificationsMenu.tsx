@@ -84,7 +84,7 @@ const NotificationsMenu: React.FC = () => {
   // Always fetch notifications on component mount
   const { 
     data: notifications = [], 
-    isLoading: isLoadingDetails, 
+    isLoading,
     isError 
   } = useQuery(
     'notifications', 
@@ -122,9 +122,6 @@ const NotificationsMenu: React.FC = () => {
     }
   };
 
-  // Determine if we're loading the initial badge count
-  const isLoadingBadge = notifications.length === 0 && !isError;
-
   return (
     <>
       <IconButton
@@ -141,7 +138,7 @@ const NotificationsMenu: React.FC = () => {
           }
         }}
       >
-        {isLoadingBadge ? (
+        {isLoading ? (
           <CircularProgress size={24} />
         ) : (
           <StyledBadge badgeContent={unreadCount} color="error">
@@ -174,7 +171,7 @@ const NotificationsMenu: React.FC = () => {
           <Typography variant="h6">Notifications</Typography>
         </Box>
 
-        {isLoadingDetails && open ? (
+        {isLoading && open ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress />
           </Box>

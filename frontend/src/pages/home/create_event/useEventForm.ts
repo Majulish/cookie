@@ -33,7 +33,8 @@ export const useEventForm = ({ onSubmit, getJobsObject, resetJobs, mode }: UseEv
       start_time: "",
       end_date: "",
       end_time: "",
-      location: "",
+      city: "",
+      address: "",
     },
   });
 

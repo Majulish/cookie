@@ -79,7 +79,8 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
       // Set the form values
       setValue("event_name", eventData.name);
       setValue("event_description", eventData.description);
-      setValue("location", eventData.location);
+      setValue("city", eventData.city);
+      setValue("address", eventData.address);
       setValue("start_date", eventData.start_date);
       setValue("start_time", eventData.start_time);
       setValue("end_date", eventData.end_date);
@@ -184,20 +185,40 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
               />
             </Box>
             
-            <Controller
-              name="location"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label="Location"
-                  fullWidth
-                  margin="normal"
-                  error={!!errors.location}
-                  helperText={errors.location?.message}
+            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+              <Grid item xs={6}>
+                <Controller
+                  name="city"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="City"
+                      fullWidth
+                      margin="normal"
+                      error={!!errors.city}
+                      helperText={errors.city?.message}
+                    />
+                  )}
                 />
-              )}
-            />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name="address"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Address"
+                      fullWidth
+                      margin="normal"
+                      error={!!errors.address}
+                      helperText={errors.address?.message}
+                    />
+                  )}
+                />
+              </Grid>
+            </Grid>
 
             <Grid container spacing={2}>
               <Grid item xs={6}>

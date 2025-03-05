@@ -6,6 +6,8 @@ interface EventWorker {
     worker_id: number;
     name: string;
     job_title: string;
+    city: string;
+    phone: string;
     status: string;
   }
   
@@ -13,7 +15,8 @@ interface EventWorker {
     id: number;
     name: string;
     description: string;
-    location: string;
+    city: string;
+    address:string;
     start_datetime: string;
     end_datetime: string;
     status: string;
@@ -222,5 +225,40 @@ export const applyForJob = async (eventId: number, jobTitle: string) => {
 }
 };
 
+export const assignWorkerToEvent = async (data: {
+    event_id: number;
+    worker_id: number;
+    job_title: string;
+    status: string;
+  }) => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/events/assign_worker/`,
+        data,
+        {
+          withCredentials: true,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          console.error('Session expired - please log in again');
+          window.location.href = SIGN_IN_URL;
+          throw new Error('Authentication required');
+        }
+        if (error.response?.status === 403) {
+          console.error('Only recruiters and hr managers can access this endpoint');
+          throw new Error('Unauthorized access');
+        }
+        if (error.response?.status === 404) {
+          console.error('Endpoint not found');
+          throw new Error('API endpoint not found');
+        }
+      }
+      console.error('Error assigning worker to event:', error);
+      throw error;
+    }
+  };
 
 
