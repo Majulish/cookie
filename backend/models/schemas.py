@@ -19,6 +19,7 @@ class SignupRequest(BaseModel):
     personal_id: Optional[constr(min_length=9, max_length=9)]  # Ensure numeric-only if required
     company_id: Optional[str]
     company_name: Optional[str]
+    city: constr(min_length=1, max_length=100)
 
 
 class LoginRequest(BaseModel):

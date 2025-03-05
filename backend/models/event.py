@@ -1,12 +1,12 @@
 import datetime
 from typing import List, Dict, Optional, Tuple
+
 from flask import Response, jsonify
-from sqlalchemy.exc import SQLAlchemyError
 
 from backend.db import db
-from backend.models.event_users import EventUsers
 from backend.models.event_job import EventJob
-from backend.models.event_status import EventStatus  # If you have a separate enum file
+from backend.models.event_users import EventUsers
+
 
 class Event(db.Model):
     __tablename__ = "events"
@@ -14,7 +14,8 @@ class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.String(2000), nullable=True)
-    location = db.Column(db.String(100), nullable=True)
+    address = db.Column(db.String(100), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
     start_datetime = db.Column(db.DateTime, nullable=False)
     end_datetime = db.Column(db.DateTime, nullable=False)
     recruiter = db.Column(db.String(80), nullable=False)
@@ -22,21 +23,26 @@ class Event(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC),
                            onupdate=datetime.datetime.now(datetime.UTC))
+    company_id = db.Column(db.String(50), default="0")
 
     @staticmethod
     def create_event(name: str,
                      description: str,
-                     location: str,
+                     city: str,
+                     address: str,
                      start_datetime: datetime.datetime,
                      end_datetime: datetime.datetime,
-                     recruiter: str) -> "Event":
+                     recruiter: str,
+                     company_id: str) -> "Event":
         event = Event(
             name=name,
             description=description,
-            location=location,
+            city=city,
+            address=address,
             start_datetime=start_datetime,
             end_datetime=end_datetime,
             recruiter=recruiter,
+            company_id=company_id,
         )
         db.session.add(event)
         db.session.commit()
@@ -78,14 +84,14 @@ class Event(db.Model):
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "location": self.location,
+            "address": self.address,
+            "city": self.city,
             "start_datetime": self.start_datetime.isoformat(),
             "end_datetime": self.end_datetime.isoformat(),
             "recruiter": self.recruiter,
             "status": self.status,
             "jobs": [
                 {
-                    "job_id": job.id,
                     "job_title": job.job_title,
                     "slots": job.slots,
                     "openings": job.openings
@@ -104,7 +110,7 @@ class Event(db.Model):
             raise e
 
     @staticmethod
-    def get_future_events_excluding_signed(worker_id: str, filters: Dict) -> List["Event"]:
+    def get_future_events_excluding_signed(worker_id: int, filters: Dict) -> List["Event"]:
         try:
             signed_event_ids = db.session.query(EventUsers.event_id).filter_by(worker_id=worker_id).subquery()
             query = Event.query.filter(

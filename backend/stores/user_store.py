@@ -21,7 +21,7 @@ class UserStore:
     @staticmethod
     def update_user(user_id: int, data: Dict) -> Tuple[Response, int]:
         try:
-            user = User.find_by("id", user_id)
+            user = User.find_by({"id": user_id})
             if not user:
                 return jsonify({"error": "User not found"}), 404
             user.update_user(data)
@@ -55,4 +55,4 @@ class UserStore:
 
     @staticmethod
     def find_user(field: str, value: str | int) -> Optional[User]:
-        return User.find_by(field, value)
+        return User.find_by({field: value})
