@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from backend.app.decorators import load_user
+from backend.utils.decorators import load_user
 from backend.stores.notification_store import NotificationStore
 
 notifications_blueprint = Blueprint('notifications', __name__)

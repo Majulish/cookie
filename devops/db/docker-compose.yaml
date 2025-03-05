@@ -31,3 +31,16 @@ services:
     depends_on:
       - postgres
 
+  celery_worker:
+    build: .
+    command: celery -A backend.app.celery worker --loglevel=info
+    depends_on:
+      - redis
+      - postgres
+
+  celery_beat:
+    build: .
+    command: celery -A backend.app.celery beat --loglevel=info
+    depends_on:
+      - redis
+      - celery_worker

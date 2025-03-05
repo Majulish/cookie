@@ -14,7 +14,7 @@ from datetime import timedelta
 
 from backend.stores import UserStore
 from backend.models.schemas import SignupRequest, LoginRequest
-from backend.app.auth import check_password
+from backend.utils.auth import check_password
 
 user_blueprint = Blueprint("users", __name__)
 ACCESS_EXPIRES = timedelta(hours=1)

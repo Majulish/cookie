@@ -1,7 +1,7 @@
 from flask import request, jsonify, Blueprint
 from pydantic import ValidationError
 from datetime import datetime
-from backend.app.decorators import load_user, permission_required
+from backend.utils.decorators import load_user, permission_required
 from backend.models.event_users import WorkerStatus
 from backend.models.roles import Permission, Role, has_permission
 from backend.openai_utils import generate_event_description

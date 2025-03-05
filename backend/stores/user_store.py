@@ -1,7 +1,7 @@
 from flask import jsonify, Response
 from typing import Dict, Tuple, Optional
 
-from backend.app.auth import hash_data
+from backend.utils.auth import hash_data
 from backend.models.user import User
 
 
