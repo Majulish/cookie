@@ -179,13 +179,19 @@ class EventStore:
     @staticmethod
     def get_events_for_worker(worker_id: int) -> List[Dict]:
         """
-        Retrieves a list of events the worker is signed up for, using model capabilities.
+        Retrieves a list of events the worker is signed up for, including their job and status.
         """
         try:
-            # Use the model's capability to fetch events
-            events = Event.get_events_by_worker(worker_id)
+            events = Event.get_events_by_worker(worker_id)  # Fetch worker's events
+            event_list = []
 
-            # Convert events to dictionary format
-            return [event.to_dict() for event in events]
+            for event, status, job_title in events:
+                event_dict = event.to_dict()
+                event_dict["job_title"] = job_title
+                event_dict["worker_status"] = status.value if isinstance(status, WorkerStatus) else status
+                event_list.append(event_dict)
+
+            return event_list
         except Exception as e:
             raise e
+
