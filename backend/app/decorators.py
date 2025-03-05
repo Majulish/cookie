@@ -1,7 +1,7 @@
-# decorators.py
-from functools import wraps
 from flask_jwt_extended import jwt_required, get_jwt
+from functools import wraps
 from flask import jsonify
+from backend.models.roles import has_permission, Permission
 from backend.stores import UserStore
 
 
@@ -18,3 +18,18 @@ def load_user(fn):
         return fn(user, *args, **kwargs)
 
     return wrapper
+
+
+def permission_required(permission: Permission):
+    """
+    Decorator that checks if the current user (provided by load_user)
+    has the required permission.
+    """
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(user, *args, **kwargs):
+            if not has_permission(user.role, permission):
+                return jsonify({"error": "Unauthorized. Insufficient permissions."}), 403
+            return fn(user, *args, **kwargs)
+        return wrapper
+    return decorator
