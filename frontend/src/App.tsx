@@ -6,6 +6,7 @@ import SignUp from './pages/signup/SignUp';
 import HomePage from './pages/home/HomePage';
 import LoadingPage from './pages/home/LoadingPage';
 import ErrorPage from './pages/home/ErrorPage';
+import EventPage from './pages/event_page/EventPage';
 
 const queryClient = new QueryClient();
 
@@ -15,6 +16,7 @@ const router = createBrowserRouter([
   { path: '/sign-in', element: <SignIn /> },
   { path: '/loading', element: <LoadingPage /> },
   { path: '/error', element: <ErrorPage /> },
+  { path: '/event-page/:eventId', element: <EventPage /> }
 ]);
 
 const App: React.FC = () => {

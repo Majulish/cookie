@@ -50,7 +50,8 @@ export interface EventFormInputs {
   start_time: string;
   end_date: string;
   end_time: string;
-  location: string;
+  city: string;
+  address: string;
   jobs?: Record<string, number>;
 }
 
@@ -60,7 +61,8 @@ export interface EventAPIPayload {
   description: string;
   start_datetime: string;  // ISO string
   end_datetime: string;    // ISO string
-  location: string;
+  city: string;
+  address: string;
   jobs?: Record<string, number>;
 }
 
@@ -69,11 +71,14 @@ export interface RecievedEvent {
   id: number;
   name: string;
   description: string;
-  location: string;
+  city: string;
+  address: string;
   start_datetime: string;  // ISO string
   end_datetime: string;    // ISO string
   recruiter: string;
   status: string;
+  job_title?: string;
+  worker_status?: string;
   jobs: {
     id: number;
     job_title: string;
@@ -87,13 +92,16 @@ export interface MyEventScheme {
   id: number;
   name: string;
   description: string;
-  location: string;
+  city: string;
+  address: string;
   start_date: string;
   start_time: string;
   end_date: string;
   end_time: string;
   recruiter: string;
   status: string;
+  job_title?: string;
+  worker_status?: string;
   jobs: {
     id: number;
     job_title: string;
@@ -107,11 +115,13 @@ export const convertRecivedEventToMyEvent = (apiEvent: RecievedEvent): MyEventSc
   const startDateTime = convertFromISOString(apiEvent.start_datetime);
   const endDateTime = convertFromISOString(apiEvent.end_datetime);
   
-  return {
+  // Create the base event object
+  const myEvent: MyEventScheme = {
     id: apiEvent.id,
     name: apiEvent.name,
     description: apiEvent.description,
-    location: apiEvent.location,
+    city: apiEvent.city,
+    address: apiEvent.address,
     start_date: startDateTime.date,
     start_time: startDateTime.time,
     end_date: endDateTime.date,
@@ -120,6 +130,17 @@ export const convertRecivedEventToMyEvent = (apiEvent: RecievedEvent): MyEventSc
     status: apiEvent.status,
     jobs: apiEvent.jobs
   };
+  
+  // Add optional fields only if they exist in the apiEvent
+  if (apiEvent.worker_status !== undefined) {
+    myEvent.worker_status = apiEvent.worker_status;
+  }
+  
+  if (apiEvent.job_title !== undefined) {
+    myEvent.job_title = apiEvent.job_title;
+  }
+  
+  return myEvent;
 };
 
 //Z object for handeling errors in the form of the new event
@@ -130,7 +151,8 @@ export const eventSchema = z.object({
   start_time: z.string().regex(timeRegex, "Time must be in HH:mm format (24-hour)"),
   end_date: z.string().regex(dateRegex, "Date must be in DD/MM/YYYY format"),
   end_time: z.string().regex(timeRegex, "Time must be in HH:mm format (24-hour)"),
-  location: z.string().min(3, "Must enter a city"),
+  city: z.string().min(2, "City name must be at least 2 characters"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
   jobs: z.record(z.string(), z.number().min(1, "Number of openings must be at least 1")).optional(),
 }).superRefine((data, ctx) => {
   // Only validate dates if all date/time fields are filled
@@ -189,7 +211,8 @@ export const convertFormDataToAPIPayload = (formData: EventFormInputs): EventAPI
     description: cleanedDescription,
     start_datetime: startDatetime,
     end_datetime: endDatetime,
-    location: formData.location,
+    city: formData.city,
+    address: formData.address,
   };
 
   // Only add jobs if they exist
