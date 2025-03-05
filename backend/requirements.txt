@@ -10,6 +10,7 @@ pymongo
 
 # Redis for caching or queuing
 redis
+celery  # <-- ADD THIS
 
 # Data validation
 pydantic
@@ -24,7 +25,6 @@ flask-principal
 # Schema validation and input resolution
 marshmallow
 marshmallow-sqlalchemy
-
 
 # Miscellaneous utilities
 Werkzeug
