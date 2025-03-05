@@ -135,11 +135,13 @@ class Event(db.Model):
     def get_events_by_worker(worker_id: int) -> List['Event']:
         try:
             return (
-                db.session.query(Event)
+                db.session.query(Event, EventUsers.status, EventJob.job_title)
                 .join(EventUsers, Event.id == EventUsers.event_id)
+                .join(EventJob, EventUsers.job_id == EventJob.id)
                 .filter(EventUsers.worker_id == worker_id)
                 .all()
             )
         except Exception as e:
             db.session.rollback()
             raise e
+
