@@ -14,9 +14,18 @@ import {
   IconButton,
   Box,
   Typography,
+  Divider,
+  Paper,
+  useTheme,
+  alpha,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
+import DescriptionIcon from "@mui/icons-material/Description";
 import { EventFormInputs } from "./eventScheme";
 import { useEventJobs } from "./useEventJobs";
 import { useEventForm } from "./useEventForm";
@@ -40,6 +49,8 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
   mode,
   eventData 
 }) => {
+  const theme = useTheme();
+  
   const {
     jobList,
     handleAddJob,
@@ -99,14 +110,49 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
     onClose();
   };
 
+  // Custom section header
+  const SectionHeader = ({ icon, title }: { icon: React.ReactNode, title: string }) => (
+    <Box sx={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 1.5,
+      mb: 2,
+      mt: 3,
+    }}>
+      {icon}
+      <Typography variant="h6" sx={{ fontWeight: 500 }}>
+        {title}
+      </Typography>
+    </Box>
+  );
+
   return (
     <>
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-        <DialogTitle>
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        fullWidth 
+        maxWidth="md"
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          px: 3,
+          py: 2.5,
+          bgcolor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
+          fontSize: '1.25rem',
+        }}>
           {mode === 'create' ? 'New Event' : 'Edit Event'}
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ px: 3, py: 3 }}>
           <form id="event-form" onSubmit={handleSubmit}>
+            {/* Event Name */}
             <Controller
               name="event_name"
               control={control}
@@ -116,13 +162,30 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
                   label="Event Name"
                   fullWidth
                   margin="normal"
+                  variant="outlined"
                   error={!!errors.event_name}
                   helperText={errors.event_name?.message}
+                  InputProps={{
+                    sx: { borderRadius: 1.5 }
+                  }}
+                  sx={{ mb: 2 }}
                 />
               )}
             />
             
-            <Box sx={{ mt: 2 }}>
+            {/* Description Section */}
+            <SectionHeader 
+              icon={<DescriptionIcon color="primary" />} 
+              title="Event Description" 
+            />
+            
+            <Box sx={{ 
+              mb: 3, 
+              p: 2, 
+              bgcolor: alpha(theme.palette.primary.main, 0.05),
+              borderRadius: 2,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+            }}>
               <Box sx={{ 
                 display: 'flex', 
                 gap: 1,
@@ -141,14 +204,11 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
                     shrink: true,
                   }}
                   sx={{
-                    backgroundColor: '#f5f5f5',
                     '& .MuiInputBase-root': {
                       minHeight: '60px',
                       height: 'auto',
+                      borderRadius: 1.5,
                     },
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: '#f5f5f5',
-                    }
                   }}
                 />
                 <GenerateButton 
@@ -178,6 +238,7 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
                       '& .MuiInputBase-root': {
                         minHeight: '200px',
                         height: 'auto',
+                        borderRadius: 1.5,
                       },
                     }}
                   />
@@ -185,176 +246,278 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
               />
             </Box>
             
-            <Grid container spacing={2} sx={{ mt: 0.5 }}>
-              <Grid item xs={6}>
-                <Controller
-                  name="city"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="City"
-                      fullWidth
-                      margin="normal"
-                      error={!!errors.city}
-                      helperText={errors.city?.message}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <Controller
-                  name="address"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Address"
-                      fullWidth
-                      margin="normal"
-                      error={!!errors.address}
-                      helperText={errors.address?.message}
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
-
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Controller
-                  name="start_date"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Start Date"
-                      fullWidth
-                      margin="normal"
-                      error={!!errors.start_date}
-                      helperText={errors.start_date?.message || "Format: DD/MM/YYYY"}
-                      placeholder="DD/MM/YYYY"
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <Controller
-                  name="start_time"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Start Time"
-                      fullWidth
-                      margin="normal"
-                      error={!!errors.start_time}
-                      helperText={errors.start_time?.message || "Format: HH:mm (24-hour)"}
-                      placeholder="HH:mm"
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
+            {/* Location Section */}
+            <SectionHeader 
+              icon={<LocationOnIcon color="primary" />} 
+              title="Event Location" 
+            />
             
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Controller
-                  name="end_date"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="End Date"
-                      fullWidth
-                      margin="normal"
-                      error={!!errors.end_date}
-                      helperText={errors.end_date?.message || "Format: DD/MM/YYYY"}
-                      placeholder="DD/MM/YYYY"
-                    />
-                  )}
-                />
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 2, 
+                mb: 3, 
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Controller
+                    name="city"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="City"
+                        fullWidth
+                        variant="outlined"
+                        error={!!errors.city}
+                        helperText={errors.city?.message}
+                        InputProps={{
+                          sx: { borderRadius: 1.5 }
+                        }}
+                      />
+                    )}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <Controller
+                    name="address"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label="Address"
+                        fullWidth
+                        variant="outlined"
+                        error={!!errors.address}
+                        helperText={errors.address?.message}
+                        InputProps={{
+                          sx: { borderRadius: 1.5 }
+                        }}
+                      />
+                    )}
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={6}>
-                <Controller
-                  name="end_time"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="End Time"
-                      fullWidth
-                      margin="normal"
-                      error={!!errors.end_time}
-                      helperText={errors.end_time?.message || "Format: HH:mm (24-hour)"}
-                      placeholder="HH:mm"
-                    />
-                  )}
-                />
-              </Grid>
-            </Grid>
+            </Paper>
 
-            <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-              Choose Workers
-            </Typography>
+            {/* Date/Time Section */}
+            <SectionHeader 
+              icon={<CalendarTodayIcon color="primary" />} 
+              title="Event Schedule" 
+            />
             
-            {jobList.map((job, index) => (
-              <Box 
-                key={index} 
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 2, 
+                mb: 3, 
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                  Start Date & Time
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Controller
+                      name="start_date"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Start Date"
+                          fullWidth
+                          variant="outlined"
+                          error={!!errors.start_date}
+                          helperText={errors.start_date?.message || "Format: DD/MM/YYYY"}
+                          placeholder="DD/MM/YYYY"
+                          InputProps={{
+                            startAdornment: <CalendarTodayIcon color="action" sx={{ mr: 1 }} />,
+                            sx: { borderRadius: 1.5 }
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Controller
+                      name="start_time"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Start Time"
+                          fullWidth
+                          variant="outlined"
+                          error={!!errors.start_time}
+                          helperText={errors.start_time?.message || "Format: HH:mm (24-hour)"}
+                          placeholder="HH:mm"
+                          InputProps={{
+                            startAdornment: <AccessTimeIcon color="action" sx={{ mr: 1 }} />,
+                            sx: { borderRadius: 1.5 }
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+              
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                  End Date & Time
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Controller
+                      name="end_date"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="End Date"
+                          fullWidth
+                          variant="outlined"
+                          error={!!errors.end_date}
+                          helperText={errors.end_date?.message || "Format: DD/MM/YYYY"}
+                          placeholder="DD/MM/YYYY"
+                          InputProps={{
+                            startAdornment: <CalendarTodayIcon color="action" sx={{ mr: 1 }} />,
+                            sx: { borderRadius: 1.5 }
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Controller
+                      name="end_time"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="End Time"
+                          fullWidth
+                          variant="outlined"
+                          error={!!errors.end_time}
+                          helperText={errors.end_time?.message || "Format: HH:mm (24-hour)"}
+                          placeholder="HH:mm"
+                          InputProps={{
+                            startAdornment: <AccessTimeIcon color="action" sx={{ mr: 1 }} />,
+                            sx: { borderRadius: 1.5 }
+                          }}
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            </Paper>
+
+            {/* Worker Section */}
+            <SectionHeader 
+              icon={<WorkOutlineIcon color="primary" />} 
+              title="Event Staff" 
+            />
+            
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                p: 2, 
+                border: `1px solid ${theme.palette.divider}`,
+                borderRadius: 2,
+              }}
+            >
+              {jobList.map((job, index) => (
+                <Box 
+                  key={index} 
+                  sx={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: 2, 
+                    mb: 2,
+                    p: 1.5,
+                    borderRadius: 1,
+                    bgcolor: index % 2 === 0 ? alpha(theme.palette.primary.main, 0.04) : 'transparent',
+                  }}
+                >
+                  <FormControl fullWidth>
+                    <InputLabel>Job</InputLabel>
+                    <Select
+                      value={job.job}
+                      onChange={(e) => handleJobChange(index, "job", e.target.value)}
+                      label="Job"
+                      sx={{ borderRadius: 1.5 }}
+                    >
+                      {availableJobs.map((availableJob) => (
+                        <MenuItem key={availableJob} value={availableJob}>
+                          {availableJob.charAt(0).toUpperCase() + availableJob.slice(1)}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    label="Amount"
+                    type="number"
+                    value={job.amount}
+                    onChange={(e) => handleJobChange(index, "amount", e.target.value)}
+                    InputProps={{ 
+                      inputProps: { min: 1 },
+                      sx: { borderRadius: 1.5 }
+                    }}
+                    sx={{ width: 100 }}
+                  />
+                  <IconButton 
+                    onClick={() => handleRemoveJob(index)}
+                    color="error"
+                    sx={{ 
+                      p: 1,
+                      bgcolor: alpha(theme.palette.error.main, 0.1),
+                      '&:hover': {
+                        bgcolor: alpha(theme.palette.error.main, 0.2),
+                      }
+                    }}
+                  >
+                    <DeleteOutlineIcon />
+                  </IconButton>
+                </Box>
+              ))}
+              
+              <Button 
+                startIcon={<AddCircleOutlineIcon />} 
+                onClick={handleAddJob} 
+                variant="outlined"
                 sx={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: 2, 
-                  mb: 2 
+                  mt: jobList.length > 0 ? 1 : 0,
+                  borderRadius: 1.5,
+                  textTransform: 'none',
                 }}
               >
-                <FormControl fullWidth>
-                  <InputLabel>Job</InputLabel>
-                  <Select
-                    value={job.job}
-                    onChange={(e) => handleJobChange(index, "job", e.target.value)}
-                    label="Job"
-                  >
-                    {availableJobs.map((availableJob) => (
-                      <MenuItem key={availableJob} value={availableJob}>
-                        {availableJob.charAt(0).toUpperCase() + availableJob.slice(1)}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <TextField
-                  label="Amount"
-                  type="number"
-                  value={job.amount}
-                  onChange={(e) => handleJobChange(index, "amount", e.target.value)}
-                  InputProps={{ inputProps: { min: 1 } }}
-                  sx={{ width: 100 }}
-                />
-                <IconButton 
-                  onClick={() => handleRemoveJob(index)}
-                  color="error"
-                  sx={{ p: 1 }}
-                >
-                  <DeleteOutlineIcon />
-                </IconButton>
-              </Box>
-            ))}
-            
-            <Button 
-              startIcon={<AddCircleOutlineIcon />} 
-              onClick={handleAddJob} 
-              variant="outlined"
-              sx={{ mt: 1 }}
-            >
-              Add Job
-            </Button>
+                Add Job
+              </Button>
+            </Paper>
           </form>
         </DialogContent>
         
-        <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
+        <DialogActions sx={{ 
+          p: 2.5, 
+          borderTop: `1px solid ${theme.palette.divider}`,
+          justifyContent: 'flex-end',
+          gap: 1.5,
+        }}>
           <Button 
             onClick={handleClose} 
             variant="outlined"
+            sx={{ 
+              px: 3,
+              borderRadius: 1.5,
+              textTransform: 'none',
+            }}
           >
             Cancel
           </Button>
@@ -363,6 +526,12 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
             form="event-form"
             variant="contained"
             color="primary"
+            sx={{ 
+              px: 3,
+              borderRadius: 1.5,
+              textTransform: 'none',
+              boxShadow: 2,
+            }}
           >
             {mode === 'create' ? 'Create Event' : 'Save Changes'}
           </Button>

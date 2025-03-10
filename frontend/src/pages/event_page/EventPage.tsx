@@ -16,15 +16,34 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Rating
+  Rating,
+  Divider,
+  Avatar,
+  Stack,
+  Breadcrumbs,
+  Link,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import { format } from 'date-fns';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getEvent, assignWorkerToEvent } from '../../api/eventApi'; 
+import { getEvent, assignWorkerToEvent } from '../../api/eventApi';
 import WorkerApprovalSuccessModal from '../../components/WorkerApprovalSuccessModal';
-import useUserRole from '../home/hooks/useUserRole'; // Import the hook
+import useUserRole from '../home/hooks/useUserRole';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
 import SideTab from '../../components/SideTab';
+// Import icons
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
+import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
+import StarOutlineIcon from '@mui/icons-material/StarOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 // Using the existing interfaces from your API
 interface EventWorker {
@@ -32,10 +51,10 @@ interface EventWorker {
   name: string;
   job_title: string;
   status: string;
-  city?: string; // Will be added soon
-  age?: number;  // Will be added soon
-  rating?: number; // Optional rating field
-  phone: string; // Optional phone number field
+  city?: string;
+  age?: number;
+  rating?: number;
+  phone: string;
 }
 
 interface DetailedEvent {
@@ -53,30 +72,19 @@ interface DetailedEvent {
 // Create a custom modified version of ResponsiveTabs with navigation support
 const EventPageTabs: React.FC = () => {
   const navigate = useNavigate();
-  const [value, setValue] = useState(-1); // Set to -1 so no tab is selected
+  const [value, setValue] = useState(-1);
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
     
     // Navigate based on tab selection
     switch(newValue) {
-      case 0: // Home
-        navigate('/'); // Navigate to home page
-        break;
-      case 1: // Schedule
-        navigate('/schedule'); // Navigate to schedule main page
-        break;
-      case 2: // Chat
-        navigate('/chat');
-        break;
-      case 3: // Create
-        navigate('/create');
-        break;
-      case 4: // Data
-        navigate('/data');
-        break;
-      default:
-        break;
+      case 0: navigate('/'); break;
+      case 1: navigate('/schedule'); break;
+      case 2: navigate('/chat'); break;
+      case 3: navigate('/create'); break;
+      case 4: navigate('/data'); break;
+      default: break;
     }
   };
 
@@ -93,8 +101,11 @@ const EventPage: React.FC = () => {
     name: '',
     jobTitle: ''
   });
-  const userRole = useUserRole(); // Get the user's role
-  const isHrManager = userRole === 'hr_manager'; // Check if user is an HR manager
+  const userRole = useUserRole();
+  const isHrManager = userRole === 'hr_manager';
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -119,8 +130,24 @@ const EventPage: React.FC = () => {
   }, [eventId]);
 
   // Format dates for display
-  const formatDateTime = (dateString: string): string => {
-    return format(new Date(dateString), 'PPP p'); // Format: Apr 29, 2021, 5:00 PM
+  const formatDate = (dateString: string): string => {
+    return format(new Date(dateString), 'PPP'); // Format: Apr 29, 2021
+  };
+  
+  const formatTime = (dateString: string): string => {
+    return format(new Date(dateString), 'p'); // Format: 5:00 PM
+  };
+  
+  // Check if event spans multiple days
+  const isMultiDayEvent = (startDate: string, endDate: string): boolean => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // Reset time to midnight to compare just the dates
+    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    
+    return startDay.getTime() !== endDay.getTime();
   };
 
   // Sort workers - approved workers first, then pending
@@ -141,13 +168,11 @@ const EventPage: React.FC = () => {
         status: "APPROVED"
       });
       
-      // Set approved worker info for the success modal
       setApprovedWorker({
         name: workerName,
         jobTitle: jobTitle
       });
       
-      // Show success modal
       setApprovalSuccess(true);
       
       // Refresh event data after successful approval
@@ -163,100 +188,288 @@ const EventPage: React.FC = () => {
     setApprovalSuccess(false);
   };
 
+  // Get event status style
+  const getStatusColor = (status: string) => {
+    switch(status.toLowerCase()) {
+      case 'planned': return 'primary';
+      case 'ongoing': return 'success';
+      case 'completed': return 'secondary';
+      case 'cancelled': return 'error';
+      default: return 'default';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  };
+
+  // Error state view
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 8, mb: 4, pt: 4 }}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            minHeight: '50vh',
+            textAlign: 'center'
+          }}
+        >
+          <ErrorOutlineIcon color="error" sx={{ fontSize: 64, mb: 2 }} />
+          <Typography variant="h5" color="error" gutterBottom>
+            Error Loading Event
+          </Typography>
+          <Typography variant="body1" color="text.secondary" mb={4}>
+            {error}
+          </Typography>
+          <Button 
+            variant="contained" 
+            onClick={() => navigate('/schedule')}
+            startIcon={<HomeOutlinedIcon />}
+          >
+            Return to Schedule
+          </Button>
+        </Box>
+      </Container>
+    );
+  }
+
   const contentView = () => {
     if (loading) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-          <CircularProgress />
+          <CircularProgress size={60} thickness={4} />
         </Box>
-      );
-    }
-
-    if (error) {
-      return (
-        <Typography variant="h6" color="error">{error}</Typography>
       );
     }
 
     if (!event) {
       return (
-        <Typography variant="h6">No event found</Typography>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            minHeight: '50vh',
+            textAlign: 'center'
+          }}
+        >
+          <ErrorOutlineIcon color="warning" sx={{ fontSize: 64, mb: 2 }} />
+          <Typography variant="h5" gutterBottom>
+            No Event Found
+          </Typography>
+          <Typography variant="body1" color="text.secondary" mb={4}>
+            The requested event could not be found or has been removed.
+          </Typography>
+          <Button 
+            variant="contained" 
+            onClick={() => navigate('/schedule')}
+            startIcon={<HomeOutlinedIcon />}
+          >
+            Return to Schedule
+          </Button>
+        </Box>
       );
     }
 
     return (
       <>
-        {/* Event Header */}
-        <Typography variant="h3" component="h1" gutterBottom>
-          {event.name}
-        </Typography>
+        {/* Breadcrumbs Navigation */}
+        <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 3 }}>
+          <Link 
+            color="inherit" 
+            href="/" 
+            onClick={(e) => { e.preventDefault(); navigate('/'); }}
+            sx={{ display: 'flex', alignItems: 'center' }}
+          >
+            <HomeOutlinedIcon sx={{ mr: 0.5 }} fontSize="small" />
+            Home
+          </Link>
+          <Typography color="text.primary">{event.name}</Typography>
+        </Breadcrumbs>
+        
+        {/* Event Header with Status */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            sx={{ 
+              fontWeight: 600, 
+              color: theme.palette.text.primary 
+            }}
+          >
+            {event.name}
+          </Typography>
+          
+          <Chip 
+            label={getStatusLabel(event.status)} 
+            color={getStatusColor(event.status) as any}
+            sx={{ 
+              fontWeight: 500, 
+              px: 1,
+              height: 32
+            }}
+          />
+        </Box>
         
         {/* Event Details Card */}
-        <Card sx={{ mb: 4 }}>
-          <CardContent>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography variant="body1" paragraph>
-                  {event.description}
-                </Typography>
+        <Card 
+          elevation={2} 
+          sx={{ 
+            mb: 4, 
+            overflow: 'hidden',
+            borderRadius: 2
+          }}
+        >
+          <CardContent sx={{ p: 0 }}>
+            {/* Event Description Section */}
+            <Box sx={{ p: 3, backgroundColor: 'background.paper' }}>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  lineHeight: 1.7,
+                  color: theme.palette.text.primary
+                }}
+              >
+                {event.description}
+              </Typography>
+            </Box>
+            
+            <Divider />
+            
+            {/* Event Details Section */}
+            <Box 
+              sx={{ 
+                p: 3, 
+                backgroundColor: theme.palette.mode === 'light' 
+                  ? theme.palette.grey[50] 
+                  : theme.palette.background.default
+              }}
+            >
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4}>
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Avatar sx={{ bgcolor: theme.palette.primary.main, width: 40, height: 40 }}>
+                      <LocationOnOutlinedIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Location
+                      </Typography>
+                      <Typography variant="subtitle1" fontWeight={500}>
+                        {event.city}, {event.address}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Grid>
+                
+                <Grid item xs={12} md={4}>
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Avatar sx={{ bgcolor: theme.palette.primary.main, width: 40, height: 40 }}>
+                      <EventOutlinedIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Date
+                      </Typography>
+                      <Typography variant="subtitle1" fontWeight={500}>
+                        {isMultiDayEvent(event.start_datetime, event.end_datetime) 
+                          ? `${formatDate(event.start_datetime)} - ${formatDate(event.end_datetime)}` 
+                          : formatDate(event.start_datetime)
+                        }
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Grid>
+                
+                <Grid item xs={12} md={4}>
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Avatar sx={{ bgcolor: theme.palette.primary.main, width: 40, height: 40 }}>
+                      <AccessTimeOutlinedIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {isMultiDayEvent(event.start_datetime, event.end_datetime) ? "Times" : "Time"}
+                      </Typography>
+                      {isMultiDayEvent(event.start_datetime, event.end_datetime) ? (
+                        <Box>
+                          <Typography variant="subtitle1" fontWeight={500}>
+                            Start: {formatTime(event.start_datetime)}
+                          </Typography>
+                          <Typography variant="subtitle1" fontWeight={500}>
+                            End: {formatTime(event.end_datetime)}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Typography variant="subtitle1" fontWeight={500}>
+                          {formatTime(event.start_datetime)} - {formatTime(event.end_datetime)}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Stack>
+                </Grid>
               </Grid>
-              
-              <Grid item xs={12} md={4}>
-                <Typography variant="subtitle1" fontWeight="bold">
-                  Location:
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  {event.city}, {event.address}
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12} md={4}>
-                <Typography variant="subtitle1" fontWeight="bold">
-                  Start Time:
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  {formatDateTime(event.start_datetime)}
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12} md={4}>
-                <Typography variant="subtitle1" fontWeight="bold">
-                  End Time:
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                  {formatDateTime(event.end_datetime)}
-                </Typography>
-              </Grid>
-              
-              <Grid item xs={12}>
-                <Chip 
-                  label={event.status.toUpperCase()} 
-                  color={event.status === 'planned' ? 'primary' : 'default'}
-                  sx={{ mt: 1 }}
-                />
-              </Grid>
-            </Grid>
+            </Box>
           </CardContent>
         </Card>
         
-        {/* Workers Table */}
-        <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 4 }}>
-          Event Workers
-        </Typography>
+        {/* Workers Section */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 3
+          }}
+        >
+          <Typography 
+            variant="h5" 
+            component="h2" 
+            sx={{ 
+              fontWeight: 600, 
+              display: 'flex', 
+              alignItems: 'center' 
+            }}
+          >
+            <PersonOutlinedIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+            Event Workers
+          </Typography>
+          
+          {isHrManager && (
+            <Chip 
+              icon={<CheckCircleOutlineIcon />} 
+              label={`${sortedWorkers.filter(w => w.status === 'APPROVED').length} Approved`}
+              variant="outlined"
+              color="success"
+            />
+          )}
+        </Box>
         
-        <TableContainer component={Paper}>
+        {/* Workers Table */}
+        <TableContainer 
+          component={Paper} 
+          sx={{ 
+            borderRadius: 2,
+            boxShadow: theme.shadows[2],
+            mb: 5,
+            overflow: 'hidden'
+          }}
+        >
           <Table sx={{ minWidth: 650 }}>
             <TableHead>
-              <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                <TableCell>Worker ID</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Job Title</TableCell>
-                <TableCell>City</TableCell>
-                <TableCell>Age</TableCell>
-                <TableCell>Phone Number</TableCell>
-                <TableCell>Rating</TableCell>
-                <TableCell>Status</TableCell>
-                {isHrManager && <TableCell>Actions</TableCell>}
+              <TableRow sx={{ backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900] }}>
+                <TableCell sx={{ fontWeight: 'bold' }}>Worker ID</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Job Title</TableCell>
+                {!isMobile && <TableCell sx={{ fontWeight: 'bold' }}>City</TableCell>}
+                {!isMobile && <TableCell sx={{ fontWeight: 'bold' }}>Age</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold' }}>Phone</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Rating</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                {isHrManager && <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -266,46 +479,100 @@ const EventPage: React.FC = () => {
                     key={worker.worker_id}
                     sx={{ 
                       '&:last-child td, &:last-child th': { border: 0 },
-                      backgroundColor: worker.status === 'APPROVED' ? 'rgba(46, 125, 50, 0.05)' : 'inherit'
+                      backgroundColor: worker.status === 'APPROVED' 
+                        ? theme.palette.mode === 'light' 
+                          ? 'rgba(46, 125, 50, 0.05)' 
+                          : 'rgba(46, 125, 50, 0.15)'
+                        : 'inherit',
+                      transition: 'background-color 0.2s',
+                      '&:hover': {
+                        backgroundColor: theme.palette.mode === 'light' 
+                          ? theme.palette.grey[100] 
+                          : theme.palette.grey[800]
+                      }
                     }}
                   >
                     <TableCell>{worker.worker_id}</TableCell>
-                    <TableCell>{worker.name}</TableCell>
-                    <TableCell>{worker.job_title}</TableCell>
-                    <TableCell>{worker.city || 'N/A'}</TableCell>
-                    <TableCell>{worker.age || 'N/A'}</TableCell>
-                    <TableCell>{worker.phone || 'N/A'}</TableCell>
                     <TableCell>
-                      <Rating
-                        name={`rating-${worker.worker_id}`}
-                        value={worker.rating || 0}
-                        readOnly
-                        precision={0.5}
-                      />
-                      {!worker.rating && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                          Not rated yet
-                        </Typography>
-                      )}
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Avatar 
+                          sx={{ 
+                            width: 32, 
+                            height: 32, 
+                            backgroundColor: 
+                              worker.status === 'APPROVED' 
+                                ? theme.palette.success.main 
+                                : theme.palette.warning.main,
+                            mr: 1.5,
+                            fontSize: 14
+                          }}
+                        >
+                          {worker.name.charAt(0)}
+                        </Avatar>
+                        {worker.name}
+                      </Box>
+                    </TableCell>
+                    <TableCell>{worker.job_title}</TableCell>
+                    {!isMobile && <TableCell>{worker.city || 'N/A'}</TableCell>}
+                    {!isMobile && <TableCell>{worker.age || 'N/A'}</TableCell>}
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <PhoneOutlinedIcon fontSize="small" sx={{ mr: 0.5, color: theme.palette.text.secondary }} />
+                        {worker.phone || 'N/A'}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box>
+                        <Rating
+                          name={`rating-${worker.worker_id}`}
+                          value={worker.rating || 0}
+                          readOnly
+                          precision={0.5}
+                          size="small"
+                          emptyIcon={<StarOutlineIcon fontSize="inherit" />}
+                        />
+                        {!worker.rating && (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            Not rated
+                          </Typography>
+                        )}
+                      </Box>
                     </TableCell>
                     <TableCell>
                       <Chip 
                         label={worker.status} 
                         color={worker.status === 'APPROVED' ? 'success' : 'warning'} 
                         size="small"
+                        variant={worker.status === 'APPROVED' ? 'filled' : 'outlined'}
+                        sx={{ fontWeight: 500 }}
                       />
                     </TableCell>
                     {isHrManager && (
                       <TableCell>
-                        {worker.status === 'PENDING' && (
-                          <Button 
-                            variant="contained" 
+                        {worker.status === 'PENDING' ? (
+                          <Tooltip title="Approve this worker">
+                            <Button 
+                              variant="contained" 
+                              size="small" 
+                              color="primary"
+                              onClick={() => handleApproveWorker(worker.worker_id, worker.job_title, worker.name)}
+                              sx={{ 
+                                textTransform: 'none',
+                                borderRadius: 1.5,
+                                boxShadow: 1
+                              }}
+                            >
+                              Approve
+                            </Button>
+                          </Tooltip>
+                        ) : (
+                          <Chip 
+                            label="Approved" 
+                            color="success" 
                             size="small" 
-                            color="primary"
-                            onClick={() => handleApproveWorker(worker.worker_id, worker.job_title, worker.name)}
-                          >
-                            Approve Worker
-                          </Button>
+                            icon={<CheckCircleOutlineIcon />}
+                            variant="outlined"
+                          />
                         )}
                       </TableCell>
                     )}
@@ -313,7 +580,15 @@ const EventPage: React.FC = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={isHrManager ? 9 : 8} align="center">No workers assigned to this event</TableCell>
+                  <TableCell 
+                    colSpan={isHrManager ? (isMobile ? 7 : 9) : (isMobile ? 6 : 8)} 
+                    align="center"
+                    sx={{ py: 4 }}
+                  >
+                    <Typography color="text.secondary">
+                      No workers assigned to this event
+                    </Typography>
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -335,10 +610,10 @@ const EventPage: React.FC = () => {
       <Container 
         maxWidth="lg" 
         sx={{ 
-          mt: { xs: 2, sm: 8 }, // Add top margin to account for tabs on desktop
-          mb: { xs: 10, sm: 4 }, // Add bottom margin to account for bottom nav on mobile
-          pt: { xs: 2, sm: 4 },  // Add padding top
-          px: 2 // Add horizontal padding
+          mt: { xs: 2, sm: 8 },
+          mb: { xs: 10, sm: 4 },
+          pt: { xs: 2, sm: 4 },
+          px: { xs: 2, sm: 3 }
         }}
       >
         {contentView()}

@@ -1,8 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Typography, Grid, Button, Box } from '@mui/material';
+import React, { useState } from 'react';
+import { 
+  Container, 
+  Typography, 
+  Grid, 
+  Button, 
+  Box, 
+  Paper, 
+  Divider, 
+  useTheme, 
+  useMediaQuery, 
+  Fab,
+  Tooltip,
+  Fade,
+  Alert,
+  Snackbar,
+  CircularProgress
+} from '@mui/material';
 import { useQuery, useQueryClient } from 'react-query';
+import AddIcon from '@mui/icons-material/Add';
+import EventIcon from '@mui/icons-material/Event';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import FeedIcon from '@mui/icons-material/Feed';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
-import SideTab from '../../components/SideTab';
 import NewEventModal from './create_event/NewEventModal';
 import { EventFormInputs, convertFormDataToAPIPayload } from './create_event/eventScheme';
 import { createEvent, getMyEvents, getEventsFeed, editEvent, deleteEvent } from '../../api/eventApi';
@@ -10,50 +29,41 @@ import useUserRole from './hooks/useUserRole';
 import FeedList from './feed/FeedList';
 import MyEventList from './my_events/MyEventList';
 import LoadingPage from './LoadingPage';
-import ErrorPage from './ErrorPage';
-import EventFilters from './feed/EventFilters';
 import axios from 'axios';
 import NotificationsMenu from '../../components/NotificationsMenu';
+import { Link } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
     const [modalOpen, setModalOpen] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+    
     const queryClient = useQueryClient();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
+    
     const { data: events = [], isLoading, isError } = useQuery(['events'], getMyEvents);
     const userRole = useUserRole();
+    // Only fetch feed events for recruiter view
     const { data: feedEvents = [] } = useQuery(
         ['eventsFeed'], 
         getEventsFeed,
-        { enabled: userRole === 'worker' }
+        { enabled: userRole !== 'worker' }
     );
-    const [filteredEvents, setFilteredEvents] = useState<any[]>([]);
-
-    useEffect(() => {
-        if (feedEvents && feedEvents.length > 0) {
-            setFilteredEvents(feedEvents);
-        }
-    }, [feedEvents]); // Only run when feedEvents changes
 
     const handleOpen = () => setModalOpen(true);
     const handleClose = () => setModalOpen(false);
+    
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
 
-    const handleFilterChange = (cities: string[], jobTitles: string[]) => {
-        let filtered = [...feedEvents];
-        
-        // Filter by cities (if any selected)
-        if (cities.length > 0) {
-            filtered = filtered.filter(event => 
-                cities.includes(event.city)
-            );
-        }
-        
-        // Filter by job titles (if any selected)
-        if (jobTitles.length > 0) {
-            filtered = filtered.filter(event => 
-                event.jobs.some(job => jobTitles.includes(job.job_title))
-            );
-        }
-        
-        setFilteredEvents(filtered);
+    const showNotification = (message: string, severity: 'success' | 'error') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
     };
 
     const handleEventSubmit = async (data: EventFormInputs): Promise<boolean> => {
@@ -62,36 +72,29 @@ const HomePage: React.FC = () => {
             await createEvent(apiPayload);
             await queryClient.invalidateQueries(['events']);
             setModalOpen(false);
+            showNotification('Event created successfully!', 'success');
             return true; 
         } catch (error) {
             console.error("Failed to create event:", error);
-            alert('Failed to create event. Please try again.');
+            showNotification('Failed to create event. Please try again.', 'error');
             return false; 
         }
     };
 
     const handleEventUpdate = async (eventId: number, data: EventFormInputs) => {
         try {
-            console.log('Raw form data received:', data);
-            console.log('Event ID:', eventId);
-            
             const apiPayload = convertFormDataToAPIPayload(data);
-            console.log('Converted API payload:', apiPayload);
-            
-            const result = await editEvent(eventId, apiPayload);
-            console.log('API response:', result);
-            
+            await editEvent(eventId, apiPayload);
             await queryClient.invalidateQueries(['events']);
-            setModalOpen(false);
+            showNotification('Event updated successfully!', 'success');
             return true;
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 console.error('Error Response Data:', error.response?.data);
                 console.error('Error Status:', error.response?.status);
-                console.error('Error Headers:', error.response?.headers);
             }
             console.error("Failed to edit event: ", error);
-            alert('Failed to edit event. Please try again.');
+            showNotification('Failed to update event. Please try again.', 'error');
             return false;
         }
     };
@@ -100,6 +103,7 @@ const HomePage: React.FC = () => {
         try {
             await deleteEvent(eventId);
             await queryClient.invalidateQueries(['events']);
+            showNotification('Event deleted successfully!', 'success');
             return true;
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -107,23 +111,93 @@ const HomePage: React.FC = () => {
                 console.error('Error Status:', error.response?.status);
             }
             console.error("Failed to delete event: ", error);
-            alert('Failed to delete event. Please try again.');
+            showNotification('Failed to delete event. Please try again.', 'error');
             return false;
         }
     };
 
     const renderWorkerView = () => (
-        <Grid container spacing={8} justifyContent="space-between">
-            <Grid item xs={5}>
-                <Box sx={{ position: 'sticky', top: '84px' }}>
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        Upcoming Events
-                    </Typography>
-                    <Box sx={{ mt: 8, maxHeight: '70vh', overflowY: 'auto', pr: 2 }}>
-                        {events.length === 0 ? (
-                            <Typography variant="body1" color="textSecondary">
-                                No events yet
-                            </Typography>
+        <Grid container spacing={3} justifyContent="center">
+            <Grid item xs={12} md={10} lg={8}>
+                <Paper 
+                    elevation={0}
+                    sx={{ 
+                        p: 3, 
+                        borderRadius: 2,
+                        height: '100%',
+                        border: '1px solid',
+                        borderColor: 'divider'
+                    }}
+                >
+                    <Box>
+                        <Box 
+                            sx={{ 
+                                display: 'flex',
+                                alignItems: 'center',
+                                mb: 3,
+                                justifyContent: 'space-between'
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <CalendarTodayIcon 
+                                    sx={{ 
+                                        color: 'primary.main',
+                                        mr: 1.5,
+                                        fontSize: '1.75rem'
+                                    }} 
+                                />
+                                <Typography 
+                                    variant="h5" 
+                                    component="h1" 
+                                    sx={{ 
+                                        fontWeight: 600,
+                                        color: 'text.primary'
+                                    }}
+                                >
+                                    My Events
+                                </Typography>
+                            </Box>
+                            <Button
+                                component={Link}
+                                to="/feed"
+                                variant="outlined"
+                                color="primary"
+                                startIcon={<FeedIcon />}
+                                sx={{ 
+                                    borderRadius: '8px',
+                                    textTransform: 'none'
+                                }}
+                            >
+                                Browse Events
+                            </Button>
+                        </Box>
+                        
+                        {isLoading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                <CircularProgress size={28} color="primary" />
+                            </Box>
+                        ) : events.length === 0 ? (
+                            <Box 
+                                sx={{ 
+                                    p: 3, 
+                                    textAlign: 'center',
+                                    bgcolor: 'action.hover',
+                                    borderRadius: 2
+                                }}
+                            >
+                                <Typography variant="body1" color="text.secondary">
+                                    You don't have any events yet
+                                </Typography>
+                                <Button
+                                    component={Link}
+                                    to="/feed"
+                                    variant="contained"
+                                    color="primary"
+                                    sx={{ mt: 2 }}
+                                >
+                                    Find Events
+                                </Button>
+                            </Box>
                         ) : (
                             <MyEventList 
                                 events={events}
@@ -132,67 +206,134 @@ const HomePage: React.FC = () => {
                             />
                         )}
                     </Box>
-                </Box>
-            </Grid>
-            <Grid item xs={5}>
-                <Box sx={{ position: 'sticky', top: '84px' }}>
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        Sign Up For Events
-                    </Typography>
-                    <Box sx={{ mt: 6 }}>
-                        <EventFilters 
-                            events={feedEvents} 
-                            onFilterChange={handleFilterChange}
-                        />
-                        <Box sx={{ mt: 4, maxHeight: '70vh', overflowY: 'auto', pr: 2 }}>
-                            {filteredEvents.length === 0 ? (
-                                <Typography variant="body1" color="textSecondary">
-                                    No events match your filters
-                                </Typography>
-                            ) : (
-                                <FeedList events={filteredEvents} />
-                            )}
-                        </Box>
-                    </Box>
-                </Box>
+                </Paper>
             </Grid>
         </Grid>
     );
 
     const renderRecruiterView = () => (
         <Grid container spacing={4}>
-            <Grid item xs={8}>
-                <Typography variant="h4" component="h1" gutterBottom>
-                    Upcoming Events
-                </Typography>
-                <Box mt={8}>
-                    {events.length === 0 ? (
-                        <Typography variant="body1" color="textSecondary">
-                            No events yet
-                        </Typography>
-                    ) : (
-                        <MyEventList 
-                            events={events} 
-                            onEventUpdate={handleEventUpdate}
-                            onEventDelete={handleEventDelete}
-                        />
-                    )}
-                </Box>
-                <Box mt={4}>
-                    {feedEvents.length > 0 && <FeedList events={feedEvents} />}
-                </Box>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    size="large"
-                    onClick={handleOpen}
-                    sx={{ mt: 2 }}
+            <Grid item xs={12}>
+                <Paper 
+                    elevation={0}
+                    sx={{ 
+                        p: 3, 
+                        borderRadius: 2,
+                        height: '100%',
+                        border: '1px solid',
+                        borderColor: 'divider'
+                    }}
                 >
-                    Create Event
-                </Button>
-            </Grid>
-            <Grid item xs={4}>
-                <SideTab />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                        <Box 
+                            sx={{ 
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}
+                        >
+                            <EventIcon 
+                                sx={{ 
+                                    color: 'primary.main',
+                                    mr: 1.5,
+                                    fontSize: '1.75rem'
+                                }} 
+                            />
+                            <Typography 
+                                variant="h5" 
+                                component="h1" 
+                                sx={{ fontWeight: 600 }}
+                            >
+                                Event Management
+                            </Typography>
+                        </Box>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            size="medium"
+                            startIcon={<AddIcon />}
+                            onClick={handleOpen}
+                            sx={{ 
+                                borderRadius: '8px',
+                                textTransform: 'none',
+                                fontWeight: 600
+                            }}
+                        >
+                            Create Event
+                        </Button>
+                    </Box>
+                    
+                    {isLoading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                            <CircularProgress size={32} color="primary" />
+                        </Box>
+                    ) : events.length === 0 ? (
+                        <Paper
+                            elevation={0}
+                            sx={{
+                                p: 4,
+                                textAlign: 'center',
+                                borderRadius: 2,
+                                bgcolor: 'grey.50',
+                                border: '1px dashed',
+                                borderColor: 'grey.300',
+                                mb: 4
+                            }}
+                        >
+                            <Typography variant="h6" gutterBottom color="text.secondary">
+                                No Events Created Yet
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" paragraph>
+                                Start by creating your first event using the "Create Event" button above.
+                            </Typography>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={handleOpen}
+                                sx={{ mt: 1 }}
+                            >
+                                Create Your First Event
+                            </Button>
+                        </Paper>
+                    ) : (
+                        <Box>
+                            <MyEventList 
+                                events={events} 
+                                onEventUpdate={handleEventUpdate}
+                                onEventDelete={handleEventDelete}
+                            />
+                        </Box>
+                    )}
+                    
+                    {feedEvents.length > 0 && (
+                        <Box mt={6}>
+                            <Divider sx={{ mb: 4 }} />
+                            <Box 
+                                sx={{ 
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    mb: 3
+                                }}
+                            >
+                                <FeedIcon 
+                                    sx={{ 
+                                        color: 'primary.main',
+                                        mr: 1.5,
+                                        fontSize: '1.75rem'
+                                    }} 
+                                />
+                                <Typography 
+                                    variant="h5" 
+                                    sx={{ 
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    All Events
+                                </Typography>
+                            </Box>
+                            <FeedList events={feedEvents} />
+                        </Box>
+                    )}
+                </Paper>
             </Grid>
         </Grid>
     );
@@ -200,31 +341,81 @@ const HomePage: React.FC = () => {
     if (isLoading) {
         return <LoadingPage />;
     }
-
-    // if (isError) {
-    //     return <ErrorPage />
-    // }
-
+    
     return (
-        <Container maxWidth="xl" sx={{ pt: 8, pb: 0, minHeight: '100vh' }}>
-            <Grid container spacing={3}>
-                <Grid item xs={12}>
-                    <ResponsiveTabs />
+        <Box 
+            sx={{ 
+                bgcolor: 'background.default',
+                minHeight: '100vh',
+                pb: 8 
+            }}
+        >
+            <Container maxWidth="xl" sx={{ pt: 3, pb: 6 }}>
+                <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                        <Paper 
+                            elevation={0} 
+                            sx={{ 
+                                borderRadius: 2,
+                                mb: 3,
+                                overflow: 'hidden',
+                                border: '1px solid',
+                                borderColor: 'divider'
+                            }}
+                        >
+                            <ResponsiveTabs value={0} />
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12}>
+                        {userRole === 'worker' ? renderWorkerView() : renderRecruiterView()}
+                    </Grid>
                 </Grid>
-                <Grid item xs={12} sx={{ mt: 3 }}>
-                    {userRole === 'worker' ? renderWorkerView() : renderRecruiterView()}
-                </Grid>
-            </Grid>
 
-            <NotificationsMenu />
+                {/* Floating action button for creating events (only for non-workers) */}
+                {userRole !== 'worker' && isMobile && (
+                    <Tooltip title="Create Event" placement="left" TransitionComponent={Fade}>
+                        <Fab
+                            color="primary"
+                            aria-label="create event"
+                            onClick={handleOpen}
+                            sx={{
+                                position: 'fixed',
+                                bottom: 24,
+                                right: 24,
+                                boxShadow: 3
+                            }}
+                        >
+                            <AddIcon />
+                        </Fab>
+                    </Tooltip>
+                )}
 
-            <NewEventModal 
-                open={modalOpen} 
-                onClose={handleClose} 
-                onSubmit={handleEventSubmit} 
-                mode="create"
-            />
-        </Container>
+                <NotificationsMenu />
+
+                <NewEventModal 
+                    open={modalOpen} 
+                    onClose={handleClose} 
+                    onSubmit={handleEventSubmit} 
+                    mode="create"
+                />
+                
+                <Snackbar 
+                    open={snackbarOpen} 
+                    autoHideDuration={6000} 
+                    onClose={handleSnackbarClose}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                >
+                    <Alert 
+                        onClose={handleSnackbarClose} 
+                        severity={snackbarSeverity}
+                        variant="filled"
+                        sx={{ width: '100%' }}
+                    >
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
+            </Container>
+        </Box>
     );
 };
 
