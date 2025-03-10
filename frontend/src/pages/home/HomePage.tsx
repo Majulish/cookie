@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Grid, IconButton, Button, Box } from '@mui/material';
+import { Container, Typography, Grid, Button, Box } from '@mui/material';
 import { useQuery, useQueryClient } from 'react-query';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
 import SideTab from '../../components/SideTab';
 import NewEventModal from './create_event/NewEventModal';
 import { EventFormInputs, convertFormDataToAPIPayload } from './create_event/eventScheme';
 import { createEvent, getMyEvents, getEventsFeed, editEvent, deleteEvent } from '../../api/eventApi';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import useUserRole from './hooks/useUserRole';
 import FeedList from './feed/FeedList';
 import MyEventList from './my_events/MyEventList';
@@ -14,6 +13,7 @@ import LoadingPage from './LoadingPage';
 import ErrorPage from './ErrorPage';
 import EventFilters from './feed/EventFilters';
 import axios from 'axios';
+import NotificationsMenu from '../../components/NotificationsMenu';
 
 const HomePage: React.FC = () => {
     const [modalOpen, setModalOpen] = useState(false);
@@ -25,25 +25,31 @@ const HomePage: React.FC = () => {
         getEventsFeed,
         { enabled: userRole === 'worker' }
     );
-    const [filteredEvents, setFilteredEvents] = useState(feedEvents);
+    const [filteredEvents, setFilteredEvents] = useState<any[]>([]);
 
     useEffect(() => {
-        setFilteredEvents(feedEvents);
-    }, [feedEvents]);
+        if (feedEvents && feedEvents.length > 0) {
+            setFilteredEvents(feedEvents);
+        }
+    }, [feedEvents]); // Only run when feedEvents changes
 
     const handleOpen = () => setModalOpen(true);
     const handleClose = () => setModalOpen(false);
 
-    const handleFilterChange = (location: string, jobTitle: string) => {
+    const handleFilterChange = (cities: string[], jobTitles: string[]) => {
         let filtered = [...feedEvents];
         
-        if (location) {
-            filtered = filtered.filter(event => event.location === location);
+        // Filter by cities (if any selected)
+        if (cities.length > 0) {
+            filtered = filtered.filter(event => 
+                cities.includes(event.city)
+            );
         }
         
-        if (jobTitle) {
+        // Filter by job titles (if any selected)
+        if (jobTitles.length > 0) {
             filtered = filtered.filter(event => 
-                event.jobs.some(job => job.job_title === jobTitle)
+                event.jobs.some(job => jobTitles.includes(job.job_title))
             );
         }
         
@@ -173,7 +179,7 @@ const HomePage: React.FC = () => {
                     )}
                 </Box>
                 <Box mt={4}>
-                    <FeedList events={feedEvents} />
+                    {feedEvents.length > 0 && <FeedList events={feedEvents} />}
                 </Box>
                 <Button
                     variant="contained"
@@ -210,21 +216,7 @@ const HomePage: React.FC = () => {
                 </Grid>
             </Grid>
 
-            <IconButton
-                sx={{
-                    position: 'fixed',
-                    bottom: 16,
-                    right: 16,
-                    bgcolor: 'background.paper',
-                    borderRadius: '50%',
-                    boxShadow: 2,
-                    '&:hover': {
-                        bgcolor: 'background.paper',
-                    }
-                }}
-            >
-                <NotificationsIcon />
-            </IconButton>
+            <NotificationsMenu />
 
             <NewEventModal 
                 open={modalOpen} 

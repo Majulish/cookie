@@ -7,10 +7,16 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Button
+  Button,
+  Link,
+  Box,
+  Badge
 } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import PendingIcon from "@mui/icons-material/Pending";
+import WatchLaterIcon from "@mui/icons-material/WatchLater";
 import { MyEventScheme } from "../create_event/eventScheme";
 import NewEventDialog from "../create_event/NewEventModal";
 import { EventFormInputs } from "../create_event/eventScheme";
@@ -39,6 +45,7 @@ const MyEvent: React.FC<EventProps> = ({
   const userRole = useUserRole();
   
   const hasEditPermission = userRole !== 'worker';
+  const isWorker = userRole === 'worker';
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -76,9 +83,31 @@ const MyEvent: React.FC<EventProps> = ({
     return onEventUpdate(event.id, data);
   };
 
+  // Prevent accordion expansion when clicking on the event name link
+  const handleEventNameClick = (e: React.MouseEvent) => {
+    if (!isWorker) {
+      e.stopPropagation();
+    }
+  };
+
+  // Check for exact string values of worker_status
+  const pendingStatus = "PENDING";
+  const waitingListStatus = "WAITING_LIST";
+  
+  // Use for styling decisions
+  const hasPendingStatus = event.worker_status === pendingStatus;
+  const hasWaitingListStatus = event.worker_status === waitingListStatus;
+
   return (
     <>
-      <Accordion>
+      <Accordion 
+        sx={{ 
+          mb: 1,
+          border: hasPendingStatus ? '2px solid orange' : 
+                 hasWaitingListStatus ? '2px solid blue' : 'none',
+          borderRadius: '4px',
+        }}
+      >
         <AccordionSummary 
           expandIcon={<ExpandMoreIcon />}
           sx={{
@@ -90,8 +119,81 @@ const MyEvent: React.FC<EventProps> = ({
             }
           }}
         >
-          <Typography variant="h6">{event.name}</Typography>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {event.worker_status === pendingStatus && (
+              <Box 
+                sx={{ 
+                  bgcolor: 'orange', 
+                  color: 'white', 
+                  px: 1, 
+                  py: 0.5, 
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  mr: 1
+                }}
+              >
+                <PendingIcon fontSize="small" />
+                PENDING
+              </Box>
+            )}
+            
+            {event.worker_status === waitingListStatus && (
+              <Box 
+                sx={{ 
+                  bgcolor: 'blue', 
+                  color: 'white', 
+                  px: 1, 
+                  py: 0.5, 
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  mr: 1
+                }}
+              >
+                <WatchLaterIcon fontSize="small" />
+                WAITING LIST
+              </Box>
+            )}
+            
+            {isWorker ? (
+              <Badge
+                color={hasPendingStatus ? "warning" : hasWaitingListStatus ? "info" : "default"}
+                variant="dot"
+                invisible={!hasPendingStatus && !hasWaitingListStatus}
+              >
+                <Typography variant="h6">{event.name}</Typography>
+              </Badge>
+            ) : (
+              <Badge
+                color={hasPendingStatus ? "warning" : hasWaitingListStatus ? "info" : "default"}
+                variant="dot"
+                invisible={!hasPendingStatus && !hasWaitingListStatus}
+              >
+                <Link
+                  component={RouterLink}
+                  to={`/event-page/${event.id}`}
+                  onClick={handleEventNameClick}
+                  sx={{
+                    textDecoration: 'none',
+                    color: 'primary.main',
+                    '&:hover': {
+                      textDecoration: 'underline'
+                    }
+                  }}
+                >
+                  <Typography variant="h6">{event.name}</Typography>
+                </Link>
+              </Badge>
+            )}
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {isPastWeekEvent && hasEditPermission && (
               <Button
                 variant="contained"
@@ -134,7 +236,7 @@ const MyEvent: React.FC<EventProps> = ({
                 </Menu>
               </>
             )}
-          </div>
+          </Box>
         </AccordionSummary>
         <AccordionDetails>
           <Typography variant="body1" color="textSecondary" gutterBottom>
@@ -142,7 +244,23 @@ const MyEvent: React.FC<EventProps> = ({
             <br />
             End: {event.end_date} {event.end_time}
             <br />
-            Location: {event.location}
+            Location: {event.city}, {event.address}
+            {hasPendingStatus && (
+              <>
+                <br />
+                <Box component="span" sx={{ color: 'orange', fontWeight: 'bold' }}>
+                  Status: PENDING
+                </Box>
+              </>
+            )}
+            {hasWaitingListStatus && (
+              <>
+                <br />
+                <Box component="span" sx={{ color: 'blue', fontWeight: 'bold' }}>
+                  Status: WAITING LIST
+                </Box>
+              </>
+            )}
           </Typography>
           <Typography variant="subtitle1" gutterBottom>
             Description:
@@ -177,6 +295,5 @@ const MyEvent: React.FC<EventProps> = ({
     </>
   );
 };
-
 
 export default MyEvent;

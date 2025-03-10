@@ -38,6 +38,7 @@ export default function SignUp() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            paddingBottom: 3,
           }}
         >
           <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
@@ -111,6 +112,18 @@ export default function SignUp() {
                   error={!!errors.phone_number}
                   helperText={errors.phone_number?.message}
                 />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  id="city"
+                  label="City"
+                  autoComplete="address-level2"
+                 {...register('city')}
+                error={!!errors.city}
+                helperText={errors.city?.message}
+                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
