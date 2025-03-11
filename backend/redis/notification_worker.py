@@ -23,3 +23,5 @@ def process_scheduled_reminders():
             NotificationStore.create_notification(worker_id, message, event_id=event_id)
 
         redis_client.zrem("event_reminders", reminder)
+
+    return "done"

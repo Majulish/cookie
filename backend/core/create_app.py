@@ -32,16 +32,15 @@ def create_app():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:example@localhost:5432/my_database'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
-    app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+    app.config['CELERY'] = {
+        'broker_url': 'redis://localhost:6379/0',
+        'result_backend': 'redis://localhost:6379/0'
+    }
 
+    # Continue with your initialization (db, blueprints, etc.)
     db.init_app(app)
-
-    app.config["ENV"] = "development"
-    if app.config["ENV"] == "development":
-        with app.app_context():
-            db.create_all()
-
+    with app.app_context():
+        db.create_all()
     app.register_blueprint(user_blueprint, url_prefix='/users')
     app.register_blueprint(event_blueprint, url_prefix='/events')
     app.register_blueprint(notifications_blueprint, url_prefix='/notifications')

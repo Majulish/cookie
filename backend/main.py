@@ -10,8 +10,7 @@ def start_flask():
 
 
 def start_celery_worker():
-    worker_instance = worker(app=celery)
-    worker_instance.run(loglevel="info")
+    celery.worker_main(['worker', '--loglevel=info', '--pool=solo'])
 
 
 def run_scheduled_tasks():
