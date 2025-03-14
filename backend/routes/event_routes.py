@@ -166,3 +166,22 @@ def my_events(user):
     else:
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(events), 200
+
+
+@event_blueprint.route("/<int:event_id>/rate_worker", methods=["POST"])
+@load_user
+def rate_worker(user, event_id):
+    if not has_permission(user.role, Permission.RATE_WORKERS):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = request.get_json()
+    worker_id = data.get("worker_id")
+    rating = data.get("rating")
+
+    if not worker_id or not rating:
+        return jsonify({"error": "Worker ID and rating are required"}), 400
+
+    if not (0 <= rating <= 5):  # Ensure rating is between 0 and 5
+        return jsonify({"error": "Rating must be between 0 and 5"}), 400
+
+    return EventStore.rate_worker(event_id, worker_id, rating)

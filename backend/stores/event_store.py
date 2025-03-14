@@ -195,3 +195,27 @@ class EventStore:
         except Exception as e:
             raise e
 
+    @staticmethod
+    def rate_worker(event_id: int, worker_id: int, rating: float):
+        """
+        Allows an event organizer to rate a worker.
+        The new rating is averaged with existing ratings.
+        """
+        try:
+            # Check if the worker is assigned to this event
+            worker_event = EventUsers.get_worker_job(event_id, worker_id)
+            if not worker_event:
+                return jsonify({"error": "Worker is not assigned to this event"}), 404
+
+            worker = User.find_by({"id": worker_id})
+            if not worker:
+                return jsonify({"error": "Worker not found"}), 404
+
+            # Update rating
+            worker.update_rating(rating)
+
+            return jsonify({"message": "Worker rated successfully"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+
