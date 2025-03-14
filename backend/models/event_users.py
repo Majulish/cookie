@@ -125,7 +125,8 @@ class EventUsers(db.Model):
                     (user.birthdate, "%d/%m/%Y").year,
                     "city": user.city or "unknown",
                     "phone": user.phone_number,
-                    "status": status_str
+                    "status": status_str,
+                    "rating": user.rating
                 })
 
             return output
