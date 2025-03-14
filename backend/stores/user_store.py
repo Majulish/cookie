@@ -56,3 +56,6 @@ class UserStore:
     @staticmethod
     def find_user(field: str, value: str | int) -> Optional[User]:
         return User.find_by({field: value})
+
+
+

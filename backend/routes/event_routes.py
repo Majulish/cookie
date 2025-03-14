@@ -187,3 +187,7 @@ def rate_worker(user, event_id):
         return jsonify({"error": "Either rating or review is required"}), 400
 
     return EventStore.rate_worker(event_id, worker_id, rating, review, user.id)
+
+
+
+

@@ -23,3 +23,17 @@ def create_notification(user):
 
     new_note = NotificationStore.create_notification(user.id, body["message"])
     return jsonify(new_note), 201
+
+
+@notifications_blueprint.route("/mark_read", methods=["POST"])
+@load_user
+def mark_notifications_as_read(user):
+    data = request.get_json()
+    notification_ids = data.get("notification_ids")
+
+    if not notification_ids or not isinstance(notification_ids, list):
+        return jsonify({"error": "Invalid input, expected an array of notification IDs"}), 400
+
+    updated_count = NotificationStore.mark_notifications_as_read(notification_ids, user.id)
+
+    return jsonify({"message": f"Marked {updated_count} notifications as read"}), 200

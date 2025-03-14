@@ -51,3 +51,28 @@ class Notification(db.Model):
     def mark_as_read(self):
         self.is_read = True
         self.save_to_db()
+
+    @classmethod
+    def mark_notification_as_read(cls, notification_ids: list, user_id: int) -> int:
+        """
+        Marks multiple notifications as read for a given user.
+        """
+        notifications = cls.query.filter(
+            cls.id.in_(notification_ids),
+            cls.user_id == user_id
+        ).all()
+
+        if not notifications:
+            return 0
+
+        for notification in notifications:
+            notification.is_read = True
+
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+        
+        return len(notifications)
+
