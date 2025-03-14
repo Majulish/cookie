@@ -168,6 +168,7 @@ def my_events(user):
     return jsonify(events), 200
 
 
+
 @event_blueprint.route("/<int:event_id>/rate_worker", methods=["POST"])
 @load_user
 def rate_worker(user, event_id):
@@ -176,12 +177,13 @@ def rate_worker(user, event_id):
 
     data = request.get_json()
     worker_id = data.get("worker_id")
-    rating = data.get("rating")
+    rating = data.get("rating")  # Rating may be None
+    review = data.get("review")  # Review may be None
 
-    if not worker_id or not rating:
-        return jsonify({"error": "Worker ID and rating are required"}), 400
+    if not worker_id:
+        return jsonify({"error": "Worker ID is required"}), 400
 
-    if not (0 <= rating <= 5):  # Ensure rating is between 0 and 5
-        return jsonify({"error": "Rating must be between 0 and 5"}), 400
+    if not rating and not review:
+        return jsonify({"error": "Either rating or review is required"}), 400
 
-    return EventStore.rate_worker(event_id, worker_id, rating)
+    return EventStore.rate_worker(event_id, worker_id, rating, review, user.id)

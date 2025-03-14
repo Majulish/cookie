@@ -1,8 +1,11 @@
+from sqlalchemy.orm import relationship
 import datetime
 from typing import Optional, Dict
+
 from sqlalchemy import Enum
 
 from backend.db import db
+from backend.models.reviews import Review
 from backend.models.roles import Role
 from backend.app.auth import check_password
 
@@ -31,6 +34,8 @@ class User(db.Model):
     company_name = db.Column(db.String(50), nullable=True)
     company_id = db.Column(db.String(50), default="0")
     city = db.Column(db.String(100), nullable=True)
+
+    reviews_received = relationship("Review", foreign_keys="[Review.worker_id]", back_populates="worker", lazy="dynamic")
 
     created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC),
@@ -86,6 +91,18 @@ class User(db.Model):
         self.rating = ((self.rating * self.rating_count) + new_rating) / (self.rating_count + 1 )
         self.rating_count += 1
 
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    def add_review(self, commenter_id: int, review_text: str) -> None:
+        """
+        Adds a review for the worker and saves it in the database.
+        """
+        review = Review(worker_id=self.id, commenter_id=commenter_id, review_text=review_text)
+        db.session.add(review)
         try:
             db.session.commit()
         except Exception as e:
