@@ -126,7 +126,8 @@ class EventUsers(db.Model):
                     "city": user.city or "unknown",
                     "phone": user.phone_number,
                     "status": status_str,
-                    "rating": user.rating
+                    "rating": user.rating,
+                    "rating_count": user.rating_count
                 })
 
             return output
