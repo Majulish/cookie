@@ -1,11 +1,12 @@
 import datetime
-
-from backend.db import db
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List, Dict
+from enum import Enum
+
 from backend.models.user import User
 from backend.models.event_job import EventJob
-from enum import Enum
+from backend.db import db
+from backend.redis.notification_scheduler import schedule_worker_reminders
 
 
 class WorkerStatus(Enum):
@@ -90,6 +91,11 @@ class EventUsers(db.Model):
             if status == WorkerStatus.APPROVED and (not is_already_approved or is_job_new):
                 job = EventJob.query.get(job_id)
                 if job and job.openings > 0:
+
+                    # event.start_datetime is assumed available from your event record.
+                    from backend.models.event import Event
+                    event = Event.query.get(event_id)
+                    schedule_worker_reminders(event_id, worker_id, event.start_datetime)
                     job.openings -= 1
                     db.session.add(job)
 

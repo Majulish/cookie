@@ -1,6 +1,4 @@
 from enum import Enum
-from flask import jsonify
-from flask_jwt_extended import get_jwt
 
 
 class Role(Enum):
