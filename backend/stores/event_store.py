@@ -3,6 +3,7 @@ from typing import Optional, Dict, Tuple, List
 from flask import jsonify, Response
 from sqlalchemy.exc import SQLAlchemyError
 
+from backend.models.reviews import Review
 from backend.models.user import User
 from backend.models.event import Event
 from backend.models.event_users import EventUsers, WorkerStatus
@@ -196,19 +197,20 @@ class EventStore:
             raise e
 
 
-    def rate_worker(event_id: int, worker_id: int, rating: Optional[float], review: Optional[str], commenter_id: int):
+    @staticmethod
+    def rate_worker(event_id: int, worker_id: int, rating: float) -> tuple:
         """
-        Allows an event organizer to rate a worker and/or leave a review.
+        Updates the rating of a worker.
+        Returns a tuple (response message, status code).
         """
         try:
-            # Check if the worker is assigned to this event
-            worker_event = EventUsers.get_worker_job(event_id, worker_id)
-            if not worker_event:
-                return jsonify({"error": "Worker is not assigned to this event"}), 404
-
             worker = User.find_by({"id": worker_id})
             if not worker:
                 return jsonify({"error": "Worker not found"}), 404
+
+            worker_event = EventUsers.get_worker_job(event_id, worker_id)
+            if not worker_event:
+                return jsonify({"error": "Worker is not assigned to this event"}), 404
 
             # Update rating if provided
             if rating:
@@ -216,13 +218,26 @@ class EventStore:
                     return jsonify({"error": "Rating must be between 0 and 5"}), 400
                 worker.update_rating(rating)
 
-            # Add review if provided
-            if review:
-                worker.add_review(commenter_id, review)
-
-            return jsonify({"message": "Worker rated and/or reviewed successfully"}), 200
+            return "Rating updated successfully", 200
         except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            return f"Failed to update rating: {str(e)}", 500
 
+    @staticmethod
+    def review_worker(event_id: int, worker_id: int, review: str, commenter_id: int) -> tuple:
+        """
+        Adds a review for a worker.
+        Returns a tuple (response message, status code).
+        """
+        try:
+            worker = User.find_by({"id": worker_id})
+            if not worker:
+                return jsonify({"error": "Worker not found"}), 404
 
+            worker_event = EventUsers.get_worker_job(event_id, worker_id)
+            if not worker_event:
+                return jsonify({"error": "Worker is not assigned to this event"}), 404
 
+            Review.add_review(worker_id, commenter_id, review, event_id)
+            return "Review added successfully", 200
+        except Exception as e:
+            return f"Failed to add review: {str(e)}", 500

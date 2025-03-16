@@ -62,9 +62,6 @@ class Notification(db.Model):
             cls.user_id == user_id
         ).all()
 
-        if not notifications:
-            return 0
-
         for notification in notifications:
             notification.is_read = True
 

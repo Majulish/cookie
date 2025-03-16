@@ -59,20 +59,31 @@ class UserStore:
     def find_user(field: str, value: str | int) -> Optional[User]:
         return User.find_by({field: value})
 
+
     @staticmethod
     def get_worker_profile(worker_id: int):
-        worker = User.find_by({"id": worker_id})
-        if not worker:
-            return {"error": "Worker not found"}
 
-        # Get worker reviews
-        reviews = Review.find_review_by_worker(worker_id)
-        reviews_list = [
-            {"commenter_id": r.commenter_id, "review_text": r.review_text, "timestamp": r.timestamp.isoformat()} for r
-            in reviews]
+        try:
+            worker = User.find_by({"id": worker_id})
+            if not worker:
+                return {"error": "Worker not found"}
+
+            # Get worker reviews
+            reviews = Review.find_by({"worker_id": worker_id})
+            reviews_list = [
+                {
+                    "reviewer_name": f"{r.commenter.first_name} {r.commenter.family_name}" if r.commenter else "Unknown",
+                    "review_text": r.review_text,
+                    "timestamp": r.timestamp.isoformat(),
+                    "event_id": r.event_id
+                } for r in reviews
+            ] if reviews else []
+
+        except Exception as e:
+            return jsonify({"error": f"Failed to fetch reviews: {str(e)}"}), 500
 
         # Prepare response data
-        return {
+        profile_data = {
             "full_name": f"{worker.first_name} {worker.family_name}",
             "city": worker.city,
             "phone": worker.phone_number,
@@ -84,5 +95,6 @@ class UserStore:
             "company_id": worker.company_id,
         }
 
+        return jsonify(profile_data), 200
 
 

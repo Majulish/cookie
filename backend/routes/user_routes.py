@@ -114,13 +114,10 @@ def get_profile(user, user_id):
         return jsonify({"error": "User not found"}), 404
 
     if requested_user.role != Role.WORKER:
-        return jsonify({"error": "Profiles are only available for workers"}), 400
+        return jsonify({"error": "Non workers profiles can't be requested"}), 401
 
     # Check access permissions
     if user.role == Role.WORKER and user.id != user_id:
         return jsonify({"error": "Unauthorized"}), 403
 
-    # Fetch profile details
-    profile_data = UserStore.get_worker_profile(user_id)
-
-    return jsonify(profile_data), 200
+    return UserStore.get_worker_profile(user_id)

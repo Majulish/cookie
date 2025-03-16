@@ -35,8 +35,6 @@ class User(db.Model):
     company_id = db.Column(db.String(50), default="0")
     city = db.Column(db.String(100), nullable=True)
 
-    reviews_received = relationship("Review", foreign_keys="[Review.worker_id]", back_populates="worker", lazy="dynamic")
-
     created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
     updated_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC),
                            onupdate=datetime.datetime.now(datetime.UTC))
@@ -97,14 +95,3 @@ class User(db.Model):
             db.session.rollback()
             raise e
 
-    def add_review(self, commenter_id: int, review_text: str) -> None:
-        """
-        Adds a review for the worker and saves it in the database.
-        """
-        review = Review(worker_id=self.id, commenter_id=commenter_id, review_text=review_text)
-        db.session.add(review)
-        try:
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            raise e
