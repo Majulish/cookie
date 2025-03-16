@@ -12,6 +12,8 @@ from pydantic import ValidationError
 from typing import Tuple
 from datetime import timedelta
 
+from backend.app.decorators import load_user
+from backend.models.roles import Role
 from backend.stores import UserStore
 from backend.models.schemas import SignupRequest, LoginRequest
 from backend.app.auth import check_password
@@ -101,3 +103,24 @@ def delete_user() -> Tuple[Response, int]:
         return jsonify({"message": "User not found"}), 404
 
     return UserStore.delete_user("id", user.id)
+
+
+@user_blueprint.route("/profile/<int:user_id>", methods=["GET"])
+@load_user
+def get_profile(user, user_id):
+    # Ensure the requested user is a worker
+    requested_user = UserStore.find_user("id", user_id)
+    if not requested_user:
+        return jsonify({"error": "User not found"}), 404
+
+    if requested_user.role != Role.WORKER:
+        return jsonify({"error": "Profiles are only available for workers"}), 400
+
+    # Check access permissions
+    if user.role == Role.WORKER and user.id != user_id:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    # Fetch profile details
+    profile_data = UserStore.get_worker_profile(user_id)
+
+    return jsonify(profile_data), 200

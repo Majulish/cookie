@@ -1,7 +1,9 @@
+import datetime
 from flask import jsonify, Response
 from typing import Dict, Tuple, Optional
 
 from backend.app.auth import hash_data
+from backend.models.reviews import Review
 from backend.models.user import User
 
 
@@ -56,6 +58,31 @@ class UserStore:
     @staticmethod
     def find_user(field: str, value: str | int) -> Optional[User]:
         return User.find_by({field: value})
+
+    @staticmethod
+    def get_worker_profile(worker_id: int):
+        worker = User.find_by({"id": worker_id})
+        if not worker:
+            return {"error": "Worker not found"}
+
+        # Get worker reviews
+        reviews = Review.find_review_by_worker(worker_id)
+        reviews_list = [
+            {"commenter_id": r.commenter_id, "review_text": r.review_text, "timestamp": r.timestamp.isoformat()} for r
+            in reviews]
+
+        # Prepare response data
+        return {
+            "full_name": f"{worker.first_name} {worker.family_name}",
+            "city": worker.city,
+            "phone": worker.phone_number,
+            "email": worker.email,
+            "age": datetime.datetime.now().year - datetime.datetime.strptime(worker.birthdate, "%d/%m/%Y").year,
+            "rating": worker.rating,
+            "reviews": reviews_list,
+            "company_name": worker.company_name,
+            "company_id": worker.company_id,
+        }
 
 
 
