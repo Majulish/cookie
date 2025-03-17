@@ -1,8 +1,11 @@
+from sqlalchemy.orm import relationship
 import datetime
 from typing import Optional, Dict
+
 from sqlalchemy import Enum
 
 from backend.db import db
+from backend.models.reviews import Review
 from backend.models.roles import Role
 from backend.app.auth import check_password
 
@@ -23,6 +26,7 @@ class User(db.Model):
     abilities = db.Column(db.ARRAY(db.String), nullable=True)
     assigned_jobs = db.Column(db.ARRAY(db.Integer), nullable=True)
     rating = db.Column(db.Float, nullable=True, default=0.0)
+    rating_count = db.Column(db.Integer, nullable=True, default=0)
     phone_number = db.Column(db.String(20), nullable=True)
     first_name = db.Column(db.String(50), nullable=False)
     family_name = db.Column(db.String(50), nullable=False)
@@ -77,3 +81,17 @@ class User(db.Model):
         except Exception as e:
             db.session.rollback()
             raise e
+
+    def update_rating(self, new_rating: float) -> None:
+        """
+        Updates the worker's rating by averaging previous and new ratings.
+        """
+        self.rating = ((self.rating * self.rating_count) + new_rating) / (self.rating_count + 1 )
+        self.rating_count += 1
+
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+

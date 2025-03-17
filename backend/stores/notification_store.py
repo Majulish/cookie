@@ -20,3 +20,11 @@ class NotificationStore:
     def get_user_notifications(user_id: int) -> List[Dict]:
         notifications = Notification.query.filter_by(user_id=user_id).all()
         return [n.to_dict() for n in notifications]
+
+    @staticmethod
+    def mark_notifications_as_read(notification_ids: list, user_id: int) -> int:
+        """
+        Calls the Notification model method to mark notifications as read.
+        """
+        return Notification.mark_notification_as_read(notification_ids, user_id)
+
