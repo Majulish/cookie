@@ -40,12 +40,15 @@ def approve_notification(user, notification_id):
     return jsonify(result), 200
 
 
-@notifications_blueprint.route("/<int:notification_id>/read", methods=["PUT"])
+@notifications_blueprint.route("/mark_read", methods=["POST"])
 @load_user
-def mark_notification_as_read(user, notification_id): # is this a potential security verification issue?
-    """Endpoint for workers to mark a notification as read so it won't show again."""
-    body = request.get_json()
-    if not body or "message" not in body:
-        return jsonify({"error": "Message is required"}), 400
-    result = NotificationStore.update_notification(notification_id, {"is_read": True})
-    return jsonify(result), 200
+def mark_notifications_as_read(user):
+    data = request.get_json()
+    notification_ids = data.get("notification_ids")
+
+    if not notification_ids or not isinstance(notification_ids, list):
+        return jsonify({"error": "Invalid input, expected an array of notification IDs"}), 400
+
+    updated_count = NotificationStore.mark_notifications_as_read(notification_ids, user.id)
+
+    return jsonify({"message": f"Marked {updated_count} notifications as read"}), 200
