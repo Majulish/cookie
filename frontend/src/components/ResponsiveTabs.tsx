@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { AppBar, Tabs, Tab, BottomNavigation, BottomNavigationAction, useTheme, useMediaQuery } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import EventNoteIcon from '@mui/icons-material/EventNote';
@@ -6,13 +6,19 @@ import ChatIcon from '@mui/icons-material/Chat';
 import CreateIcon from '@mui/icons-material/Create';
 import DataArrayIcon from '@mui/icons-material/DataArray';
 
-const ResponsiveTabs = () => {
-  const [value, setValue] = useState(0);
+interface ResponsiveTabsProps {
+  value?: number;
+  onChange?: (event: React.SyntheticEvent, newValue: number) => void;
+}
+
+const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value = 0, onChange }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    if (onChange) {
+      onChange(event, newValue);
+    }
   };
 
   return (

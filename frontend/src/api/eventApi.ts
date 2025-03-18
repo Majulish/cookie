@@ -2,6 +2,50 @@ import axios from 'axios';
 import {  EventAPIPayload, RecievedEvent, convertRecivedEventToMyEvent , MyEventScheme } from '../pages/home/create_event/eventScheme';
 import { API_BASE_URL, SIGN_IN_URL } from './config';
 
+interface EventWorker {
+    worker_id: number;
+    name: string;
+    job_title: string;
+    city: string;
+    phone: string;
+    status: string;
+  }
+  
+  interface DetailedEvent {
+    id: number;
+    name: string;
+    description: string;
+    city: string;
+    address:string;
+    start_datetime: string;
+    end_datetime: string;
+    status: string;
+    workers: EventWorker[];
+  }
+  
+  export const getEvent = async (eventId: number): Promise<DetailedEvent> => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/events/${eventId}`, {
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          console.error('Session expired - please log in again');
+          window.location.href = SIGN_IN_URL;
+          throw new Error('Authentication required');
+        }
+        if (error.response?.status === 404) {
+          console.error('Event not found');
+          throw new Error('Event not found');
+        }
+      }
+      console.error('Error fetching event details:', error);
+      throw error;
+    }
+  };
+
 export const createEvent = async (data: EventAPIPayload) => {
     try {
         const response = await axios.post(`${API_BASE_URL}/events/create_event`, data, {
@@ -90,6 +134,7 @@ export const getMyEvents = async (): Promise<MyEventScheme[]> => {
         const response = await axios.get(`${API_BASE_URL}/events/my_events`, {
             withCredentials: true,
         });
+        console.log('Response:', response);
 
         return response.data.map((event: RecievedEvent) => convertRecivedEventToMyEvent(event));
     } catch (error) {
@@ -180,5 +225,40 @@ export const applyForJob = async (eventId: number, jobTitle: string) => {
 }
 };
 
+export const assignWorkerToEvent = async (data: {
+    event_id: number;
+    worker_id: number;
+    job_title: string;
+    status: string;
+  }) => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/events/assign_worker/`,
+        data,
+        {
+          withCredentials: true,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          console.error('Session expired - please log in again');
+          window.location.href = SIGN_IN_URL;
+          throw new Error('Authentication required');
+        }
+        if (error.response?.status === 403) {
+          console.error('Only recruiters and hr managers can access this endpoint');
+          throw new Error('Unauthorized access');
+        }
+        if (error.response?.status === 404) {
+          console.error('Endpoint not found');
+          throw new Error('API endpoint not found');
+        }
+      }
+      console.error('Error assigning worker to event:', error);
+      throw error;
+    }
+  };
 
 

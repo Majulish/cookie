@@ -166,3 +166,46 @@ def my_events(user):
     else:
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(events), 200
+
+
+@event_blueprint.route("/<int:event_id>/feedback_worker", methods=["POST"])
+@load_user
+def feedback_worker(user, event_id):
+    if not has_permission(user.role, Permission.RATE_WORKERS):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = request.get_json()
+    worker_id = data.get("worker_id")
+    rating = data.get("rating")
+    review = data.get("review")
+
+    if not worker_id:
+        return jsonify({"error": "Worker ID is required"}), 400
+
+    if not rating and not review:
+        return jsonify({"error": "Either rating or review is required"}), 400
+
+    final_messages = []
+    rating_status, review_status = 0, 0
+
+    if rating:
+        rating_message, rating_status = EventStore.rate_worker(event_id, worker_id, rating)
+        final_messages.append(rating_message)
+
+    if review:
+        review_message, review_status = EventStore.review_worker(event_id, worker_id, review, user.id)
+        final_messages.append(review_message)
+
+    return jsonify({"messages": final_messages}), max(rating_status, review_status)
+
+
+
+
+
+
+
+
+
+
+
+

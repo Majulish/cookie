@@ -84,7 +84,7 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                             <br />
                             To: {event.end_date} {event.end_time}
                             <br />
-                            Location: {event.location}
+                            Location: {event.city}, {event.address}
                         </Typography>
 
                         <Box mt={2}>

@@ -34,3 +34,10 @@ class NotificationStore:
             return notification.to_dict()
         except Exception as e:
             return {"error": str(e)}
+
+    @staticmethod
+    def mark_notifications_as_read(notification_ids: list, user_id: int) -> int:
+        """
+        Calls the Notification model method to mark notifications as read.
+        """
+        return Notification.mark_notification_as_read(notification_ids, user_id)
