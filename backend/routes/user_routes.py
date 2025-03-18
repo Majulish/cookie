@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from typing import Tuple
 from datetime import timedelta
 
-from backend.app.decorators import load_user
+from backend.utils.decorators import load_user
 from backend.models.roles import Role
 from backend.stores import UserStore
 from backend.models.schemas import SignupRequest, LoginRequest
