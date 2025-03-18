@@ -1,7 +1,9 @@
+import datetime
 from flask import jsonify, Response
 from typing import Dict, Tuple, Optional
 
 from backend.app.auth import hash_data
+from backend.models.reviews import Review
 from backend.models.user import User
 
 
@@ -56,3 +58,43 @@ class UserStore:
     @staticmethod
     def find_user(field: str, value: str | int) -> Optional[User]:
         return User.find_by({field: value})
+
+
+    @staticmethod
+    def get_worker_profile(worker_id: int):
+
+        try:
+            worker = User.find_by({"id": worker_id})
+            if not worker:
+                return {"error": "Worker not found"}
+
+            # Get worker reviews
+            reviews = Review.find_by({"worker_id": worker_id})
+            reviews_list = [
+                {
+                    "reviewer_name": f"{r.commenter.first_name} {r.commenter.family_name}" if r.commenter else "Unknown",
+                    "review_text": r.review_text,
+                    "timestamp": r.timestamp.isoformat(),
+                    "event_id": r.event_id
+                } for r in reviews
+            ] if reviews else []
+
+        except Exception as e:
+            return jsonify({"error": f"Failed to fetch reviews: {str(e)}"}), 500
+
+        # Prepare response data
+        profile_data = {
+            "full_name": f"{worker.first_name} {worker.family_name}",
+            "city": worker.city,
+            "phone": worker.phone_number,
+            "email": worker.email,
+            "age": datetime.datetime.now().year - datetime.datetime.strptime(worker.birthdate, "%d/%m/%Y").year,
+            "rating": worker.rating,
+            "reviews": reviews_list,
+            "company_name": worker.company_name,
+            "company_id": worker.company_id,
+        }
+
+        return jsonify(profile_data), 200
+
+

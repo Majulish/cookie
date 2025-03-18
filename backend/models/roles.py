@@ -3,6 +3,7 @@ from flask import jsonify
 from flask_jwt_extended import get_jwt
 
 
+
 class Role(Enum):
     WORKER = "worker"
     HR_MANAGER = "hr_manager"
@@ -14,6 +15,7 @@ class Permission(Enum):
     # Event-related permissions
     VIEW_EVENTS = "view_events"  # View event details and available jobs.
     MANAGE_EVENTS = "manage_events"  # Create, update, and delete events.
+    RATE_WORKERS = "rate_workers"
 
     # Worker-related permissions
     APPLY_FOR_JOBS = "apply_for_jobs"  # Workers apply for jobs in events.
@@ -32,11 +34,13 @@ ROLE_PERMISSIONS = {
         Permission.VIEW_EVENTS,
         Permission.MANAGE_EVENTS,
         Permission.ASSIGN_WORKERS,
+        Permission.RATE_WORKERS
     ],
     Role.RECRUITER: [
         Permission.VIEW_EVENTS,
         Permission.MANAGE_APPLICATIONS,
         Permission.MANAGE_EVENTS,
+        Permission.RATE_WORKERS
     ],
     Role.ADMIN: list(Permission),  # Admin gets all permissions
 }
