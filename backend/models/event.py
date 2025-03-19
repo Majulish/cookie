@@ -54,7 +54,7 @@ class Event(db.Model):
         convert it to its string representation.
         """
         for key, value in data.items():
-            if hasattr(self, key) and key != 'id':
+            if hasattr(self, key) and key != 'id' and value:
                 setattr(self, key, value)
         db.session.commit()
 

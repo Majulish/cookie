@@ -59,7 +59,6 @@ class UserStore:
     def find_user(field: str, value: str | int) -> Optional[User]:
         return User.find_by({field: value})
 
-
     @staticmethod
     def get_worker_profile(worker_id: int):
 
