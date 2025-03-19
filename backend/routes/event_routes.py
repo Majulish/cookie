@@ -182,22 +182,18 @@ def feedback_worker(user, event_id):
 
     if not worker_id:
         return jsonify({"error": "Worker ID is required"}), 400
-
     if not rating and not review:
         return jsonify({"error": "Either rating or review is required"}), 400
 
-    final_messages = []
-    rating_status, review_status = 0, 0
+    if worker_in_event := EventStore.ensure_worker_in_event(event_id, worker_id):
+        return worker_in_event
 
-    if rating:
-        rating_message, rating_status = EventStore.rate_worker(event_id, worker_id, rating)
-        final_messages.append(rating_message)
+    rating_message, rating_status = EventStore.rate_worker(worker_id, rating) \
+        if rating else ("", 0)
+    review_message, review_status = EventStore.review_worker(event_id, worker_id, review, user.id)\
+        if review else ("", 0)
 
-    if review:
-        review_message, review_status = EventStore.review_worker(event_id, worker_id, review, user.id)
-        final_messages.append(review_message)
-
-    return jsonify({"messages": final_messages}), max(rating_status, review_status)
+    return jsonify({"messages": f"{rating_message}\n{review_message}"}), max(rating_status, review_status)
 
 
 

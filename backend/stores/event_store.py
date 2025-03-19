@@ -196,27 +196,17 @@ class EventStore:
         except Exception as e:
             raise e
 
-
     @staticmethod
-    def rate_worker(event_id: int, worker_id: int, rating: float) -> tuple:
+    def rate_worker(worker_id: int, rating: float) -> tuple:
         """
         Updates the rating of a worker.
         Returns a tuple (response message, status code).
         """
         try:
             worker = User.find_by({"id": worker_id})
-            if not worker:
-                return jsonify({"error": "Worker not found"}), 404
-
-            worker_event = EventUsers.get_worker_job(event_id, worker_id)
-            if not worker_event:
-                return jsonify({"error": "Worker is not assigned to this event"}), 404
-
-            # Update rating if provided
-            if rating:
-                if not (0 <= rating <= 5):
-                    return jsonify({"error": "Rating must be between 0 and 5"}), 400
-                worker.update_rating(rating)
+            if not (0 <= rating <= 5):
+                return jsonify({"error": "Rating must be between 0 and 5"}), 400
+            worker.update_rating(rating)
 
             return "Rating updated successfully", 200
         except Exception as e:
@@ -229,15 +219,17 @@ class EventStore:
         Returns a tuple (response message, status code).
         """
         try:
-            worker = User.find_by({"id": worker_id})
-            if not worker:
-                return jsonify({"error": "Worker not found"}), 404
-
-            worker_event = EventUsers.get_worker_job(event_id, worker_id)
-            if not worker_event:
-                return jsonify({"error": "Worker is not assigned to this event"}), 404
-
             Review.add_review(worker_id, commenter_id, review, event_id)
             return "Review added successfully", 200
         except Exception as e:
             return f"Failed to add review: {str(e)}", 500
+
+    @staticmethod
+    def ensure_worker_in_event(event_id: int, worker_id: int):
+        worker = User.find_by({"id": worker_id})
+        if not worker:
+            return jsonify({"error": "Worker not found"}), 404
+
+        worker_event = EventUsers.get_worker_job(event_id, worker_id)
+        if not worker_event:
+            return jsonify({"error": "Worker is not assigned to this event"}), 404
