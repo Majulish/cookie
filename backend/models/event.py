@@ -54,7 +54,7 @@ class Event(db.Model):
         convert it to its string representation.
         """
         for key, value in data.items():
-            if hasattr(self, key) and key != 'id':
+            if hasattr(self, key) and key != 'id' and value:
                 setattr(self, key, value)
         db.session.commit()
 
@@ -64,9 +64,7 @@ class Event(db.Model):
         if not event:
             return jsonify({"error": "Event not found"}), 404
         try:
-            # Remove references in event_jobs
             EventJob.query.filter_by(event_id=event_id).delete()
-            # Remove references in event_users
             EventUsers.query.filter_by(event_id=event_id).delete()
             db.session.delete(event)
             db.session.commit()
@@ -125,7 +123,6 @@ class Event(db.Model):
                     EventJob.openings > 0
                 )
             else:
-                # If no job_title filter, still ensure openings > 0
                 query = query.join(EventJob).filter(EventJob.openings > 0)
             return query.all()
         except Exception as e:

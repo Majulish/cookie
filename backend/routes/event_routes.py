@@ -1,16 +1,17 @@
 from flask import request, jsonify, Blueprint
 from pydantic import ValidationError
 from datetime import datetime
-from backend.app.decorators import load_user, permission_required
+
+from backend.utils.decorators import load_user, permission_required
 from backend.models.event_users import WorkerStatus
 from backend.models.roles import Permission, Role, has_permission
-from backend.openai_utils import generate_event_description
+from backend.utils.openai_utils import generate_event_description
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
 from backend.models.event import Event
 
 event_blueprint = Blueprint('events', __name__)
-JOB_TITLES = ["cook", "cashier", "waiter"]
+JOB_TITLES = ["cook", "cashier", "waiter", "constructor", "cleaner", "barman", "barista"]
 
 
 @event_blueprint.route("/generate_description", methods=["POST"])
@@ -125,7 +126,7 @@ def assign_worker_route(user):
         return jsonify({"error": "Missing required fields (job_title, worker_id, event_id, status)."}), 400
 
     try:
-        worker_status = WorkerStatus(status.upper())  # e.g., "approved" => WorkerStatus.APPROVED
+        worker_status = WorkerStatus(status.upper())
     except ValueError:
         return jsonify({"error": f"Invalid status '{status}'. Valid: approved, backup, done, pending."}), 400
 
@@ -181,22 +182,18 @@ def feedback_worker(user, event_id):
 
     if not worker_id:
         return jsonify({"error": "Worker ID is required"}), 400
-
     if not rating and not review:
         return jsonify({"error": "Either rating or review is required"}), 400
 
-    final_messages = []
-    rating_status, review_status = 0, 0
+    if worker_in_event := EventStore.ensure_worker_in_event(event_id, worker_id):
+        return worker_in_event
 
-    if rating:
-        rating_message, rating_status = EventStore.rate_worker(event_id, worker_id, rating)
-        final_messages.append(rating_message)
+    rating_message, rating_status = EventStore.rate_worker(worker_id, rating) \
+        if rating else ("", 0)
+    review_message, review_status = EventStore.review_worker(event_id, worker_id, review, user.id)\
+        if review else ("", 0)
 
-    if review:
-        review_message, review_status = EventStore.review_worker(event_id, worker_id, review, user.id)
-        final_messages.append(review_message)
-
-    return jsonify({"messages": final_messages}), max(rating_status, review_status)
+    return jsonify({"messages": f"{rating_message}\n{review_message}"}), max(rating_status, review_status)
 
 
 
