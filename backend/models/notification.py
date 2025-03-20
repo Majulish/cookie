@@ -10,7 +10,7 @@ class Notification(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     message = db.Column(db.String(512), nullable=False)
     is_read = db.Column(db.Boolean, default=False)
-    is_approved = db.Column(db.Boolean, default=False)  # New field for worker confirmation
+    is_approved = db.Column(db.Boolean, default=True)
     event_id = db.Column(db.Integer, db.ForeignKey("events.id"), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.datetime.now(datetime.UTC))
@@ -73,6 +73,6 @@ class Notification(db.Model):
         except Exception as e:
             db.session.rollback()
             raise e
-        
+
         return len(notifications)
 

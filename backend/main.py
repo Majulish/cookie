@@ -1,4 +1,3 @@
-# backend/main.py
 import threading
 import time
 from backend.core.celery_app import app, celery

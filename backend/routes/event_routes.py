@@ -5,13 +5,13 @@ from datetime import datetime
 from backend.utils.decorators import load_user, permission_required
 from backend.models.event_users import WorkerStatus
 from backend.models.roles import Permission, Role, has_permission
-from backend.openai_utils import generate_event_description
+from backend.utils.openai_utils import generate_event_description
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
 from backend.models.event import Event
 
 event_blueprint = Blueprint('events', __name__)
-JOB_TITLES = ["cook", "cashier", "waiter"]
+JOB_TITLES = ["cook", "cashier", "waiter", "constructor", "cleaner", "barman", "barista"]
 
 
 @event_blueprint.route("/generate_description", methods=["POST"])
@@ -126,7 +126,7 @@ def assign_worker_route(user):
         return jsonify({"error": "Missing required fields (job_title, worker_id, event_id, status)."}), 400
 
     try:
-        worker_status = WorkerStatus(status.upper())  # e.g., "approved" => WorkerStatus.APPROVED
+        worker_status = WorkerStatus(status.upper())
     except ValueError:
         return jsonify({"error": f"Invalid status '{status}'. Valid: approved, backup, done, pending."}), 400
 

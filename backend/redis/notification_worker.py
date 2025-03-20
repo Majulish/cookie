@@ -1,4 +1,3 @@
-# backend/redis/notification_worker.py
 import json
 import datetime
 from backend.redis.redis_client import redis_client
@@ -37,7 +36,6 @@ def check_notification_approval(notification_id: int):
     with ((app.app_context())):
         notif = Notification.find_by_id(notification_id)
         if notif and not notif.is_approved:
-            # Retrieve the event to get company info.
             if not (event := Event.find_by("id", notif.event_id)) \
                     or not (hr_manager := User.find_by({"company_id": event.company_id, "role": Role.HR_MANAGER})):
                 return

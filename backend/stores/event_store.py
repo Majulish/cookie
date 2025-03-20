@@ -18,7 +18,6 @@ class EventStore:
     @staticmethod
     def create_event(data: Dict) -> Event:
         try:
-            # Create the event using the model
             event = Event.create_event(
                 name=data["name"],
                 description=data["description"],
@@ -30,7 +29,6 @@ class EventStore:
                 company_id=data["company_id"]
             )
 
-            # Add associated jobs
             for job_title, slots in data["jobs"].items():
                 EventJob.create_event_job(event_id=event.id, job_title=job_title, slots=slots)
             return event
