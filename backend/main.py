@@ -1,6 +1,7 @@
+# backend/main.py
 import threading
 import time
-from backend.core.create_app import app, celery
+from backend.core.celery_app import app, celery
 from backend.redis.notification_worker import process_scheduled_reminders
 
 

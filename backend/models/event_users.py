@@ -1,5 +1,6 @@
 import datetime
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import JSON
 from typing import List, Dict
 from enum import Enum
 
@@ -23,6 +24,7 @@ class EventUsers(db.Model):
     worker_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('event_jobs.id'), nullable=False)
     status = db.Column(db.Enum(WorkerStatus), default=WorkerStatus.PENDING.value)
+    approval_status = db.Column(JSON, default=lambda: {"1_day_before": False, "1_hour_before": False})
 
     def add_worker(self, worker_id: str, job_id: int) -> None:
         """
@@ -132,6 +134,7 @@ class EventUsers(db.Model):
                     "city": user.city or "unknown",
                     "phone": user.phone_number,
                     "status": status_str,
+                    "approval_status": eu.approval_status,
                     "rating": user.rating,
                     "rating_count": user.rating_count
                 })
@@ -159,3 +162,9 @@ class EventUsers(db.Model):
         except Exception as e:
             db.session.rollback()
             raise e
+
+    def update(self, data: dict) -> None:
+        for key, value in data.items():
+            if hasattr(self, key) and key != 'id' and value is not None:
+                setattr(self, key, value)
+        self.save_to_db()

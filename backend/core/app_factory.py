@@ -1,3 +1,4 @@
+# backend/core/app_factory.py
 from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -7,13 +8,12 @@ from backend.routes.user_routes import user_blueprint
 from backend.routes.event_routes import event_blueprint
 from backend.routes.notification_routes import notifications_blueprint
 from backend.db import db
-from backend.core.celery_config import make_celery
 
 
 def create_app():
     app = Flask(__name__)
     CORS(app, resources={r"/*": {
-        "origins": ["http://localhost:3000"],  # Should be a list, not a string
+        "origins": ["http://localhost:3000"],
         "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
         "allow_headers": ["Content-Type"],
         "expose_headers": ["Set-Cookie"],
@@ -28,16 +28,17 @@ def create_app():
     app.config['JWT_COOKIE_SECURE'] = False
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=15)
     app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
-    jwt = JWTManager(app)
+    JWTManager(app)
 
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:example@localhost:5432/my_database'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # Celery configuration placed inside a dedicated dictionary
     app.config['CELERY'] = {
         'broker_url': 'redis://localhost:6379/0',
-        'result_backend': 'redis://localhost:6379/0'
+        'result_backend': 'redis://localhost:6379/0',
+        # You can add additional Celery settings here.
     }
 
-    # Continue with your initialization (db, blueprints, etc.)
     db.init_app(app)
     with app.app_context():
         db.create_all()
@@ -47,7 +48,3 @@ def create_app():
 
     return app
 
-
-app = create_app()
-celery = make_celery(app)  # Celery is now properly initialized
-app.celery = celery

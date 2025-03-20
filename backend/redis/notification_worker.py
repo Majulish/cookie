@@ -1,17 +1,18 @@
+# backend/redis/notification_worker.py
 import json
 import datetime
-
-from backend.models.event import Event
 from backend.redis.redis_client import redis_client
-from backend.models.notification import Notification
 from backend.stores.notification_store import NotificationStore
-from backend.stores.user_store import UserStore  # Assumes you have a method to get the HR manager
-from backend.core.create_app import celery, app  # Import celery and app for context
+from backend.models.notification import Notification
+from backend.models.event import Event
+from backend.models.user import User
+from backend.models.roles import Role
+from backend.core.celery_app import celery, app
 
 
 @celery.task
 def process_scheduled_reminders():
-    with app.app_context():  # Push an application context
+    with app.app_context():
         current_timestamp = datetime.datetime.now(datetime.UTC).timestamp()
         reminders = redis_client.zrangebyscore("event_reminders", 0, current_timestamp)
         for reminder in reminders:
@@ -19,7 +20,6 @@ def process_scheduled_reminders():
             worker_id = data["worker_id"]
             event_id = data["event_id"]
             message = data["message"]
-
             event = Event.find_by("id", event_id)
             if event:
                 NotificationStore.create_notification(
@@ -33,32 +33,14 @@ def process_scheduled_reminders():
 
 
 @celery.task
-def check_overdue_reminders():
-    with app.app_context():
-        now = datetime.datetime.now(datetime.timezone.utc)
-        # Overdue for the 1-hour reminder: more than 20 minutes have passed since notification creation.
-        overdue_1hour = Notification.query.filter(
-            Notification.reminder_type == "1_hour_before",
-            Notification.is_approved is False,
-            Notification.created_at <= now - datetime.timedelta(minutes=20)
-        ).all()
-
-        # Overdue for the 1-day reminder: more than 3 hours have passed since creation.
-        overdue_1day = Notification.query.filter(
-            Notification.reminder_type == "1_day_before",
-            Notification.is_approved is False,
-            Notification.created_at <= now - datetime.timedelta(hours=3)
-        ).all()
-
-        for notif in overdue_1hour + overdue_1day:
-            # Get the worker and their HR manager.
-            worker = UserStore.find_user("id", notif.user_id)
-            if worker:
-                hr_manager = UserStore.get_hr_manager(worker)
-                if hr_manager:
-                    # Compose a message for the HR manager.
-                    message = (f"Worker {worker.first_name} {worker.family_name} has not approved "
-                               f"their '{notif.reminder_type}' reminder for event {notif.event_id}.")
-                    # Create a new notification for the HR manager.
-                    NotificationStore.create_notification(hr_manager.id, message, event_id=notif.event_id)
-        return "done"
+def check_notification_approval(notification_id: int):
+    with ((app.app_context())):
+        notif = Notification.find_by_id(notification_id)
+        if notif and not notif.is_approved:
+            # Retrieve the event to get company info.
+            if not (event := Event.find_by("id", notif.event_id)) \
+                    or not (hr_manager := User.find_by({"company_id": event.company_id, "role": Role.HR_MANAGER})):
+                return
+            hr_message = f"Worker (ID: {notif.user_id}) has not approved their reminder for event {notif.event_id}."
+            NotificationStore.create_notification(hr_manager.id, hr_message, event_id=notif.event_id)
+    return "done"

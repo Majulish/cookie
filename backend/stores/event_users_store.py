@@ -30,3 +30,11 @@ class EventUsersStore:
             return EventUsers.get_workers_by_event(event_id)
         except Exception as e:
             raise Exception(f"Failed to get workers by event: {e}")
+
+    @staticmethod
+    def update_record(event_id: int, worker_id: int, update_data: dict):
+        record = EventUsers.query.filter_by(event_id=event_id, worker_id=worker_id).first()
+        if record:
+            record.update(update_data)
+            return record
+        return None
