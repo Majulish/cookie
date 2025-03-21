@@ -2,7 +2,6 @@ import React, { useState, ReactNode } from 'react';
 import { AppBar, Toolbar, IconButton, Typography, Drawer } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ResponsiveTabs from './ResponsiveTabs';
-import SideTab from './SideTab';
 
 interface LayoutProps {
   children: ReactNode;
@@ -32,7 +31,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Toolbar>
       </AppBar>
       <Drawer anchor="left" open={isDrawerOpen} onClose={toggleDrawer(false)}>
-        <SideTab />
       </Drawer>
       <main>{children}</main>
     </>

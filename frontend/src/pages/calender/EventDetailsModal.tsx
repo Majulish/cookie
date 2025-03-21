@@ -18,7 +18,8 @@ import {
   AccessTime as TimeIcon,
   LocationOn as LocationIcon,
   Info as InfoIcon,
-  Assignment as AssignmentIcon
+  Assignment as AssignmentIcon,
+  Work as WorkIcon
 } from '@mui/icons-material';
 import { MyEventScheme } from '../home/create_event/eventScheme';
 import useUserRole from '../home/hooks/useUserRole';
@@ -47,8 +48,8 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, open, onCl
         return 'warning';
       case 'APPROVED':
         return 'success';
-      case 'REJECTED':
-        return 'error';
+      case 'BACKUP':
+        return 'info';
       default:
         return 'default';
     }
@@ -111,6 +112,23 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({ event, open, onCl
                     fontSize: '0.875rem'
                   }}
                 />
+              </Box>
+            </Box>
+          </Box>
+        )}
+        
+        {/* Worker Job Title (only shown for workers) */}
+        {userRole === 'worker' && event.job_title && (
+          <Box sx={{ mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+              <WorkIcon sx={{ mr: 2, color: theme.palette.primary.main, mt: 0.5 }} />
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                  Job Title
+                </Typography>
+                <Typography variant="body1">
+                  {event.job_title}
+                </Typography>
               </Box>
             </Box>
           </Box>

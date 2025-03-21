@@ -33,8 +33,6 @@ import { getEvent, assignWorkerToEvent } from '../../api/eventApi';
 import WorkerApprovalSuccessModal from '../../components/WorkerApprovalSuccessModal';
 import useUserRole from '../home/hooks/useUserRole';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
-import SideTab from '../../components/SideTab';
-// Import icons
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
@@ -602,9 +600,6 @@ const EventPage: React.FC = () => {
     <>
       {/* Top navigation tabs */}
       <EventPageTabs />
-      
-      {/* Side navigation */}
-      <SideTab />
       
       {/* Main content with proper spacing to account for navigation */}
       <Container 

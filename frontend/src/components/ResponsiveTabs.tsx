@@ -41,9 +41,8 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
   // Define tab configuration
   const tabs = [
     { label: "Home", icon: <HomeIcon />, path: '/' },
-    { label: "Schedule", icon: <EventNoteIcon />, path: '/schedule' },
+    { label: "Schedule", icon: <EventNoteIcon />, path: '/calendar' },
     { label: "Feed", icon: <FeedIcon />, path: '/feed', role: 'worker' }
-    // Profile removed as it's accessible from the avatar menu
   ];
   
   // Filter tabs based on user role
@@ -175,10 +174,17 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
                 label={tab.label} 
                 icon={tab.icon} 
                 sx={{
-                  color: theme.palette.text.secondary,
-                  // When active, make the text and icon more prominent
+                  color: theme.palette.text.primary, // Ensure all tabs are clearly visible
+                  transition: 'all 0.2s ease-in-out',
+                  // Add hover effect
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    transform: 'translateY(-2px)',
+                  },
+                  // When active, make the text and icon more prominent with hover effect staying on
                   '&.Mui-selected': {
                     color: theme.palette.primary.main,
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
                     '& svg': {
                       transform: 'scale(1.1)',
                       transition: 'transform 0.2s ease-in-out'
@@ -227,11 +233,20 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
                     fontWeight: 600,
                     minWidth: 120,
                     fontSize: '1.05rem',
+                    opacity: 1, // Ensure all tabs are fully visible
                     color: theme.palette.primary.contrastText,
+                    transition: 'all 0.2s ease-in-out',
+                    // Add hover effect
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.2)',
+                    },
+                    // Keep hover effect on selected tab
                     '&.Mui-selected': {
                       fontWeight: 700,
                       color: theme.palette.primary.contrastText,
-                      backgroundColor: 'rgba(0, 0, 0, 0.1)'
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.2)',
                     },
                     borderRadius: '4px 4px 0 0',
                     mx: 0.5
@@ -263,7 +278,14 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
               <IconButton 
                 onClick={handleMenuOpen}
                 size="small"
-                sx={{ ml: 2, color: theme.palette.primary.contrastText }}
+                sx={{ 
+                  ml: 2, 
+                  color: theme.palette.primary.contrastText,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  }
+                }}
               >
                 <Avatar 
                   sx={{ 
