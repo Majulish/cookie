@@ -7,7 +7,8 @@ import HomePage from './pages/home/HomePage';
 import LoadingPage from './pages/home/LoadingPage';
 import ErrorPage from './pages/home/ErrorPage';
 import EventPage from './pages/event_page/EventPage';
-import FeedPage from './pages/home/feed/feedPage';
+import FeedPage from './pages/home/feed/FeedPage';
+import EventCalendarPage from './pages/calender/EventCalendarPage';
 
 const queryClient = new QueryClient();
 
@@ -18,7 +19,8 @@ const router = createBrowserRouter([
   { path: '/loading', element: <LoadingPage /> },
   { path: '/error', element: <ErrorPage /> },
   { path: '/event-page/:eventId', element: <EventPage /> },
-  {path: '/feed', element: <FeedPage/>}
+  {path: '/feed', element: <FeedPage/>},
+  {path: '/calendar', element: <EventCalendarPage/>}
 ]);
 
 const App: React.FC = () => {
