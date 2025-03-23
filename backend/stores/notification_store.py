@@ -18,7 +18,7 @@ class NotificationStore:
 
     @staticmethod
     def get_user_notifications(user_id: int) -> List[Dict]:
-        notifications = Notification.query.filter_by(user_id=user_id).all()
+        notifications = Notification.query.filter_by(user_id=user_id, is_read=False).all()
         return [n.to_dict() for n in notifications]
 
     @staticmethod
