@@ -2,7 +2,7 @@ import datetime
 from flask import jsonify, Response
 from typing import Dict, Tuple, Optional
 
-from backend.app.auth import hash_data
+from backend.utils.auth import hash_data
 from backend.models.reviews import Review
 from backend.models.user import User
 
@@ -58,7 +58,6 @@ class UserStore:
     @staticmethod
     def find_user(field: str, value: str | int) -> Optional[User]:
         return User.find_by({field: value})
-
 
     @staticmethod
     def get_worker_profile(worker_id: int):

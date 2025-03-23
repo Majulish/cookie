@@ -1,11 +1,13 @@
 import datetime
-
-from backend.db import db
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import JSON
 from typing import List, Dict
+from enum import Enum
+
 from backend.models.user import User
 from backend.models.event_job import EventJob
-from enum import Enum
+from backend.db import db
+from backend.redis.notification_scheduler import schedule_worker_reminders
 
 
 class WorkerStatus(Enum):
@@ -22,6 +24,7 @@ class EventUsers(db.Model):
     worker_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('event_jobs.id'), nullable=False)
     status = db.Column(db.Enum(WorkerStatus), default=WorkerStatus.PENDING.value)
+    approval_status = db.Column(JSON, default=lambda: {"1_day_before": False, "1_hour_before": False})
 
     def add_worker(self, worker_id: str, job_id: int) -> None:
         """
@@ -90,6 +93,11 @@ class EventUsers(db.Model):
             if status == WorkerStatus.APPROVED and (not is_already_approved or is_job_new):
                 job = EventJob.query.get(job_id)
                 if job and job.openings > 0:
+
+                    # event.start_datetime is assumed available from your event record.
+                    from backend.models.event import Event
+                    event = Event.query.get(event_id)
+                    schedule_worker_reminders(event_id, worker_id, event.start_datetime)
                     job.openings -= 1
                     db.session.add(job)
 
@@ -126,6 +134,7 @@ class EventUsers(db.Model):
                     "city": user.city or "unknown",
                     "phone": user.phone_number,
                     "status": status_str,
+                    "approval_status": eu.approval_status,
                     "rating": user.rating,
                     "rating_count": user.rating_count
                 })
@@ -153,3 +162,9 @@ class EventUsers(db.Model):
         except Exception as e:
             db.session.rollback()
             raise e
+
+    def update(self, data: dict) -> None:
+        for key, value in data.items():
+            if hasattr(self, key) and key != 'id' and value is not None:
+                setattr(self, key, value)
+        self.save_to_db()

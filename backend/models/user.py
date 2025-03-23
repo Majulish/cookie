@@ -7,7 +7,7 @@ from sqlalchemy import Enum
 from backend.db import db
 from backend.models.reviews import Review
 from backend.models.roles import Role
-from backend.app.auth import check_password
+from backend.utils.auth import check_password
 
 
 class User(db.Model):

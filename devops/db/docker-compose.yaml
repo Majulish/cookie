@@ -31,3 +31,30 @@ services:
     depends_on:
       - postgres
 
+  celery_worker:
+      build:
+        context: ../../  # ⬅️ Set the build context to the project root (cookie/)
+        dockerfile: devops/db/Dockerfile
+      container_name: db-celery-worker
+      depends_on:
+        - redis
+        - postgres
+      environment:
+        - CELERY_BROKER_URL=redis://db-redis:6379/0
+        - CELERY_RESULT_BACKEND=redis://db-redis:6379/0
+      volumes:
+        - ../../backend:/backend  # ⬅️ Mount backend code inside the container
+      command: celery -A backend.redis.celery_worker worker --loglevel=info
+
+  celery_beat:
+    build:
+      context: ../../
+      dockerfile: devops/db/Dockerfile
+    container_name: db-celery-beat
+    depends_on:
+      - redis
+      - postgres
+      - celery_worker
+    volumes:
+      - ../../backend:/backend
+    command: celery -A backend.redis.celery_worker beat --loglevel=info
