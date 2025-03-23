@@ -129,13 +129,13 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                         sx={{ 
                             mr: 1.8, // Increased from 1.5
                             color: 'primary.main',
-                            fontSize: '1.5rem' // Increased icon size
+                            fontSize: '1.7rem' // Increased to match MyEventList
                         }} 
                     />
                     <Typography 
                         variant="h6" // Upgraded from subtitle1
                         fontWeight={600}
-                        sx={{ fontSize: '1.3rem' }}
+                        sx={{ fontSize: '1.7rem' }} // Increased to match MyEventList header
                     >
                         Filter Events
                     </Typography>
@@ -147,7 +147,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                             color="primary"
                             sx={{ 
                                 ml: 1.8, // Increased from 1.5
-                                fontSize: '0.95rem', // Larger text
+                                fontSize: '1.2rem', // Increased to match MyEventList
                                 height: '32px' // Taller chip
                             }}
                         />
@@ -162,7 +162,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                 onClick={handleClear}
                                 sx={{ mr: 1.5 }} // Increased from 1
                             >
-                                <ClearIcon sx={{ fontSize: '1.3rem' }} /> {/* Increased icon size */}
+                                <ClearIcon sx={{ fontSize: '1.5rem' }} /> {/* Increased icon size */}
                             </IconButton>
                         </Tooltip>
                     )}
@@ -172,9 +172,9 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                         size="medium" // Changed from small to medium
                     >
                         {expanded ? (
-                            <ExpandLessIcon sx={{ fontSize: '1.3rem' }} /> // Increased icon size
+                            <ExpandLessIcon sx={{ fontSize: '1.5rem' }} /> 
                         ) : (
-                            <ExpandMoreIcon sx={{ fontSize: '1.3rem' }} /> // Increased icon size
+                            <ExpandMoreIcon sx={{ fontSize: '1.5rem' }} />
                         )}
                     </IconButton>
                 </Box>
@@ -189,12 +189,12 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                     sx={{ 
                                         color: 'primary.main',
                                         mr: 1.3, // Increased from 1
-                                        fontSize: '1.35rem' // Increased from 1.1rem
+                                        fontSize: '1.5rem' // Increased to match MyEvent
                                     }} 
                                 />
                                 <Typography 
-                                    variant="subtitle1" // Upgraded from subtitle2
-                                    sx={{ fontSize: '1.1rem', fontWeight: 500 }}
+                                    variant="subtitle1" 
+                                    sx={{ fontSize: '1.3rem', fontWeight: 500 }} // Increased to match MyEvent
                                 >
                                     Locations
                                 </Typography>
@@ -210,9 +210,9 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}> {/* Increased from 0.5 */}
                                             {selected.length === 0 ? (
                                                 <Typography 
-                                                    variant="body1" // Upgraded from body2
+                                                    variant="body1"
                                                     color="text.secondary"
-                                                    sx={{ fontSize: '1.05rem' }}
+                                                    sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
                                                 >
                                                     Select cities...
                                                 </Typography>
@@ -223,7 +223,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                                         label={value} 
                                                         size="medium" // Changed from small to medium
                                                         sx={{ 
-                                                            fontSize: '0.95rem', // Larger text
+                                                            fontSize: '1.2rem', // Increased to match MyEventList
                                                             height: '32px' // Taller chip
                                                         }}
                                                         onDelete={() => handleRemoveCity(value)}
@@ -242,7 +242,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                         },
                                         '& .MuiSelect-select': { 
                                             py: 1.8, // Increased padding
-                                            fontSize: '1.05rem' // Larger text
+                                            fontSize: '1.2rem' // Increased to match MyEventList
                                         }
                                     }}
                                 >
@@ -250,7 +250,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                         <MenuItem 
                                             key={city} 
                                             value={city}
-                                            sx={{ fontSize: '1.05rem' }} // Larger text
+                                            sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
                                         >
                                             {city}
                                         </MenuItem>
@@ -265,12 +265,12 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                     sx={{ 
                                         color: 'primary.main',
                                         mr: 1.3, // Increased from 1
-                                        fontSize: '1.35rem' // Increased from 1.1rem
+                                        fontSize: '1.5rem' // Increased to match MyEvent
                                     }} 
                                 />
                                 <Typography 
-                                    variant="subtitle1" // Upgraded from subtitle2
-                                    sx={{ fontSize: '1.1rem', fontWeight: 500 }}
+                                    variant="subtitle1"
+                                    sx={{ fontSize: '1.3rem', fontWeight: 500 }} // Increased to match MyEvent
                                 >
                                     Job Positions
                                 </Typography>
@@ -286,9 +286,9 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}> {/* Increased from 0.5 */}
                                             {selected.length === 0 ? (
                                                 <Typography 
-                                                    variant="body1" // Upgraded from body2
+                                                    variant="body1"
                                                     color="text.secondary"
-                                                    sx={{ fontSize: '1.05rem' }}
+                                                    sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
                                                 >
                                                     Select positions...
                                                 </Typography>
@@ -299,7 +299,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                                         label={value} 
                                                         size="medium" // Changed from small to medium
                                                         sx={{ 
-                                                            fontSize: '0.95rem', // Larger text
+                                                            fontSize: '1.2rem', // Increased to match MyEventList
                                                             height: '32px' // Taller chip
                                                         }}
                                                         onDelete={() => handleRemoveJob(value)}
@@ -318,7 +318,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                         },
                                         '& .MuiSelect-select': { 
                                             py: 1.8, // Increased padding
-                                            fontSize: '1.05rem' // Larger text
+                                            fontSize: '1.2rem' // Increased to match MyEventList
                                         }
                                     }}
                                 >
@@ -326,7 +326,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                         <MenuItem 
                                             key={job} 
                                             value={job}
-                                            sx={{ fontSize: '1.05rem' }} // Larger text
+                                            sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
                                         >
                                             {job}
                                         </MenuItem>
@@ -352,7 +352,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                 sx={{ 
                                     py: 1, // Added vertical padding
                                     px: 2, // Added horizontal padding
-                                    fontSize: '1rem' // Larger text
+                                    fontSize: '1.2rem' // Increased to match MyEventList
                                 }}
                             >
                                 Clear All Filters
@@ -378,11 +378,11 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                             label={city}
                             size="medium" // Changed from small to medium
                             onDelete={() => handleRemoveCity(city)}
-                            deleteIcon={<ClearIcon sx={{ fontSize: '1.2rem' }} />} // Larger icon
+                            deleteIcon={<ClearIcon sx={{ fontSize: '1.2rem' }} />}
                             sx={{ 
                                 bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                fontSize: '0.95rem', // Larger text
-                                height: '32px', // Taller chip
+                                fontSize: '1.2rem', // Increased to match MyEventList
+                                height: '32px',
                                 '& .MuiChip-label': {
                                     px: 1.5 // More horizontal padding
                                 }
@@ -396,11 +396,11 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                             label={job}
                             size="medium" // Changed from small to medium
                             onDelete={() => handleRemoveJob(job)}
-                            deleteIcon={<ClearIcon sx={{ fontSize: '1.2rem' }} />} // Larger icon
+                            deleteIcon={<ClearIcon sx={{ fontSize: '1.2rem' }} />}
                             sx={{ 
                                 bgcolor: alpha(theme.palette.secondary.main, 0.1),
-                                fontSize: '0.95rem', // Larger text
-                                height: '32px', // Taller chip
+                                fontSize: '1.2rem', // Increased to match MyEventList
+                                height: '32px',
                                 '& .MuiChip-label': {
                                     px: 1.5 // More horizontal padding
                                 }

@@ -24,6 +24,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import CookieIcon from '@mui/icons-material/Cookie'; // For your brand logo
 import useUserRole from '../pages/home/hooks/useUserRole';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQueryClient } from 'react-query';
 
 interface ResponsiveTabsProps {
   value?: number;
@@ -32,6 +33,7 @@ interface ResponsiveTabsProps {
 
 const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
   const theme = useTheme();
+  const queryClient = useQueryClient();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const userRole = useUserRole();
   const navigate = useNavigate();
@@ -71,6 +73,7 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
   };
 
   const handleLogout = () => {
+    queryClient.clear();
     navigate('/sign-in');
   };
 
@@ -81,6 +84,9 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+
+  // Check if the user is a worker
+  const isWorker = userRole === 'worker';
 
   return (
     <>
@@ -100,11 +106,11 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
             <Toolbar>
               <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
                 <CookieIcon 
-                  sx={{ mr: 1.5, transform: 'scale(1.5)', color: theme.palette.primary.contrastText }} 
+                  sx={{ mr: 1.5, transform: 'scale(1.8)', color: theme.palette.primary.contrastText }} 
                 />
                 <Typography 
                   variant="h5" 
-                  sx={{ fontWeight: 600, letterSpacing: 0.5, color: theme.palette.primary.contrastText }}
+                  sx={{ fontWeight: 600, letterSpacing: 0.5, fontSize: '1.5rem', color: theme.palette.primary.contrastText }}
                 >
                   Cookie
                 </Typography>
@@ -141,18 +147,24 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
                   }
                 }}
               >
-                <MenuItem onClick={() => { 
-                  navigate('/profile'); 
-                  handleMenuClose();
-                }}>
-                  Profile
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                {/* Show Profile option only for workers */}
+                {isWorker && (
+                  <MenuItem 
+                    onClick={() => { 
+                      navigate('/profile'); 
+                      handleMenuClose();
+                    }}
+                    sx={{ fontSize: '1.1rem' }}
+                  >
+                    Profile
+                  </MenuItem>
+                )}
+                <MenuItem onClick={handleLogout} sx={{ fontSize: '1.1rem' }}>Logout</MenuItem>
               </Menu>
             </Toolbar>
           </AppBar>
           
-          {/* Bottom Navigation */}
+          {/* Bottom Navigation - INCREASED TEXT SIZE */}
           <BottomNavigation
             value={activeTab}
             onChange={handleChange}
@@ -174,17 +186,28 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
                 label={tab.label} 
                 icon={tab.icon} 
                 sx={{
-                  color: theme.palette.text.primary, // Ensure all tabs are clearly visible
+                  color: theme.palette.text.primary,
                   transition: 'all 0.2s ease-in-out',
-                  // Add hover effect
+                  '& .MuiBottomNavigationAction-label': {
+                    fontSize: '1.05rem',  // Increased text size
+                    fontWeight: 500,      // Slightly bolder
+                    opacity: 1,           // Always visible
+                    marginTop: '4px'      // More space for larger text
+                  },
+                  '& svg': {
+                    fontSize: '1.8rem'    // Larger icons to match text
+                  },
                   '&:hover': {
                     backgroundColor: 'rgba(0, 0, 0, 0.05)',
                     transform: 'translateY(-2px)',
                   },
-                  // When active, make the text and icon more prominent with hover effect staying on
                   '&.Mui-selected': {
                     color: theme.palette.primary.main,
                     backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    '& .MuiBottomNavigationAction-label': {
+                      fontSize: '1.1rem',  // Even larger when selected
+                      fontWeight: 600      // Bolder when selected
+                    },
                     '& svg': {
                       transform: 'scale(1.1)',
                       transition: 'transform 0.2s ease-in-out'
@@ -210,17 +233,17 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
             {/* Brand Logo */}
             <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
               <CookieIcon 
-                sx={{ mr: 1.5, transform: 'scale(1.5)', color: theme.palette.primary.contrastText }} 
+                sx={{ mr: 1.5, transform: 'scale(1.8)', color: theme.palette.primary.contrastText }} 
               />
               <Typography 
                 variant="h5" 
-                sx={{ fontWeight: 600, letterSpacing: 0.5, color: theme.palette.primary.contrastText }}
+                sx={{ fontWeight: 600, letterSpacing: 0.5, fontSize: '1.5rem', color: theme.palette.primary.contrastText }}
               >
                 Cookie
               </Typography>
             </Box>
             
-            {/* Navigation Tabs */}
+            {/* Navigation Tabs - INCREASED TEXT SIZE */}
             <Box sx={{ flexGrow: 1 }}>
               <Tabs
                 value={activeTab}
@@ -229,27 +252,30 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
                 indicatorColor="secondary"
                 sx={{
                   '& .MuiTab-root': {
-                    textTransform: 'none', 
+                    textTransform: 'none',
                     fontWeight: 600,
-                    minWidth: 120,
-                    fontSize: '1.05rem',
-                    opacity: 1, // Ensure all tabs are fully visible
+                    minWidth: 130,      // Increased to accommodate larger text
+                    fontSize: '1.25rem', // Increased font size
+                    opacity: 1,
                     color: theme.palette.primary.contrastText,
                     transition: 'all 0.2s ease-in-out',
-                    // Add hover effect
                     '&:hover': {
                       backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       boxShadow: '0 0 8px rgba(255, 255, 255, 0.2)',
                     },
-                    // Keep hover effect on selected tab
                     '&.Mui-selected': {
                       fontWeight: 700,
+                      fontSize: '1.3rem', // Slightly larger for selected tab
                       color: theme.palette.primary.contrastText,
                       backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       boxShadow: '0 0 8px rgba(255, 255, 255, 0.2)',
                     },
                     borderRadius: '4px 4px 0 0',
-                    mx: 0.5
+                    mx: 0.5,
+                    py: 1.5,     // More vertical padding for larger text
+                    '& svg': {
+                      fontSize: '1.6rem' // Larger icons to match text
+                    }
                   }
                 }}
               >
@@ -316,14 +342,23 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
                   }
                 }}
               >
-                <MenuItem onClick={() => { 
-                  navigate('/profile'); 
-                  handleMenuClose();
-                }}>
-                  <PersonIcon fontSize="small" sx={{ mr: 1.5 }} />
-                  Profile
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>
+                {/* Show Profile option only for workers */}
+                {isWorker && (
+                  <MenuItem 
+                    onClick={() => { 
+                      navigate('/profile'); 
+                      handleMenuClose();
+                    }}
+                    sx={{ fontSize: '1.2rem' }}
+                  >
+                    <PersonIcon fontSize="small" sx={{ mr: 1.5 }} />
+                    Profile
+                  </MenuItem>
+                )}
+                <MenuItem 
+                  onClick={handleLogout}
+                  sx={{ fontSize: '1.2rem' }}
+                >
                   <LogoutIcon fontSize="small" sx={{ mr: 1.5 }} />
                   Logout
                 </MenuItem>

@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { useQuery } from 'react-query';
 import SearchIcon from '@mui/icons-material/Search';
+import FeedIcon from '@mui/icons-material/Feed';
 import ResponsiveTabs from '../../../components/ResponsiveTabs';
 import { getEventsFeed } from '../../../api/eventApi';
 import FeedList from './FeedList';
@@ -106,6 +107,7 @@ const FeedPage: React.FC = () => {
               sx={{ 
                 p: 3, 
                 borderRadius: 2,
+                height: '100%',
                 border: '1px solid',
                 borderColor: 'divider'
               }}
@@ -114,55 +116,60 @@ const FeedPage: React.FC = () => {
                 sx={{ 
                   display: 'flex',
                   alignItems: 'center',
-                  mb: 3
+                  mb: 3,
+                  justifyContent: 'space-between'
                 }}
               >
-                <SearchIcon 
-                  sx={{ 
-                    color: 'primary.main',
-                    mr: 1.5,
-                    fontSize: '1.75rem'
-                  }} 
-                />
-                <Typography 
-                  variant="h5" 
-                  component="h1" 
-                  sx={{ 
-                    fontWeight: 600,
-                    color: 'text.primary'
-                  }}
-                >
-                  Available Events
-                </Typography>
-              </Box>
-              <Box sx={{ mb: 4 }}>
-                <EventFilters 
-                  events={feedEvents} 
-                  onFilterChange={handleFilterChange}
-                />
-              </Box>
-              <Box>
-                {isFeedLoading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                    <CircularProgress size={28} color="primary" />
-                  </Box>
-                ) : filteredEvents.length === 0 ? (
-                  <Box 
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <FeedIcon 
                     sx={{ 
-                      p: 3, 
-                      textAlign: 'center',
-                      bgcolor: 'action.hover',
-                      borderRadius: 2
+                      color: 'primary.main',
+                      mr: 1.5,
+                      fontSize: '2.2rem'
+                    }} 
+                  />
+                  <Typography 
+                    variant="h5" 
+                    component="h1" 
+                    sx={{ 
+                      fontWeight: 600,
+                      color: 'text.primary',
+                      fontSize: '2rem'
                     }}
                   >
-                    <Typography variant="body1" color="text.secondary">
-                      No events match your filters
-                    </Typography>
-                  </Box>
-                ) : (
-                  <FeedList events={filteredEvents} />
-                )}
+                    Available Events
+                  </Typography>
+                </Box>
               </Box>
+              
+              <EventFilters 
+                events={feedEvents} 
+                onFilterChange={handleFilterChange}
+              />
+              
+              {isFeedLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress size={28} color="primary" />
+                </Box>
+              ) : filteredEvents.length === 0 ? (
+                <Box 
+                  sx={{ 
+                    p: 3, 
+                    textAlign: 'center',
+                    bgcolor: 'action.hover',
+                    borderRadius: 2,
+                    mt: 3
+                  }}
+                >
+                  <Typography variant="body1" color="text.secondary">
+                    No events match your filters
+                  </Typography>
+                </Box>
+              ) : (
+                <Box mt={3}>
+                  <FeedList events={filteredEvents} />
+                </Box>
+              )}
             </Paper>
           </Grid>
         </Grid>

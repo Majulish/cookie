@@ -34,9 +34,9 @@ const FeedList: React.FC<FeedListProps> = ({ events, isLoading = false }) => {
             >
                 <CircularProgress size={48} thickness={4} /> {/* Increased size */}
                 <Typography 
-                    variant="body1" // Upgraded from body2 
+                    variant="body1"
                     color="text.secondary" 
-                    sx={{ mt: 2, fontSize: '1.05rem' }}
+                    sx={{ mt: 2, fontSize: '1.2rem' }} // Increased to match MyEventList
                 >
                     Loading events...
                 </Typography>
@@ -65,17 +65,17 @@ const FeedList: React.FC<FeedListProps> = ({ events, isLoading = false }) => {
                     }} 
                 />
                 <Typography 
-                    variant="h5" // Upgraded from h6
+                    variant="h5"
                     gutterBottom 
                     color="text.secondary"
-                    sx={{ fontSize: '1.4rem' }}
+                    sx={{ fontSize: '1.7rem' }} // Increased to match MyEventList header
                 >
                     No Events Available
                 </Typography>
                 <Typography 
-                    variant="body1" // Upgraded from body2
+                    variant="body1"
                     color="text.secondary"
-                    sx={{ fontSize: '1.05rem' }}
+                    sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
                 >
                     Check back later or try different filter criteria.
                 </Typography>
@@ -103,13 +103,13 @@ const FeedList: React.FC<FeedListProps> = ({ events, isLoading = false }) => {
                         sx={{ 
                             color: 'primary.main',
                             mr: 1.5,
-                            fontSize: '1.5rem' // Increased icon size
+                            fontSize: '1.7rem' // Increased to match MyEventList
                         }} 
                     />
                     <Typography 
-                        variant="h6" // Upgraded from subtitle1
+                        variant="h6"
                         fontWeight={600}
-                        sx={{ fontSize: '1.3rem' }}
+                        sx={{ fontSize: '1.7rem' }} // Increased to match MyEventList header
                     >
                         {events.length} Event{events.length !== 1 ? 's' : ''} Found
                     </Typography>

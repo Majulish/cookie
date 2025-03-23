@@ -112,12 +112,12 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                     <Grid container spacing={2.5}> {/* Increased spacing */}
                         <Grid item xs={12}>
                             <Typography 
-                                variant="h4" // Upgraded from h5 to h4
+                                variant="h4" 
                                 sx={{ 
                                     fontWeight: 600,
                                     color: 'text.primary', 
                                     mb: 2.5, // Increased margin
-                                    fontSize: '2rem', // Explicit font size
+                                    fontSize: '2rem', // Explicit font size to match MyEvent
                                 }}
                             >
                                 {event.name}
@@ -131,21 +131,21 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                                 color: 'primary.main', 
                                                 mr: 1.8, // Increased margin
                                                 mt: 0.7, // Adjusted alignment
-                                                fontSize: '1.5rem' // Increased icon size
+                                                fontSize: '1.5rem' // Increased icon size to match MyEvent
                                             }} 
                                         />
                                         <Box>
                                             <Typography 
-                                                variant="subtitle1" // Upgraded from subtitle2
+                                                variant="subtitle1"
                                                 color="text.secondary" 
                                                 gutterBottom
-                                                sx={{ fontSize: '1.1rem', fontWeight: 500 }}
+                                                sx={{ fontSize: '1.3rem', fontWeight: 500 }} // Increased to match MyEvent
                                             >
                                                 Dates
                                             </Typography>
                                             <Typography 
-                                                variant="body1" // Upgraded from body2
-                                                sx={{ fontSize: '1.05rem' }}
+                                                variant="body1"
+                                                sx={{ fontSize: '1.2rem' }} // Increased to match MyEvent
                                             >
                                                 {formatDate(event.start_date)} - {formatDate(event.end_date)}
                                             </Typography>
@@ -160,7 +160,7 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                                 color: 'primary.main', 
                                                 mr: 1.8,
                                                 mt: 0.7, 
-                                                fontSize: '1.5rem' 
+                                                fontSize: '1.5rem' // Increased to match MyEvent
                                             }} 
                                         />
                                         <Box>
@@ -168,13 +168,13 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                                 variant="subtitle1" 
                                                 color="text.secondary" 
                                                 gutterBottom
-                                                sx={{ fontSize: '1.1rem', fontWeight: 500 }}
+                                                sx={{ fontSize: '1.3rem', fontWeight: 500 }} // Increased to match MyEvent
                                             >
                                                 Time
                                             </Typography>
                                             <Typography 
                                                 variant="body1"
-                                                sx={{ fontSize: '1.05rem' }}
+                                                sx={{ fontSize: '1.2rem' }} // Increased to match MyEvent
                                             >
                                                 {event.start_time} - {event.end_time}
                                             </Typography>
@@ -189,7 +189,7 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                                 color: 'primary.main', 
                                                 mr: 1.8,
                                                 mt: 0.7, 
-                                                fontSize: '1.5rem' 
+                                                fontSize: '1.5rem' // Increased to match MyEvent
                                             }} 
                                         />
                                         <Box>
@@ -197,13 +197,13 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                                 variant="subtitle1" 
                                                 color="text.secondary" 
                                                 gutterBottom
-                                                sx={{ fontSize: '1.1rem', fontWeight: 500 }}
+                                                sx={{ fontSize: '1.3rem', fontWeight: 500 }} // Increased to match MyEvent
                                             >
                                                 Location
                                             </Typography>
                                             <Typography 
                                                 variant="body1"
-                                                sx={{ fontSize: '1.05rem' }}
+                                                sx={{ fontSize: '1.2rem' }} // Increased to match MyEvent
                                             >
                                                 {event.address}, {event.city}
                                             </Typography>
@@ -222,13 +222,13 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                         sx={{ 
                                             color: 'primary.main', 
                                             mr: 1.8, 
-                                            fontSize: '1.5rem' 
+                                            fontSize: '1.5rem' // Increased to match MyEvent
                                         }} 
                                     />
                                     <Typography 
-                                        variant="h6" // Upgraded from subtitle1
+                                        variant="h6"
                                         fontWeight="medium"
-                                        sx={{ fontSize: '1.3rem' }}
+                                        sx={{ fontSize: '1.3rem' }} // Increased to match MyEvent
                                     >
                                         Available Positions
                                     </Typography>
@@ -253,7 +253,7 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                                         bgcolor: alpha(theme.palette.primary.main, 0.1),
                                                         color: 'primary.dark',
                                                         fontWeight: 500,
-                                                        fontSize: '0.95rem', // Increased font size
+                                                        fontSize: '1.2rem', // Increased to match MyEventList
                                                         height: '32px', // Increased height
                                                         '& .MuiChip-label': {
                                                             px: 2 // More horizontal padding
@@ -291,18 +291,18 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                                         borderRadius: 1.5,
                                                         '& .MuiSelect-select': { 
                                                             py: 1.8, // Increased padding
-                                                            fontSize: '1.05rem' // Larger text
+                                                            fontSize: '1.2rem' // Increased to match MyEventList
                                                         }
                                                     }}
                                                 >
-                                                    <MenuItem value="" sx={{ fontSize: '1.05rem' }}>
+                                                    <MenuItem value="" sx={{ fontSize: '1.2rem' }}> {/* Increased to match MyEventList */}
                                                         <em>Select a position</em>
                                                     </MenuItem>
                                                     {availableJobs.map((job) => (
                                                         <MenuItem 
                                                             key={`${event.id}-${job.id}`} 
                                                             value={job.job_title}
-                                                            sx={{ fontSize: '1.05rem' }}
+                                                            sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
                                                         >
                                                             {job.job_title}
                                                         </MenuItem>
@@ -320,7 +320,7 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                                     py: 1.5, // Increased padding
                                                     px: 4, // Increased padding
                                                     fontWeight: 600,
-                                                    fontSize: '1rem', // Increased font size
+                                                    fontSize: '1.2rem', // Increased to match MyEventList
                                                     flex: { xs: '1 1 100%', sm: '0 0 auto' }
                                                 }}
                                             >
@@ -339,9 +339,9 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                         }}
                                     >
                                         <Typography 
-                                            variant="body1" // Upgraded from body2
+                                            variant="body1"
                                             color="text.secondary"
-                                            sx={{ fontSize: '1.05rem' }}
+                                            sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
                                         >
                                             No positions are currently available for this event.
                                         </Typography>
@@ -360,7 +360,7 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                 }}
                             >
                                 <AccordionSummary 
-                                    expandIcon={<ExpandMoreIcon sx={{ fontSize: '1.6rem' }} />} // Larger icon
+                                    expandIcon={<ExpandMoreIcon sx={{ fontSize: '1.7rem' }} />} // Larger icon to match MyEventList
                                     aria-controls="description-content"
                                     id="description-header"
                                     sx={{
@@ -374,21 +374,21 @@ const EventFeed: React.FC<EventFeedProps> = ({ event }) => {
                                     }}
                                 >
                                     <Typography 
-                                        variant="h6" // Upgraded from subtitle1
+                                        variant="h6"
                                         fontWeight="medium"
                                         color="primary"
-                                        sx={{ fontSize: '1.3rem' }}
+                                        sx={{ fontSize: '1.3rem' }} // Increased to match MyEvent
                                     >
                                         Event Description
                                     </Typography>
                                 </AccordionSummary>
                                 <AccordionDetails sx={{ px: 0 }}>
                                     <Typography 
-                                        variant="body1" // Upgraded from body2
+                                        variant="body1"
                                         sx={{ 
                                             whiteSpace: 'pre-line',
                                             color: 'text.secondary',
-                                            fontSize: '1.05rem',
+                                            fontSize: '1.2rem', // Increased to match MyEvent
                                             lineHeight: 1.5
                                         }}
                                     >

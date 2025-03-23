@@ -27,6 +27,7 @@ import EventIcon from '@mui/icons-material/Event';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
+import MarkAsReadIcon from '@mui/icons-material/CheckCircle';
 import { getUserNotifications, Notification } from '../api/notificationsApi';
 import { useQuery, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
@@ -47,11 +48,12 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 interface NotificationItemProps {
   notification: Notification;
   onClick: () => void;
+  onMarkAsRead: (id: string) => void;
 }
 
-const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onClick }) => {
+const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onClick, onMarkAsRead }) => {
   const theme = useTheme();
-  const { message, created_at, is_read, event_id } = notification;
+  const { id, message, created_at, is_read, event_id } = notification;
   
   // Format the date
   const formattedDate = new Date(created_at).toLocaleDateString('en-US', {
@@ -65,6 +67,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
     hour: '2-digit',
     minute: '2-digit'
   });
+
+  const handleMarkAsRead = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMarkAsRead(id);
+  };
 
   return (
     <ListItem 
@@ -115,6 +122,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
             sx={{ 
               fontWeight: is_read ? 400 : 600,
               mb: 0.5,
+              fontSize: '1.05rem',
               color: is_read ? 'text.primary' : 'text.primary'
             }}
           >
@@ -123,7 +131,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
         }
         secondary={
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="body2" color="text.secondary">
               {formattedDate} • {formattedTime}
             </Typography>
             
@@ -134,8 +142,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
                 color="primary"
                 sx={{ 
                   minWidth: 'auto', 
-                  p: 0,
-                  fontSize: '0.75rem',
+                  p: '2px 4px',
+                  fontSize: '0.85rem',
                   fontWeight: 600,
                   ml: 1
                 }}
@@ -150,6 +158,25 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
           </Box>
         }
       />
+      
+      {!is_read && (
+        <Tooltip title="Mark as read" placement="left">
+          <IconButton 
+            size="medium" 
+            onClick={handleMarkAsRead}
+            sx={{ 
+              ml: 1,
+              color: 'text.secondary',
+              '&:hover': { 
+                color: 'primary.main',
+                bgcolor: alpha(theme.palette.primary.main, 0.1)
+              }
+            }}
+          >
+            <MarkAsReadIcon fontSize="medium" />
+          </IconButton>
+        </Tooltip>
+      )}
     </ListItem>
   );
 };
@@ -208,6 +235,21 @@ const NotificationsMenu: React.FC = () => {
     console.log('Mark all as read');
     // For now, we'll just close the menu
     handleClose();
+  };
+
+  const handleMarkSingleAsRead = (notificationId: string) => {
+    // This would typically call an API endpoint to mark a single notification as read
+    console.log('Mark notification as read:', notificationId);
+    
+    // Here you would add the actual API call:
+    // Example:
+    // markNotificationAsRead(notificationId)
+    //   .then(() => {
+    //     queryClient.invalidateQueries('notifications');
+    //   })
+    //   .catch(error => {
+    //     console.error('Failed to mark notification as read', error);
+    //   });
   };
 
   return (
@@ -286,12 +328,12 @@ const NotificationsMenu: React.FC = () => {
                 fontSize: '1.25rem'
               }} 
             />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.3rem' }}>
               Notifications
               {unreadCount > 0 && (
                 <Typography 
                   component="span" 
-                  variant="caption" 
+                  variant="body2" 
                   sx={{ 
                     ml: 1, 
                     color: 'primary.main',
@@ -393,6 +435,7 @@ const NotificationsMenu: React.FC = () => {
                     key={notification.id}
                     notification={notification}
                     onClick={() => handleNotificationClick(notification)}
+                    onMarkAsRead={handleMarkSingleAsRead}
                   />
                 ))}
               </List>
@@ -409,10 +452,10 @@ const NotificationsMenu: React.FC = () => {
                 }}
               >
                 <Button
-                  size="small"
+                  size="medium"
                   startIcon={<CheckCircleIcon />}
                   onClick={handleMarkAllAsRead}
-                  sx={{ fontWeight: 500 }}
+                  sx={{ fontWeight: 500, fontSize: '0.95rem' }}
                 >
                   Mark all as read
                 </Button>

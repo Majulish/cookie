@@ -16,7 +16,7 @@ import {
   Grid,
   Divider
 } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PendingIcon from "@mui/icons-material/Pending";
@@ -27,6 +27,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import StarIcon from "@mui/icons-material/Star";
+import WorkIcon from "@mui/icons-material/Work";
 import { MyEventScheme } from "../create_event/eventScheme";
 import NewEventDialog from "../create_event/NewEventModal";
 import { EventFormInputs } from "../create_event/eventScheme";
@@ -53,6 +54,7 @@ const MyEvent: React.FC<EventProps> = ({
   const [isDeleteSuccessOpen, setIsDeleteSuccessOpen] = useState(false);
   const open = Boolean(anchorEl);
   const userRole = useUserRole();
+  const navigate = useNavigate();
   
   const hasEditPermission = userRole !== 'worker';
   const isWorker = userRole === 'worker';
@@ -79,7 +81,8 @@ const MyEvent: React.FC<EventProps> = ({
 
   const handleRateWorkersClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Rate workers clicked for event:', event.id);
+    // Navigate to the event page using React Router
+    navigate(`/event-page/${event.id}`);
   };
 
   const handleConfirmDelete = async () => {
@@ -180,6 +183,7 @@ const MyEvent: React.FC<EventProps> = ({
                         bgcolor: '#FFF3E0', 
                         color: '#E65100',
                         fontWeight: 600,
+                        fontSize: '0.9rem',
                         '& .MuiChip-icon': { color: '#FF9800' }
                       }}
                     />
@@ -194,6 +198,7 @@ const MyEvent: React.FC<EventProps> = ({
                         bgcolor: '#E3F2FD', 
                         color: '#0D47A1',
                         fontWeight: 600,
+                        fontSize: '0.9rem',
                         '& .MuiChip-icon': { color: '#2196F3' }
                       }}
                     />
@@ -206,7 +211,7 @@ const MyEvent: React.FC<EventProps> = ({
                     variant="h6" 
                     sx={{ 
                       fontWeight: 600,
-                      fontSize: '1.1rem',
+                      fontSize: '1.5rem',  // Increased from 1.25rem
                       lineHeight: 1.2
                     }}
                   >
@@ -233,7 +238,7 @@ const MyEvent: React.FC<EventProps> = ({
                       variant="h6" 
                       sx={{ 
                         fontWeight: 600,
-                        fontSize: '1.1rem',
+                        fontSize: '1.5rem',  // Increased from 1.25rem
                         lineHeight: 1.2
                       }}
                     >
@@ -246,7 +251,7 @@ const MyEvent: React.FC<EventProps> = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
                   <CalendarTodayIcon 
                     sx={{ 
-                      fontSize: '0.875rem', 
+                      fontSize: '1.2rem',  // Increased from 1rem
                       color: 'text.secondary',
                       mr: 0.5
                     }} 
@@ -254,7 +259,7 @@ const MyEvent: React.FC<EventProps> = ({
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
-                    sx={{ fontSize: '0.875rem' }}
+                    sx={{ fontSize: '1.2rem' }}  // Increased from 1rem
                   >
                     {formatDate(event.start_date, event.start_time)}
                   </Typography>
@@ -275,6 +280,7 @@ const MyEvent: React.FC<EventProps> = ({
                       },
                       color: 'rgba(0,0,0,0.87)',
                       fontWeight: 600,
+                      fontSize: '1rem',
                       px: 2
                     }}
                   >
@@ -291,10 +297,11 @@ const MyEvent: React.FC<EventProps> = ({
                       onClick={handleClick}
                       sx={{ 
                         color: 'text.secondary',
-                        '&:hover': { color: 'primary.main' }
+                        '&:hover': { color: 'primary.main' },
+                        fontSize: '1.5rem'
                       }}
                     >
-                      <MoreVertIcon />
+                      <MoreVertIcon fontSize="medium" />
                     </IconButton>
                     <Menu
                       id="event-menu"
@@ -309,11 +316,11 @@ const MyEvent: React.FC<EventProps> = ({
                     >
                       <MenuItem onClick={handleEditClick} dense>
                         <EditIcon fontSize="small" sx={{ mr: 1.5 }} />
-                        Edit
+                        <Typography sx={{ fontSize: '1.1rem' }}>Edit</Typography>
                       </MenuItem>
                       <MenuItem onClick={handleDeleteClick} dense>
                         <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} />
-                        Delete
+                        <Typography sx={{ fontSize: '1.1rem' }}>Delete</Typography>
                       </MenuItem>
                     </Menu>
                   </>
@@ -324,9 +331,34 @@ const MyEvent: React.FC<EventProps> = ({
           
           <AccordionDetails sx={{ py: 2, px: 3 }}>
             <Grid container spacing={3}>
+              {/* Job title section for workers - dedicated section at the top of details */}
+              {isWorker && event.job_title && (
+                <Grid item xs={12}>
+                  <Box sx={{ mb: 1 }}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '1.3rem' }}>
+                      Your Position
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                      <WorkIcon 
+                        sx={{ 
+                          color: '#43A047', 
+                          mr: 1,
+                          mt: 0.5,
+                          fontSize: '1.5rem'  // Increased from 1.35rem
+                        }} 
+                      />
+                      <Typography variant="body2" sx={{ fontSize: '1.2rem', fontWeight: 500 }}>
+                        {event.job_title}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Divider sx={{ my: 1.5 }} />
+                </Grid>
+              )}
+              
               <Grid item xs={12} md={6}>
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '1.3rem' }}>
                     Event Time
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
@@ -335,14 +367,14 @@ const MyEvent: React.FC<EventProps> = ({
                         color: 'primary.main', 
                         mr: 1,
                         mt: 0.5,
-                        fontSize: '1.25rem'
+                        fontSize: '1.5rem'  // Increased from 1.35rem
                       }} 
                     />
                     <Box>
-                      <Typography variant="body2">
+                      <Typography variant="body2" sx={{ fontSize: '1.2rem' }}>  {/* Increased from 1rem */}
                         <strong>Start:</strong> {formatDate(event.start_date, event.start_time)}
                       </Typography>
-                      <Typography variant="body2">
+                      <Typography variant="body2" sx={{ fontSize: '1.2rem' }}>  {/* Increased from 1rem */}
                         <strong>End:</strong> {formatDate(event.end_date, event.end_time)}
                       </Typography>
                     </Box>
@@ -352,7 +384,7 @@ const MyEvent: React.FC<EventProps> = ({
               
               <Grid item xs={12} md={6}>
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '1.3rem' }}>
                     Location
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -361,10 +393,10 @@ const MyEvent: React.FC<EventProps> = ({
                         color: 'primary.main', 
                         mr: 1,
                         mt: 0.5,
-                        fontSize: '1.25rem'
+                        fontSize: '1.5rem'  // Increased from 1.35rem
                       }} 
                     />
-                    <Typography variant="body2">
+                    <Typography variant="body2" sx={{ fontSize: '1.2rem' }}>  {/* Increased from 1rem */}
                       {event.address}, {event.city}
                     </Typography>
                   </Box>
@@ -384,15 +416,16 @@ const MyEvent: React.FC<EventProps> = ({
                     }}
                   >
                     {hasPendingStatus ? (
-                      <PendingIcon sx={{ color: '#FF9800', mr: 1 }} />
+                      <PendingIcon sx={{ color: '#FF9800', mr: 1, fontSize: '1.4rem' }} />
                     ) : (
-                      <WatchLaterIcon sx={{ color: '#2196F3', mr: 1 }} />
+                      <WatchLaterIcon sx={{ color: '#2196F3', mr: 1, fontSize: '1.4rem' }} />
                     )}
                     <Typography
                       variant="body2"
                       sx={{
                         fontWeight: 'medium',
-                        color: hasPendingStatus ? '#E65100' : '#0D47A1'
+                        color: hasPendingStatus ? '#E65100' : '#0D47A1',
+                        fontSize: '1.2rem'  // Increased from 1rem
                       }}
                     >
                       {hasPendingStatus 
@@ -407,10 +440,10 @@ const MyEvent: React.FC<EventProps> = ({
             <Divider sx={{ my: 2 }} />
             
             <Box>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontSize: '1.3rem' }}>
                 Description
               </Typography>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-line', fontSize: '1.2rem' }}>  {/* Increased from 1rem */}
                 {event.description}
               </Typography>
             </Box>

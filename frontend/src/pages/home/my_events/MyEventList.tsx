@@ -46,7 +46,7 @@ const SectionHeader: React.FC<{
         {icon}
       </Box>
       <Box sx={{ flexGrow: 1 }}>
-        <Typography variant="h5" component="h2" fontWeight={600}>
+        <Typography variant="h5" component="h2" fontWeight={600} sx={{ fontSize: '1.7rem' }}>
           {title}
         </Typography>
       </Box>
@@ -61,7 +61,7 @@ const SectionHeader: React.FC<{
           px: 1.5,
           py: 0.5,
           fontWeight: 'medium',
-          fontSize: '0.875rem'
+          fontSize: '1.2rem'  // Increased from 1rem
         }}
       >
         {count} {count === 1 ? 'Event' : 'Events'}
@@ -82,7 +82,7 @@ const NoEventsMessage: React.FC<{ message: string }> = ({ message }) => (
       borderColor: 'grey.300'
     }}
   >
-    <Typography variant="body1" color="text.secondary">
+    <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.2rem' }}>
       {message}
     </Typography>
   </Paper>
@@ -167,7 +167,7 @@ const MyEventList: React.FC<EventListProps> = ({ events, onEventUpdate, onEventD
       <Box>
         <SectionHeader 
           title="Upcoming Events" 
-          icon={<EventIcon />} 
+          icon={<EventIcon fontSize="large" />} 
           count={upcomingEvents.length}
         />
         
@@ -193,7 +193,7 @@ const MyEventList: React.FC<EventListProps> = ({ events, onEventUpdate, onEventD
         <Box>
           <SectionHeader 
             title="Today's Events" 
-            icon={<TodayIcon />} 
+            icon={<TodayIcon fontSize="large" />} 
             count={todayEvents.length}
           />
           
@@ -216,7 +216,7 @@ const MyEventList: React.FC<EventListProps> = ({ events, onEventUpdate, onEventD
         <Box>
           <SectionHeader 
             title="Past Week Events" 
-            icon={<HistoryIcon />} 
+            icon={<HistoryIcon fontSize="large" />} 
             count={pastWeekEvents.length}
           />
           

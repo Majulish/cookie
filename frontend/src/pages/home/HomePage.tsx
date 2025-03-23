@@ -117,8 +117,8 @@ const HomePage: React.FC = () => {
     };
 
     const renderWorkerView = () => (
-        <Grid container spacing={3} justifyContent="center">
-            <Grid item xs={12} md={10} lg={8}>
+        <Grid container spacing={4}>
+            <Grid item xs={12}>
                 <Paper 
                     elevation={0}
                     sx={{ 
@@ -143,7 +143,7 @@ const HomePage: React.FC = () => {
                                     sx={{ 
                                         color: 'primary.main',
                                         mr: 1.5,
-                                        fontSize: '1.75rem'
+                                        fontSize: '2.2rem'  // Increased from 1.75rem
                                     }} 
                                 />
                                 <Typography 
@@ -151,7 +151,8 @@ const HomePage: React.FC = () => {
                                     component="h1" 
                                     sx={{ 
                                         fontWeight: 600,
-                                        color: 'text.primary'
+                                        color: 'text.primary',
+                                        fontSize: '2rem'  // Increased from default h5
                                     }}
                                 >
                                     My Events
@@ -165,7 +166,9 @@ const HomePage: React.FC = () => {
                                 startIcon={<FeedIcon />}
                                 sx={{ 
                                     borderRadius: '8px',
-                                    textTransform: 'none'
+                                    textTransform: 'none',
+                                    fontSize: '1.1rem',  // Increased font size
+                                    padding: '8px 16px'  // Added more padding
                                 }}
                             >
                                 Browse Events
@@ -185,7 +188,7 @@ const HomePage: React.FC = () => {
                                     borderRadius: 2
                                 }}
                             >
-                                <Typography variant="body1" color="text.secondary">
+                                <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.2rem' }}>
                                     You don't have any events yet
                                 </Typography>
                                 <Button
@@ -193,7 +196,11 @@ const HomePage: React.FC = () => {
                                     to="/feed"
                                     variant="contained"
                                     color="primary"
-                                    sx={{ mt: 2 }}
+                                    sx={{ 
+                                        mt: 2,
+                                        fontSize: '1.1rem',  // Increased font size
+                                        padding: '8px 20px'  // Increased padding
+                                    }}
                                 >
                                     Find Events
                                 </Button>
@@ -235,13 +242,16 @@ const HomePage: React.FC = () => {
                                 sx={{ 
                                     color: 'primary.main',
                                     mr: 1.5,
-                                    fontSize: '1.75rem'
+                                    fontSize: '2.2rem'  // Increased from 1.75rem
                                 }} 
                             />
                             <Typography 
                                 variant="h5" 
                                 component="h1" 
-                                sx={{ fontWeight: 600 }}
+                                sx={{ 
+                                    fontWeight: 600,
+                                    fontSize: '2rem'  // Increased from default h5
+                                }}
                             >
                                 Event Management
                             </Typography>
@@ -249,13 +259,16 @@ const HomePage: React.FC = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            size="medium"
-                            startIcon={<AddIcon />}
+                            size="large"  // Changed from medium to large
+                            startIcon={<AddIcon sx={{ fontSize: '1.5rem' }} />}
                             onClick={handleOpen}
                             sx={{ 
                                 borderRadius: '8px',
                                 textTransform: 'none',
-                                fontWeight: 600
+                                fontWeight: 600,
+                                fontSize: '1.2rem',  // Increased font size
+                                padding: '10px 24px',  // Increased padding
+                                boxShadow: 2
                             }}
                         >
                             Create Event
@@ -279,17 +292,21 @@ const HomePage: React.FC = () => {
                                 mb: 4
                             }}
                         >
-                            <Typography variant="h6" gutterBottom color="text.secondary">
+                            <Typography variant="h6" gutterBottom color="text.secondary" sx={{ fontSize: '1.3rem' }}>
                                 No Events Created Yet
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" paragraph>
+                            <Typography variant="body2" color="text.secondary" paragraph sx={{ fontSize: '1.1rem' }}>
                                 Start by creating your first event using the "Create Event" button above.
                             </Typography>
                             <Button
                                 variant="outlined"
                                 color="primary"
                                 onClick={handleOpen}
-                                sx={{ mt: 1 }}
+                                sx={{ 
+                                    mt: 1,
+                                    fontSize: '1.1rem',
+                                    padding: '8px 20px'
+                                }}
                             >
                                 Create Your First Event
                             </Button>
@@ -318,13 +335,14 @@ const HomePage: React.FC = () => {
                                     sx={{ 
                                         color: 'primary.main',
                                         mr: 1.5,
-                                        fontSize: '1.75rem'
+                                        fontSize: '2.2rem'  // Increased from 1.75rem
                                     }} 
                                 />
                                 <Typography 
                                     variant="h5" 
                                     sx={{ 
-                                        fontWeight: 600
+                                        fontWeight: 600,
+                                        fontSize: '2rem'  // Increased from default h5
                                     }}
                                 >
                                     All Events
@@ -382,10 +400,12 @@ const HomePage: React.FC = () => {
                                 position: 'fixed',
                                 bottom: 24,
                                 right: 24,
-                                boxShadow: 3
+                                boxShadow: 3,
+                                width: '64px',  // Increased size
+                                height: '64px'  // Increased size
                             }}
                         >
-                            <AddIcon />
+                            <AddIcon sx={{ fontSize: '2rem' }} />
                         </Fab>
                     </Tooltip>
                 )}
@@ -409,7 +429,7 @@ const HomePage: React.FC = () => {
                         onClose={handleSnackbarClose} 
                         severity={snackbarSeverity}
                         variant="filled"
-                        sx={{ width: '100%' }}
+                        sx={{ width: '100%', fontSize: '1.1rem' }}
                     >
                         {snackbarMessage}
                     </Alert>
