@@ -108,6 +108,10 @@ def delete_user() -> Tuple[Response, int]:
 @user_blueprint.route("/profile/<int:user_id>", methods=["GET"])
 @load_user
 def get_profile(user, user_id):
+    if user_id == 0:
+        if user.role != Role.WORKER:
+            return jsonify({"error": "Only workers can use this endpoint"}), 403
+        return UserStore.get_worker_profile(user.id)
     requested_user = UserStore.find_user("id", user_id)
     if not requested_user:
         return jsonify({"error": "User not found"}), 404
