@@ -5,7 +5,7 @@ from backend.models.notification import Notification
 
 class NotificationStore:
     @staticmethod
-    def create_notification(user_id: int, message: str, event_id: int = None, is_approved: bool = False) -> Dict:
+    def create_notification(user_id: int, message: str, event_id: int = None, is_approved: bool = True) -> Dict:
         notif = Notification.create_notification(user_id, message, event_id, is_approved=is_approved)
         return {
             "id": notif.id,

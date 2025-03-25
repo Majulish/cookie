@@ -106,7 +106,7 @@ def check_notification_approval(notification_id: int):
                     return
 
                 hr_message = f"Worker (ID: {notif.user_id}) has not approved their reminder for event {notif.event_id}."
-                hr_notif = NotificationStore.create_notification(hr_manager.id, hr_message, event_id=notif.event_id)
+                hr_notif = NotificationStore.create_notification(hr_manager.id, hr_message, event_id=notif.event_id, is_approved=False)
                 logger.info(f"Created HR notification: {hr_notif['id']}")
             else:
                 logger.info(f"Notification {notification_id} is already approved or doesn't exist")
