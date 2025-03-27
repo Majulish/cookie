@@ -107,8 +107,9 @@ def check_notification_approval(notification_id: int):
                 if not hr_manager:
                     logger.warning(f"No HR manager found for company {event.company_id}")
                     return
-
-                hr_message = f"Worker (ID: {notif.user_id}) has not approved their reminder for event {notif.event_id}."
+                event = Event.find_by("id", notif.event_id)
+                worker = User.find_by({"id": notif.user_id})
+                hr_message = f"Worker: {worker.first_name} {worker.family_name} (ID: {notif.user_id}) has not approved their reminder for event {event.name} ({notif.event_id})."
                 hr_notif = NotificationStore.create_notification(hr_manager.id, hr_message, event_id=notif.event_id)
 
                 logger.info(f"Created HR notification: {hr_notif['id']}")
