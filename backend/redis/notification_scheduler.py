@@ -80,7 +80,9 @@ def schedule_worker_reminders(event_id: int, worker_id: int, start_time: datetim
             logger.info(f"Skipping {reminder['label']} as it's already past")
             continue
 
-        message = f"Reminder ({reminder['label']}): Please confirm your attendance for event {event_id}."
+        from backend.stores import EventStore
+        event = EventStore.get_event_by("id", event_id)
+        message = f"Reminder ({reminder['label']}): Please confirm your attendance for event: {event.name} ."
 
         # Store the reminder data
         reminder_data = {

@@ -143,15 +143,15 @@ class EventStore:
             else:
                 note_msg = f"Your status for event '{event.name}' is now {worker_status.name}."
 
-            NotificationStore.create_notification(worker.id, note_msg)
+            NotificationStore.create_notification(worker.id, note_msg, event_id)
 
             return jsonify({"message": f"Worker status set to {worker_status.name}"}), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
     @staticmethod
-    def get_event_by(**filter) -> Optional[Event]:
-        return Event.query.filter_by(**filter).first()
+    def get_event_by(field: str, value: any) -> Optional[Event]:
+        return Event.find_by(field, value)
 
     @staticmethod
     def get_all_events() -> List[Dict]:

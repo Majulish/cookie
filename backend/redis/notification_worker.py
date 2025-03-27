@@ -3,6 +3,7 @@ import json
 import time
 import logging
 
+from backend.models.event_users import EventUsers
 from backend.redis.redis_client import redis_client
 from backend.stores.notification_store import NotificationStore
 from backend.models.notification import Notification
@@ -94,19 +95,22 @@ def check_notification_approval(notification_id: int):
         try:
             logger.info(f"Checking approval for notification: {notification_id}")
             notif = Notification.find_by_id(notification_id)
+            NotificationStore.update_notification(notif.id, {"is_read": True})
             if notif and not notif.is_approved:
                 event = Event.find_by("id", notif.event_id)
                 if not event:
                     logger.warning(f"Event {notif.event_id} not found")
                     return
 
+                EventUsers.update_approval_count(notif.event_id, notif.user_id)
                 hr_manager = User.find_by({"company_id": event.company_id, "role": Role.HR_MANAGER})
                 if not hr_manager:
                     logger.warning(f"No HR manager found for company {event.company_id}")
                     return
 
                 hr_message = f"Worker (ID: {notif.user_id}) has not approved their reminder for event {notif.event_id}."
-                hr_notif = NotificationStore.create_notification(hr_manager.id, hr_message, event_id=notif.event_id, is_approved=False)
+                hr_notif = NotificationStore.create_notification(hr_manager.id, hr_message, event_id=notif.event_id)
+
                 logger.info(f"Created HR notification: {hr_notif['id']}")
             else:
                 logger.info(f"Notification {notification_id} is already approved or doesn't exist")

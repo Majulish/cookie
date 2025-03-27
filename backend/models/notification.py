@@ -51,9 +51,6 @@ class Notification(db.Model):
     def find_by_id(cls, notification_id: int) -> "Notification":
         return cls.query.get(notification_id)
 
-    def mark_as_read(self):
-        self.is_read = True
-        self.save_to_db()
 
     @classmethod
     def mark_notification_as_read(cls, notification_ids: list, user_id: int) -> int:
