@@ -31,6 +31,7 @@ import { format } from 'date-fns';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getEvent, assignWorkerToEvent, feedbackWorker } from '../../api/eventApi';
 import WorkerApprovalSuccessModal from '../../components/WorkerApprovalSuccessModal';
+import WorkerBackupSuccessModal from '../../components/WorkerBackupSuccessModal';
 import WorkerRatingModal from './WorkerRatingModal';
 import useUserRole from '../home/hooks/useUserRole';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
@@ -44,6 +45,7 @@ import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
 import StarIcon from '@mui/icons-material/Star';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 
 // Using the existing interfaces from your API
 interface EventWorker {
@@ -107,6 +109,7 @@ const EventPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [approvalSuccess, setApprovalSuccess] = useState<boolean>(false);
+  const [backupSuccess, setBackupSuccess] = useState<boolean>(false);
   const [approvedWorker, setApprovedWorker] = useState<{ name: string; jobTitle: string }>({
     name: '',
     jobTitle: ''
@@ -171,14 +174,17 @@ const EventPage: React.FC = () => {
     return startDay.getTime() !== endDay.getTime();
   };
 
-  // Sort workers - approved workers first, then pending
+  // Sort workers - approved workers first, then backup, then pending
   const sortedWorkers = event?.workers ? [...event.workers].sort((a, b) => {
-    if (a.status === 'APPROVED' && b.status === 'PENDING') return -1;
-    if (a.status === 'PENDING' && b.status === 'APPROVED') return 1;
+    if (a.status === 'APPROVED' && b.status !== 'APPROVED') return -1;
+    if (a.status !== 'APPROVED' && b.status === 'APPROVED') return 1;
+    if (a.status === 'BACKUP' && b.status === 'PENDING') return -1;
+    if (a.status === 'PENDING' && b.status === 'BACKUP') return 1;
     return 0;
   }) : [];
 
-  const handleApproveWorker = async (workerId: number, jobTitle: string, workerName: string) => {
+  // Updated function to handle different worker statuses
+  const handleWorkerStatusChange = async (workerId: number, jobTitle: string, workerName: string, status: string) => {
     try {
       if (!eventId) return;
       
@@ -186,7 +192,7 @@ const EventPage: React.FC = () => {
         event_id: Number(eventId),
         worker_id: workerId,
         job_title: jobTitle,
-        status: "APPROVED"
+        status: status
       });
       
       setApprovedWorker({
@@ -194,19 +200,28 @@ const EventPage: React.FC = () => {
         jobTitle: jobTitle
       });
       
-      setApprovalSuccess(true);
+      // Show appropriate success modal based on status
+      if (status === "APPROVED") {
+        setApprovalSuccess(true);
+      } else if (status === "BACKUP") {
+        setBackupSuccess(true);
+      }
       
-      // Refresh event data after successful approval
+      // Refresh event data after successful status change
       const updatedEventData = await getEvent(Number(eventId));
       setEvent(updatedEventData);
     } catch (err) {
-      console.error("Error approving worker:", err);
-      setError(err instanceof Error ? err.message : 'Failed to approve worker');
+      console.error(`Error changing worker status to ${status}:`, err);
+      setError(err instanceof Error ? err.message : `Failed to change worker status to ${status}`);
     }
   };
   
   const handleCloseSuccessModal = () => {
     setApprovalSuccess(false);
+  };
+
+  const handleCloseBackupModal = () => {
+    setBackupSuccess(false);
   };
 
   const handleOpenRatingModal = (workerId: number, workerName: string, jobTitle: string) => {
@@ -235,7 +250,7 @@ const EventPage: React.FC = () => {
   };
 
   // Get event status style
-  const getStatusColor = (status: string) => {
+  const getEventStatusColor = (status: string) => {
     switch(status.toLowerCase()) {
       case 'planned': return 'primary';
       case 'ongoing': return 'success';
@@ -245,9 +260,43 @@ const EventPage: React.FC = () => {
     }
   };
 
+  // Get worker status style
+  const getWorkerStatusColor = (status: string) => {
+    switch(status.toUpperCase()) {
+      case 'APPROVED': return 'success';
+      case 'PENDING': return 'warning';
+      case 'BACKUP': return 'info';
+      default: return 'default';
+    }
+  };
+
+  // Get worker status icon
+  const getWorkerStatusIcon = (status: string): React.ReactElement | undefined => {
+    switch(status.toUpperCase()) {
+      case 'APPROVED': return <CheckCircleOutlineIcon />;
+      case 'BACKUP': return <AccessTimeOutlinedIcon />;
+      case 'PENDING': return <AssignmentIndIcon />;
+      default: return undefined;
+    }
+  };
+
   const getStatusLabel = (status: string) => {
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   };
+
+  // Count workers by status
+  const getWorkerCounts = () => {
+    if (!event?.workers) return { approved: 0, backup: 0, pending: 0 };
+    
+    return event.workers.reduce((counts, worker) => {
+      if (worker.status === 'APPROVED') counts.approved += 1;
+      else if (worker.status === 'BACKUP') counts.backup += 1;
+      else if (worker.status === 'PENDING') counts.pending += 1;
+      return counts;
+    }, { approved: 0, backup: 0, pending: 0 });
+  };
+
+  const workerCounts = getWorkerCounts();
 
   // Error state view
   if (error) {
@@ -352,7 +401,7 @@ const EventPage: React.FC = () => {
           
           <Chip 
             label={getStatusLabel(event.status)} 
-            color={getStatusColor(event.status) as any}
+            color={getEventStatusColor(event.status) as any}
             sx={{ 
               fontWeight: 500, 
               px: 1,
@@ -485,12 +534,29 @@ const EventPage: React.FC = () => {
           </Typography>
           
           {isHrManager && (
-            <Chip 
-              icon={<CheckCircleOutlineIcon />} 
-              label={`${sortedWorkers.filter(w => w.status === 'APPROVED').length} Approved`}
-              variant="outlined"
-              color="success"
-            />
+            <Stack direction="row" spacing={1.5}>
+              <Chip 
+                icon={<CheckCircleOutlineIcon />} 
+                label={`${workerCounts.approved} Approved`}
+                variant="outlined"
+                color="success"
+                size="small"
+              />
+              <Chip 
+                icon={<AccessTimeOutlinedIcon />} 
+                label={`${workerCounts.backup} Backup`}
+                variant="outlined"
+                color="info"
+                size="small"
+              />
+              <Chip 
+                icon={<AssignmentIndIcon />} 
+                label={`${workerCounts.pending} Pending`}
+                variant="outlined"
+                color="warning"
+                size="small"
+              />
+            </Stack>
           )}
         </Box>
         
@@ -525,11 +591,16 @@ const EventPage: React.FC = () => {
                     key={worker.worker_id}
                     sx={{ 
                       '&:last-child td, &:last-child th': { border: 0 },
-                      backgroundColor: worker.status === 'APPROVED' 
-                        ? theme.palette.mode === 'light' 
-                          ? 'rgba(46, 125, 50, 0.05)' 
-                          : 'rgba(46, 125, 50, 0.15)'
-                        : 'inherit',
+                      backgroundColor: 
+                        worker.status === 'APPROVED' 
+                          ? theme.palette.mode === 'light' 
+                            ? 'rgba(46, 125, 50, 0.05)' 
+                            : 'rgba(46, 125, 50, 0.15)'
+                        : worker.status === 'BACKUP'
+                          ? theme.palette.mode === 'light'
+                            ? 'rgba(2, 136, 209, 0.05)'
+                            : 'rgba(2, 136, 209, 0.15)'
+                          : 'inherit',
                       transition: 'background-color 0.2s',
                       '&:hover': {
                         backgroundColor: theme.palette.mode === 'light' 
@@ -547,7 +618,9 @@ const EventPage: React.FC = () => {
                             backgroundColor: 
                               worker.status === 'APPROVED' 
                                 ? theme.palette.success.main 
-                                : theme.palette.warning.main,
+                                : worker.status === 'BACKUP'
+                                  ? theme.palette.info.main
+                                  : theme.palette.warning.main,
                             mr: 1.5,
                             fontSize: 14
                           }}
@@ -590,38 +663,76 @@ const EventPage: React.FC = () => {
                     <TableCell>
                       <Chip 
                         label={worker.status} 
-                        color={worker.status === 'APPROVED' ? 'success' : 'warning'} 
+                        color={getWorkerStatusColor(worker.status) as any} 
                         size="small"
-                        variant={worker.status === 'APPROVED' ? 'filled' : 'outlined'}
+                        variant={worker.status === 'PENDING' ? 'outlined' : 'filled'}
+                        icon={getWorkerStatusIcon(worker.status)}
                         sx={{ fontWeight: 500 }}
                       />
                     </TableCell>
                     {isHrManager && (
                       <TableCell>
                         {worker.status === 'PENDING' ? (
+                          <Stack direction="row" spacing={1}>
+                            <Tooltip title="Approve this worker">
+                              <Button 
+                                variant="contained" 
+                                size="small" 
+                                color="success"
+                                onClick={() => handleWorkerStatusChange(worker.worker_id, worker.job_title, worker.name, "APPROVED")}
+                                sx={{ 
+                                  textTransform: 'none',
+                                  borderRadius: 1.5,
+                                  boxShadow: 1,
+                                  minWidth: 0,
+                                  px: 1.5
+                                }}
+                              >
+                                Approve
+                              </Button>
+                            </Tooltip>
+                            <Tooltip title="Add to waiting list">
+                              <Button 
+                                variant="outlined" 
+                                size="small" 
+                                color="info"
+                                onClick={() => handleWorkerStatusChange(worker.worker_id, worker.job_title, worker.name, "BACKUP")}
+                                sx={{ 
+                                  textTransform: 'none',
+                                  borderRadius: 1.5,
+                                  minWidth: 0,
+                                  px: 1.5
+                                }}
+                              >
+                                Backup
+                              </Button>
+                            </Tooltip>
+                          </Stack>
+                        ) : worker.status === 'BACKUP' ? (
                           <Tooltip title="Approve this worker">
                             <Button 
-                              variant="contained" 
+                              variant="outlined" 
                               size="small" 
-                              color="primary"
-                              onClick={() => handleApproveWorker(worker.worker_id, worker.job_title, worker.name)}
+                              color="success"
+                              onClick={() => handleWorkerStatusChange(worker.worker_id, worker.job_title, worker.name, "APPROVED")}
                               sx={{ 
                                 textTransform: 'none',
-                                borderRadius: 1.5,
-                                boxShadow: 1
+                                borderRadius: 1.5
                               }}
                             >
-                              Approve
+                              Promote to Approved
                             </Button>
                           </Tooltip>
                         ) : (
-                          <Chip 
-                            label="Approved" 
-                            color="success" 
-                            size="small" 
-                            icon={<CheckCircleOutlineIcon />}
-                            variant="outlined"
-                          />
+                          <Tooltip title="Worker is approved">
+                            <Chip 
+                              label="Approved" 
+                              color="success" 
+                              size="small" 
+                              icon={<CheckCircleOutlineIcon />}
+                              variant="outlined"
+                            />
+                          </Tooltip>
                         )}
                       </TableCell>
                     )}
@@ -685,6 +796,14 @@ const EventPage: React.FC = () => {
         <WorkerApprovalSuccessModal
           open={approvalSuccess}
           onClose={handleCloseSuccessModal}
+          workerName={approvedWorker.name}
+          jobTitle={approvedWorker.jobTitle}
+        />
+
+        {/* Worker Backup Success Modal */}
+        <WorkerBackupSuccessModal
+          open={backupSuccess}
+          onClose={handleCloseBackupModal}
           workerName={approvedWorker.name}
           jobTitle={approvedWorker.jobTitle}
         />
