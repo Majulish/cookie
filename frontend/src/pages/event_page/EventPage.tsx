@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
@@ -22,19 +22,15 @@ import {
   Stack,
   Breadcrumbs,
   Link,
-  useTheme,
   useMediaQuery,
-  IconButton,
-  Tooltip
+  Tooltip,
+  LinearProgress
 } from '@mui/material';
-import { format } from 'date-fns';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getEvent, assignWorkerToEvent, feedbackWorker } from '../../api/eventApi';
 import WorkerApprovalSuccessModal from '../../components/WorkerApprovalSuccessModal';
 import WorkerBackupSuccessModal from '../../components/WorkerBackupSuccessModal';
 import WorkerRatingModal from './WorkerRatingModal';
 import useUserRole from '../home/hooks/useUserRole';
-import ResponsiveTabs from '../../components/ResponsiveTabs';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import EventOutlinedIcon from '@mui/icons-material/EventOutlined';
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
@@ -46,229 +42,51 @@ import StarOutlineIcon from '@mui/icons-material/StarOutline';
 import StarIcon from '@mui/icons-material/Star';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import GroupIcon from '@mui/icons-material/Group';
 
-// Using the existing interfaces from your API
-interface EventWorker {
-  worker_id: number;
-  name: string;
-  job_title: string;
-  status: string;
-  city?: string;
-  age?: number;
-  rating?: number;
-  phone: string;
-  rating_count?: number;
-  approval_status?: boolean;
-  approval_count?: number;
-}
+// Import our custom hooks
+import useEventData from './hooks/useEventData';
+import useWorkerActions from './hooks/useWorkerActions';
+import useEventUtils from './hooks/useEventUtils';
 
-interface eventJob{
-  job_title: string;
-  openings: number;
-  slots: number;
-}
-
-interface DetailedEvent {
-  id: number;
-  name: string;
-  description: string;
-  city: string;
-  address: string;
-  start_datetime: string;
-  end_datetime: string;
-  status: string;
-  workers: EventWorker[];
-  jobs: eventJob[];
-}
-
-// Create a custom modified version of ResponsiveTabs with navigation support
-const EventPageTabs: React.FC = () => {
+const EventPage = () => {
+  const { eventId } = useParams();
   const navigate = useNavigate();
-  const [value, setValue] = useState(-1);
-
-  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
-    
-    // Navigate based on tab selection
-    switch(newValue) {
-      case 0: navigate('/'); break;
-      case 1: navigate('/schedule'); break;
-      case 2: navigate('/chat'); break;
-      case 3: navigate('/create'); break;
-      case 4: navigate('/data'); break;
-      default: break;
-    }
-  };
-
-  return <ResponsiveTabs value={value} onChange={handleChange} />;
-};
-
-const EventPage: React.FC = () => {
-  const { eventId } = useParams<{ eventId: string }>();
-  const [event, setEvent] = useState<DetailedEvent | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [approvalSuccess, setApprovalSuccess] = useState<boolean>(false);
-  const [backupSuccess, setBackupSuccess] = useState<boolean>(false);
-  const [approvedWorker, setApprovedWorker] = useState<{ name: string; jobTitle: string }>({
-    name: '',
-    jobTitle: ''
-  });
-  const [ratingModalOpen, setRatingModalOpen] = useState<boolean>(false);
-  const [selectedWorker, setSelectedWorker] = useState<{
-    id: number;
-    name: string;
-    jobTitle: string;
-  }>({
-    id: 0,
-    name: '',
-    jobTitle: ''
-  });
-  
   const userRole = useUserRole();
   const isHrManager = userRole === 'hr_manager';
-  const navigate = useNavigate();
-  const theme = useTheme();
+  
+  // Use our custom hooks
+  const eventUtils = useEventUtils();
+  const { theme, formatDate, formatTime, getEventStatusColor, getWorkerStatusColor, getStatusLabel } = eventUtils;
+  
+  const { 
+    event, 
+    loading, 
+    error, 
+    sortedWorkers, 
+    workerCounts, 
+    isMultiDayEvent, 
+    refreshEventData,
+    jobStats,
+    jobsWithWorkerCounts
+  } = useEventData(eventId);
+  
+  const {
+    approvalSuccess,
+    backupSuccess,
+    approvedWorker,
+    ratingModalOpen,
+    selectedWorker,
+    handleWorkerStatusChange,
+    handleCloseSuccessModal,
+    handleCloseBackupModal,
+    handleOpenRatingModal,
+    handleCloseRatingModal,
+    handleRatingSuccess
+  } = useWorkerActions(eventId, refreshEventData);
+
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  useEffect(() => {
-    const fetchEventData = async () => {
-      if (!eventId) {
-        setError('Event ID is missing');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const eventData = await getEvent(Number(eventId));
-        setEvent(eventData);
-        setLoading(false);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch event data');
-        setLoading(false);
-      }
-    };
-
-    fetchEventData();
-  }, [eventId]);
-
-  // Format dates for display
-  const formatDate = (dateString: string): string => {
-    return format(new Date(dateString), 'PPP'); // Format: Apr 29, 2021
-  };
-  
-  const formatTime = (dateString: string): string => {
-    return format(new Date(dateString), 'p'); // Format: 5:00 PM
-  };
-  
-  // Check if event spans multiple days
-  const isMultiDayEvent = (startDate: string, endDate: string): boolean => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    // Reset time to midnight to compare just the dates
-    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-    const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-    
-    return startDay.getTime() !== endDay.getTime();
-  };
-
-  // Sort workers - approved workers first, then backup, then pending
-  const sortedWorkers = event?.workers ? [...event.workers].sort((a, b) => {
-    if (a.status === 'APPROVED' && b.status !== 'APPROVED') return -1;
-    if (a.status !== 'APPROVED' && b.status === 'APPROVED') return 1;
-    if (a.status === 'BACKUP' && b.status === 'PENDING') return -1;
-    if (a.status === 'PENDING' && b.status === 'BACKUP') return 1;
-    return 0;
-  }) : [];
-
-  // Updated function to handle different worker statuses
-  const handleWorkerStatusChange = async (workerId: number, jobTitle: string, workerName: string, status: string) => {
-    try {
-      if (!eventId) return;
-      
-      await assignWorkerToEvent({
-        event_id: Number(eventId),
-        worker_id: workerId,
-        job_title: jobTitle,
-        status: status
-      });
-      
-      setApprovedWorker({
-        name: workerName,
-        jobTitle: jobTitle
-      });
-      
-      // Show appropriate success modal based on status
-      if (status === "APPROVED") {
-        setApprovalSuccess(true);
-      } else if (status === "BACKUP") {
-        setBackupSuccess(true);
-      }
-      
-      // Refresh event data after successful status change
-      const updatedEventData = await getEvent(Number(eventId));
-      setEvent(updatedEventData);
-    } catch (err) {
-      console.error(`Error changing worker status to ${status}:`, err);
-      setError(err instanceof Error ? err.message : `Failed to change worker status to ${status}`);
-    }
-  };
-  
-  const handleCloseSuccessModal = () => {
-    setApprovalSuccess(false);
-  };
-
-  const handleCloseBackupModal = () => {
-    setBackupSuccess(false);
-  };
-
-  const handleOpenRatingModal = (workerId: number, workerName: string, jobTitle: string) => {
-    setSelectedWorker({
-      id: workerId,
-      name: workerName,
-      jobTitle
-    });
-    setRatingModalOpen(true);
-  };
-
-  const handleCloseRatingModal = () => {
-    setRatingModalOpen(false);
-  };
-
-  const handleRatingSuccess = async () => {
-    // Refresh event data after successful rating
-    if (!eventId) return;
-    
-    try {
-      const updatedEventData = await getEvent(Number(eventId));
-      setEvent(updatedEventData);
-    } catch (err) {
-      console.error("Error refreshing event data:", err);
-    }
-  };
-
-  // Get event status style
-  const getEventStatusColor = (status: string) => {
-    switch(status.toLowerCase()) {
-      case 'planned': return 'primary';
-      case 'ongoing': return 'success';
-      case 'completed': return 'secondary';
-      case 'cancelled': return 'error';
-      default: return 'default';
-    }
-  };
-
-  // Get worker status style
-  const getWorkerStatusColor = (status: string) => {
-    switch(status.toUpperCase()) {
-      case 'APPROVED': return 'success';
-      case 'PENDING': return 'warning';
-      case 'BACKUP': return 'info';
-      default: return 'default';
-    }
-  };
 
   // Get worker status icon
   const getWorkerStatusIcon = (status: string): React.ReactElement | undefined => {
@@ -280,28 +98,10 @@ const EventPage: React.FC = () => {
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-  };
-
-  // Count workers by status
-  const getWorkerCounts = () => {
-    if (!event?.workers) return { approved: 0, backup: 0, pending: 0 };
-    
-    return event.workers.reduce((counts, worker) => {
-      if (worker.status === 'APPROVED') counts.approved += 1;
-      else if (worker.status === 'BACKUP') counts.backup += 1;
-      else if (worker.status === 'PENDING') counts.pending += 1;
-      return counts;
-    }, { approved: 0, backup: 0, pending: 0 });
-  };
-
-  const workerCounts = getWorkerCounts();
-
   // Error state view
   if (error) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 8, mb: 4, pt: 4 }}>
+      <Container maxWidth="lg" sx={{ mb: 4 }}>
         <Box 
           sx={{ 
             display: 'flex', 
@@ -401,7 +201,7 @@ const EventPage: React.FC = () => {
           
           <Chip 
             label={getStatusLabel(event.status)} 
-            color={getEventStatusColor(event.status) as any}
+            color={getEventStatusColor(event.status)}
             sx={{ 
               fontWeight: 500, 
               px: 1,
@@ -507,6 +307,146 @@ const EventPage: React.FC = () => {
                   </Stack>
                 </Grid>
               </Grid>
+            </Box>
+          </CardContent>
+        </Card>
+        
+        {/* Jobs and Staffing Overview Card */}
+        <Card 
+          elevation={2} 
+          sx={{ 
+            mb: 4, 
+            overflow: 'hidden',
+            borderRadius: 2
+          }}
+        >
+          <CardContent sx={{ p: 0 }}>
+            <Box sx={{ p: 3, backgroundColor: 'background.paper' }}>
+              <Typography 
+                variant="h6" 
+                component="h2" 
+                sx={{ 
+                  fontWeight: 600, 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  mb: 2
+                }}
+              >
+                <WorkOutlineIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                Staffing Overview
+              </Typography>
+              
+              {/* Overall Staffing Progress */}
+              <Box sx={{ mb: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle2">Overall Staffing Progress</Typography>
+                  <Typography variant="subtitle2" fontWeight={500}>
+                    {jobStats.filledPositions}/{jobStats.totalOpenings} positions filled
+                  </Typography>
+                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={(jobStats.filledPositions / Math.max(1, jobStats.totalOpenings)) * 100} 
+                  color="success"
+                  sx={{ 
+                    height: 8, 
+                    borderRadius: 4,
+                    mb: 1,
+                    backgroundColor: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.12)'
+                  }}
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Chip 
+                    label={`${jobStats.remainingOpenings} positions remaining`} 
+                    size="small" 
+                    color="primary"
+                    variant="outlined"
+                    icon={<GroupIcon fontSize="small" />}
+                    sx={{ fontWeight: 500 }}
+                  />
+                  <Chip 
+                    label={`${jobStats.totalSlots} total slots available`} 
+                    size="small" 
+                    color="default"
+                    variant="outlined"
+                    icon={<PersonOutlinedIcon fontSize="small" />}
+                  />
+                </Box>
+              </Box>
+              
+              {/* Jobs Breakdown */}
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                Jobs Breakdown
+              </Typography>
+              <TableContainer component={Paper} sx={{ boxShadow: 'none', mb: 2 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900] }}>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Job Title</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Openings</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Slots</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Approved</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Backup</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Pending</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Remaining</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {jobsWithWorkerCounts.map((job, index) => (
+                      <TableRow key={`job-${index}`}>
+                        <TableCell sx={{ fontWeight: 500 }}>{job.job_title}</TableCell>
+                        <TableCell>{job.openings}</TableCell>
+                        <TableCell>{job.slots}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={job.workerCounts.approved} 
+                            size="small" 
+                            color="success"
+                            variant={job.workerCounts.approved > 0 ? "filled" : "outlined"}
+                            sx={{ minWidth: 60 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={job.workerCounts.backup} 
+                            size="small" 
+                            color="info"
+                            variant={job.workerCounts.backup > 0 ? "filled" : "outlined"}
+                            sx={{ minWidth: 60 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={job.workerCounts.pending} 
+                            size="small" 
+                            color="warning"
+                            variant={job.workerCounts.pending > 0 ? "filled" : "outlined"}
+                            sx={{ minWidth: 60 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {job.remainingOpenings > 0 ? (
+                            <Chip 
+                              label={job.remainingOpenings} 
+                              size="small" 
+                              color="primary"
+                              sx={{ minWidth: 60 }}
+                            />
+                          ) : (
+                            <Chip 
+                              label="Filled" 
+                              size="small" 
+                              color="success"
+                              icon={<CheckCircleOutlineIcon fontSize="small" />}
+                              sx={{ minWidth: 60 }}
+                            />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Box>
           </CardContent>
         </Card>
@@ -663,7 +603,7 @@ const EventPage: React.FC = () => {
                     <TableCell>
                       <Chip 
                         label={worker.status} 
-                        color={getWorkerStatusColor(worker.status) as any} 
+                        color={getWorkerStatusColor(worker.status)} 
                         size="small"
                         variant={worker.status === 'PENDING' ? 'outlined' : 'filled'}
                         icon={getWorkerStatusIcon(worker.status)}
@@ -776,50 +716,43 @@ const EventPage: React.FC = () => {
   };
 
   return (
-    <>
-      {/* Top navigation tabs */}
-      <EventPageTabs />
+    <Container 
+      maxWidth="lg" 
+      sx={{ 
+        mb: { xs: 10, sm: 4 },
+        pt: { xs: 2, sm: 4 },
+        px: { xs: 2, sm: 3 }
+      }}
+    >
+      {contentView()}
       
-      {/* Main content with proper spacing to account for navigation */}
-      <Container 
-        maxWidth="lg" 
-        sx={{ 
-          mt: { xs: 2, sm: 8 },
-          mb: { xs: 10, sm: 4 },
-          pt: { xs: 2, sm: 4 },
-          px: { xs: 2, sm: 3 }
-        }}
-      >
-        {contentView()}
-        
-        {/* Worker Approval Success Modal */}
-        <WorkerApprovalSuccessModal
-          open={approvalSuccess}
-          onClose={handleCloseSuccessModal}
-          workerName={approvedWorker.name}
-          jobTitle={approvedWorker.jobTitle}
-        />
+      {/* Worker Approval Success Modal */}
+      <WorkerApprovalSuccessModal
+        open={approvalSuccess}
+        onClose={handleCloseSuccessModal}
+        workerName={approvedWorker.name}
+        jobTitle={approvedWorker.jobTitle}
+      />
 
-        {/* Worker Backup Success Modal */}
-        <WorkerBackupSuccessModal
-          open={backupSuccess}
-          onClose={handleCloseBackupModal}
-          workerName={approvedWorker.name}
-          jobTitle={approvedWorker.jobTitle}
-        />
+      {/* Worker Backup Success Modal */}
+      <WorkerBackupSuccessModal
+        open={backupSuccess}
+        onClose={handleCloseBackupModal}
+        workerName={approvedWorker.name}
+        jobTitle={approvedWorker.jobTitle}
+      />
 
-        {/* Worker Rating Modal */}
-        <WorkerRatingModal
-          open={ratingModalOpen}
-          onClose={handleCloseRatingModal}
-          eventId={Number(eventId)}
-          workerId={selectedWorker.id}
-          workerName={selectedWorker.name}
-          jobTitle={selectedWorker.jobTitle}
-          onRatingSuccess={handleRatingSuccess}
-        />
-      </Container>
-    </>
+      {/* Worker Rating Modal */}
+      <WorkerRatingModal
+        open={ratingModalOpen}
+        onClose={handleCloseRatingModal}
+        eventId={Number(eventId)}
+        workerId={selectedWorker.id}
+        workerName={selectedWorker.name}
+        jobTitle={selectedWorker.jobTitle}
+        onRatingSuccess={handleRatingSuccess}
+      />
+    </Container>
   );
 };
 
