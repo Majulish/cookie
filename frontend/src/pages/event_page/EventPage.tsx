@@ -29,8 +29,9 @@ import {
 } from '@mui/material';
 import { format } from 'date-fns';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getEvent, assignWorkerToEvent } from '../../api/eventApi';
+import { getEvent, assignWorkerToEvent, feedbackWorker } from '../../api/eventApi';
 import WorkerApprovalSuccessModal from '../../components/WorkerApprovalSuccessModal';
+import WorkerRatingModal from './WorkerRatingModal';
 import useUserRole from '../home/hooks/useUserRole';
 import ResponsiveTabs from '../../components/ResponsiveTabs';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
@@ -41,6 +42,7 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
+import StarIcon from '@mui/icons-material/Star';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 // Using the existing interfaces from your API
@@ -53,6 +55,15 @@ interface EventWorker {
   age?: number;
   rating?: number;
   phone: string;
+  rating_count?: number;
+  approval_status?: boolean;
+  approval_count?: number;
+}
+
+interface eventJob{
+  job_title: string;
+  openings: number;
+  slots: number;
 }
 
 interface DetailedEvent {
@@ -65,6 +76,7 @@ interface DetailedEvent {
   end_datetime: string;
   status: string;
   workers: EventWorker[];
+  jobs: eventJob[];
 }
 
 // Create a custom modified version of ResponsiveTabs with navigation support
@@ -99,6 +111,17 @@ const EventPage: React.FC = () => {
     name: '',
     jobTitle: ''
   });
+  const [ratingModalOpen, setRatingModalOpen] = useState<boolean>(false);
+  const [selectedWorker, setSelectedWorker] = useState<{
+    id: number;
+    name: string;
+    jobTitle: string;
+  }>({
+    id: 0,
+    name: '',
+    jobTitle: ''
+  });
+  
   const userRole = useUserRole();
   const isHrManager = userRole === 'hr_manager';
   const navigate = useNavigate();
@@ -184,6 +207,31 @@ const EventPage: React.FC = () => {
   
   const handleCloseSuccessModal = () => {
     setApprovalSuccess(false);
+  };
+
+  const handleOpenRatingModal = (workerId: number, workerName: string, jobTitle: string) => {
+    setSelectedWorker({
+      id: workerId,
+      name: workerName,
+      jobTitle
+    });
+    setRatingModalOpen(true);
+  };
+
+  const handleCloseRatingModal = () => {
+    setRatingModalOpen(false);
+  };
+
+  const handleRatingSuccess = async () => {
+    // Refresh event data after successful rating
+    if (!eventId) return;
+    
+    try {
+      const updatedEventData = await getEvent(Number(eventId));
+      setEvent(updatedEventData);
+    } catch (err) {
+      console.error("Error refreshing event data:", err);
+    }
   };
 
   // Get event status style
@@ -459,7 +507,6 @@ const EventPage: React.FC = () => {
           <Table sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900] }}>
-                <TableCell sx={{ fontWeight: 'bold' }}>Worker ID</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Job Title</TableCell>
                 {!isMobile && <TableCell sx={{ fontWeight: 'bold' }}>City</TableCell>}
@@ -468,6 +515,7 @@ const EventPage: React.FC = () => {
                 <TableCell sx={{ fontWeight: 'bold' }}>Rating</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                 {isHrManager && <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold' }}>Rate</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -490,7 +538,6 @@ const EventPage: React.FC = () => {
                       }
                     }}
                   >
-                    <TableCell>{worker.worker_id}</TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Avatar 
@@ -529,9 +576,13 @@ const EventPage: React.FC = () => {
                           size="small"
                           emptyIcon={<StarOutlineIcon fontSize="inherit" />}
                         />
-                        {!worker.rating && (
+                        {worker.rating_count === 0 || worker.rating_count === undefined ? (
                           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                            Not rated
+                            No ratings yet
+                          </Typography>
+                        ) : (
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {worker.rating?.toFixed(1) || '0.0'} ({worker.rating_count})
                           </Typography>
                         )}
                       </Box>
@@ -574,6 +625,23 @@ const EventPage: React.FC = () => {
                         )}
                       </TableCell>
                     )}
+                    <TableCell>
+                      <Tooltip title="Rate this worker">
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          color="secondary"
+                          startIcon={<StarIcon />}
+                          onClick={() => handleOpenRatingModal(worker.worker_id, worker.name, worker.job_title)}
+                          sx={{
+                            textTransform: 'none',
+                            borderRadius: 1.5
+                          }}
+                        >
+                          Rate
+                        </Button>
+                      </Tooltip>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -619,6 +687,17 @@ const EventPage: React.FC = () => {
           onClose={handleCloseSuccessModal}
           workerName={approvedWorker.name}
           jobTitle={approvedWorker.jobTitle}
+        />
+
+        {/* Worker Rating Modal */}
+        <WorkerRatingModal
+          open={ratingModalOpen}
+          onClose={handleCloseRatingModal}
+          eventId={Number(eventId)}
+          workerId={selectedWorker.id}
+          workerName={selectedWorker.name}
+          jobTitle={selectedWorker.jobTitle}
+          onRatingSuccess={handleRatingSuccess}
         />
       </Container>
     </>

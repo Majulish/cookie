@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Container, 
   Typography, 
   Grid, 
   Button, 
@@ -21,7 +20,6 @@ import AddIcon from '@mui/icons-material/Add';
 import EventIcon from '@mui/icons-material/Event';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import FeedIcon from '@mui/icons-material/Feed';
-import ResponsiveTabs from '../../components/ResponsiveTabs';
 import NewEventModal from './create_event/NewEventModal';
 import { EventFormInputs, convertFormDataToAPIPayload } from './create_event/eventScheme';
 import { createEvent, getMyEvents, getEventsFeed, editEvent, deleteEvent } from '../../api/eventApi';
@@ -30,7 +28,6 @@ import FeedList from './feed/FeedList';
 import MyEventList from './my_events/MyEventList';
 import LoadingPage from './LoadingPage';
 import axios from 'axios';
-import NotificationsMenu from '../../components/NotificationsMenu';
 import { Link } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
@@ -143,7 +140,7 @@ const HomePage: React.FC = () => {
                                     sx={{ 
                                         color: 'primary.main',
                                         mr: 1.5,
-                                        fontSize: '2.2rem'  // Increased from 1.75rem
+                                        fontSize: '2.2rem'
                                     }} 
                                 />
                                 <Typography 
@@ -152,7 +149,7 @@ const HomePage: React.FC = () => {
                                     sx={{ 
                                         fontWeight: 600,
                                         color: 'text.primary',
-                                        fontSize: '2rem'  // Increased from default h5
+                                        fontSize: '2rem'
                                     }}
                                 >
                                     My Events
@@ -167,8 +164,8 @@ const HomePage: React.FC = () => {
                                 sx={{ 
                                     borderRadius: '8px',
                                     textTransform: 'none',
-                                    fontSize: '1.1rem',  // Increased font size
-                                    padding: '8px 16px'  // Added more padding
+                                    fontSize: '1.1rem',
+                                    padding: '8px 16px'
                                 }}
                             >
                                 Browse Events
@@ -198,8 +195,8 @@ const HomePage: React.FC = () => {
                                     color="primary"
                                     sx={{ 
                                         mt: 2,
-                                        fontSize: '1.1rem',  // Increased font size
-                                        padding: '8px 20px'  // Increased padding
+                                        fontSize: '1.1rem',
+                                        padding: '8px 20px'
                                     }}
                                 >
                                     Find Events
@@ -242,7 +239,7 @@ const HomePage: React.FC = () => {
                                 sx={{ 
                                     color: 'primary.main',
                                     mr: 1.5,
-                                    fontSize: '2.2rem'  // Increased from 1.75rem
+                                    fontSize: '2.2rem'
                                 }} 
                             />
                             <Typography 
@@ -250,7 +247,7 @@ const HomePage: React.FC = () => {
                                 component="h1" 
                                 sx={{ 
                                     fontWeight: 600,
-                                    fontSize: '2rem'  // Increased from default h5
+                                    fontSize: '2rem'
                                 }}
                             >
                                 Event Management
@@ -259,15 +256,15 @@ const HomePage: React.FC = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            size="large"  // Changed from medium to large
+                            size="large"
                             startIcon={<AddIcon sx={{ fontSize: '1.5rem' }} />}
                             onClick={handleOpen}
                             sx={{ 
                                 borderRadius: '8px',
                                 textTransform: 'none',
                                 fontWeight: 600,
-                                fontSize: '1.2rem',  // Increased font size
-                                padding: '10px 24px',  // Increased padding
+                                fontSize: '1.2rem',
+                                padding: '10px 24px',
                                 boxShadow: 2
                             }}
                         >
@@ -335,14 +332,14 @@ const HomePage: React.FC = () => {
                                     sx={{ 
                                         color: 'primary.main',
                                         mr: 1.5,
-                                        fontSize: '2.2rem'  // Increased from 1.75rem
+                                        fontSize: '2.2rem'
                                     }} 
                                 />
                                 <Typography 
                                     variant="h5" 
                                     sx={{ 
                                         fontWeight: 600,
-                                        fontSize: '2rem'  // Increased from default h5
+                                        fontSize: '2rem'
                                     }}
                                 >
                                     All Events
@@ -361,81 +358,53 @@ const HomePage: React.FC = () => {
     }
     
     return (
-        <Box 
-            sx={{ 
-                bgcolor: 'background.default',
-                minHeight: '100vh',
-                pb: 8 
-            }}
-        >
-            <Container maxWidth="xl" sx={{ pt: 3, pb: 6 }}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                        <Paper 
-                            elevation={0} 
-                            sx={{ 
-                                borderRadius: 2,
-                                mb: 3,
-                                overflow: 'hidden',
-                                border: '1px solid',
-                                borderColor: 'divider'
-                            }}
-                        >
-                            <ResponsiveTabs value={0} />
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={12}>
-                        {userRole === 'worker' ? renderWorkerView() : renderRecruiterView()}
-                    </Grid>
-                </Grid>
+        <>
+            {userRole === 'worker' ? renderWorkerView() : renderRecruiterView()}
 
-                {/* Floating action button for creating events (only for non-workers) */}
-                {userRole !== 'worker' && isMobile && (
-                    <Tooltip title="Create Event" placement="left" TransitionComponent={Fade}>
-                        <Fab
-                            color="primary"
-                            aria-label="create event"
-                            onClick={handleOpen}
-                            sx={{
-                                position: 'fixed',
-                                bottom: 24,
-                                right: 24,
-                                boxShadow: 3,
-                                width: '64px',  // Increased size
-                                height: '64px'  // Increased size
-                            }}
-                        >
-                            <AddIcon sx={{ fontSize: '2rem' }} />
-                        </Fab>
-                    </Tooltip>
-                )}
-
-                <NotificationsMenu />
-
-                <NewEventModal 
-                    open={modalOpen} 
-                    onClose={handleClose} 
-                    onSubmit={handleEventSubmit} 
-                    mode="create"
-                />
-                
-                <Snackbar 
-                    open={snackbarOpen} 
-                    autoHideDuration={6000} 
-                    onClose={handleSnackbarClose}
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                >
-                    <Alert 
-                        onClose={handleSnackbarClose} 
-                        severity={snackbarSeverity}
-                        variant="filled"
-                        sx={{ width: '100%', fontSize: '1.1rem' }}
+            {/* Floating action button for creating events (only for non-workers) */}
+            {userRole !== 'worker' && isMobile && (
+                <Tooltip title="Create Event" placement="left" TransitionComponent={Fade}>
+                    <Fab
+                        color="primary"
+                        aria-label="create event"
+                        onClick={handleOpen}
+                        sx={{
+                            position: 'fixed',
+                            bottom: 24,
+                            right: 24,
+                            boxShadow: 3,
+                            width: '64px',
+                            height: '64px'
+                        }}
                     >
-                        {snackbarMessage}
-                    </Alert>
-                </Snackbar>
-            </Container>
-        </Box>
+                        <AddIcon sx={{ fontSize: '2rem' }} />
+                    </Fab>
+                </Tooltip>
+            )}
+
+            <NewEventModal 
+                open={modalOpen} 
+                onClose={handleClose} 
+                onSubmit={handleEventSubmit} 
+                mode="create"
+            />
+            
+            <Snackbar 
+                open={snackbarOpen} 
+                autoHideDuration={6000} 
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert 
+                    onClose={handleSnackbarClose} 
+                    severity={snackbarSeverity}
+                    variant="filled"
+                    sx={{ width: '100%', fontSize: '1.1rem' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+        </>
     );
 };
 
