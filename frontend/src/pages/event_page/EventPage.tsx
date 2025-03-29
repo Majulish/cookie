@@ -113,16 +113,17 @@ const EventPage = () => {
           }}
         >
           <ErrorOutlineIcon color="error" sx={{ fontSize: 64, mb: 2 }} />
-          <Typography variant="h5" color="error" gutterBottom>
+          <Typography variant="h5" color="error" gutterBottom sx={{ fontSize: '1.3rem' }}>
             Error Loading Event
           </Typography>
-          <Typography variant="body1" color="text.secondary" mb={4}>
+          <Typography variant="body1" color="text.secondary" mb={4} sx={{ fontSize: '1.2rem' }}>
             {error}
           </Typography>
           <Button 
             variant="contained" 
             onClick={() => navigate('/schedule')}
             startIcon={<HomeOutlinedIcon />}
+            sx={{ fontSize: '1.1rem', padding: '8px 20px' }}
           >
             Return to Schedule
           </Button>
@@ -153,16 +154,17 @@ const EventPage = () => {
           }}
         >
           <ErrorOutlineIcon color="warning" sx={{ fontSize: 64, mb: 2 }} />
-          <Typography variant="h5" gutterBottom>
+          <Typography variant="h5" gutterBottom sx={{ fontSize: '1.3rem' }}>
             No Event Found
           </Typography>
-          <Typography variant="body1" color="text.secondary" mb={4}>
+          <Typography variant="body1" color="text.secondary" mb={4} sx={{ fontSize: '1.2rem' }}>
             The requested event could not be found or has been removed.
           </Typography>
           <Button 
             variant="contained" 
             onClick={() => navigate('/schedule')}
             startIcon={<HomeOutlinedIcon />}
+            sx={{ fontSize: '1.1rem', padding: '8px 20px' }}
           >
             Return to Schedule
           </Button>
@@ -178,12 +180,12 @@ const EventPage = () => {
             color="inherit" 
             href="/" 
             onClick={(e) => { e.preventDefault(); navigate('/'); }}
-            sx={{ display: 'flex', alignItems: 'center' }}
+            sx={{ display: 'flex', alignItems: 'center', fontSize: '1.1rem' }}
           >
             <HomeOutlinedIcon sx={{ mr: 0.5 }} fontSize="small" />
             Home
           </Link>
-          <Typography color="text.primary">{event.name}</Typography>
+          <Typography color="text.primary" sx={{ fontSize: '1.1rem' }}>{event.name}</Typography>
         </Breadcrumbs>
         
         {/* Event Header with Status */}
@@ -193,7 +195,8 @@ const EventPage = () => {
             component="h1" 
             sx={{ 
               fontWeight: 600, 
-              color: theme.palette.text.primary 
+              color: theme.palette.text.primary,
+              fontSize: '2rem'
             }}
           >
             {event.name}
@@ -205,7 +208,8 @@ const EventPage = () => {
             sx={{ 
               fontWeight: 500, 
               px: 1,
-              height: 32
+              height: 32,
+              fontSize: '1rem'
             }}
           />
         </Box>
@@ -226,7 +230,8 @@ const EventPage = () => {
                 variant="body1" 
                 sx={{ 
                   lineHeight: 1.7,
-                  color: theme.palette.text.primary
+                  color: theme.palette.text.primary,
+                  fontSize: '1.2rem'
                 }}
               >
                 {event.description}
@@ -251,10 +256,10 @@ const EventPage = () => {
                       <LocationOnOutlinedIcon />
                     </Avatar>
                     <Box>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
                         Location
                       </Typography>
-                      <Typography variant="subtitle1" fontWeight={500}>
+                      <Typography variant="subtitle1" fontWeight={500} sx={{ fontSize: '1.2rem' }}>
                         {event.city}, {event.address}
                       </Typography>
                     </Box>
@@ -267,10 +272,10 @@ const EventPage = () => {
                       <EventOutlinedIcon />
                     </Avatar>
                     <Box>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
                         Date
                       </Typography>
-                      <Typography variant="subtitle1" fontWeight={500}>
+                      <Typography variant="subtitle1" fontWeight={500} sx={{ fontSize: '1.2rem' }}>
                         {isMultiDayEvent(event.start_datetime, event.end_datetime) 
                           ? `${formatDate(event.start_datetime)} - ${formatDate(event.end_datetime)}` 
                           : formatDate(event.start_datetime)
@@ -286,20 +291,20 @@ const EventPage = () => {
                       <AccessTimeOutlinedIcon />
                     </Avatar>
                     <Box>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
                         {isMultiDayEvent(event.start_datetime, event.end_datetime) ? "Times" : "Time"}
                       </Typography>
                       {isMultiDayEvent(event.start_datetime, event.end_datetime) ? (
                         <Box>
-                          <Typography variant="subtitle1" fontWeight={500}>
+                          <Typography variant="subtitle1" fontWeight={500} sx={{ fontSize: '1.2rem' }}>
                             Start: {formatTime(event.start_datetime)}
                           </Typography>
-                          <Typography variant="subtitle1" fontWeight={500}>
+                          <Typography variant="subtitle1" fontWeight={500} sx={{ fontSize: '1.2rem' }}>
                             End: {formatTime(event.end_datetime)}
                           </Typography>
                         </Box>
                       ) : (
-                        <Typography variant="subtitle1" fontWeight={500}>
+                        <Typography variant="subtitle1" fontWeight={500} sx={{ fontSize: '1.2rem' }}>
                           {formatTime(event.start_datetime)} - {formatTime(event.end_datetime)}
                         </Typography>
                       )}
@@ -329,24 +334,25 @@ const EventPage = () => {
                   fontWeight: 600, 
                   display: 'flex', 
                   alignItems: 'center',
-                  mb: 2
+                  mb: 2,
+                  fontSize: '1.7rem'
                 }}
               >
-                <WorkOutlineIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                <WorkOutlineIcon sx={{ mr: 1, color: theme.palette.primary.main, fontSize: '2.2rem' }} />
                 Staffing Overview
               </Typography>
               
               {/* Overall Staffing Progress */}
               <Box sx={{ mb: 4 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="subtitle2">Overall Staffing Progress</Typography>
-                  <Typography variant="subtitle2" fontWeight={500}>
-                    {jobStats.filledPositions}/{jobStats.totalOpenings} positions filled
+                  <Typography variant="subtitle2" sx={{ fontSize: '1.3rem' }}>Overall Staffing Progress</Typography>
+                  <Typography variant="subtitle2" fontWeight={500} sx={{ fontSize: '1.2rem' }}>
+                    {jobStats.filledPositions}/{jobStats.totalSlots} positions filled
                   </Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={(jobStats.filledPositions / Math.max(1, jobStats.totalOpenings)) * 100} 
+                  value={(jobStats.filledPositions / Math.max(1, jobStats.totalSlots)) * 100} 
                   color="success"
                   sx={{ 
                     height: 8, 
@@ -357,53 +363,54 @@ const EventPage = () => {
                 />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Chip 
-                    label={`${jobStats.remainingOpenings} positions remaining`} 
+                    label={`${jobStats.totalOpenings} positions remaining`} 
                     size="small" 
                     color="primary"
                     variant="outlined"
                     icon={<GroupIcon fontSize="small" />}
-                    sx={{ fontWeight: 500 }}
+                    sx={{ fontWeight: 500, fontSize: '1rem' }}
                   />
                   <Chip 
-                    label={`${jobStats.totalSlots} total slots available`} 
+                    label={`${jobStats.totalSlots} total positions`} 
                     size="small" 
                     color="default"
                     variant="outlined"
                     icon={<PersonOutlinedIcon fontSize="small" />}
+                    sx={{ fontSize: '1rem' }}
                   />
                 </Box>
               </Box>
               
               {/* Jobs Breakdown */}
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2, fontSize: '1.3rem' }}>
                 Jobs Breakdown
               </Typography>
               <TableContainer component={Paper} sx={{ boxShadow: 'none', mb: 2 }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow sx={{ backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900] }}>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Job Title</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Openings</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Slots</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Approved</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Backup</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Pending</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Remaining</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Job Title</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Openings</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Slots</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Approved</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Backup</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Pending</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Remaining</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {jobsWithWorkerCounts.map((job, index) => (
                       <TableRow key={`job-${index}`}>
-                        <TableCell sx={{ fontWeight: 500 }}>{job.job_title}</TableCell>
-                        <TableCell>{job.openings}</TableCell>
-                        <TableCell>{job.slots}</TableCell>
+                        <TableCell sx={{ fontWeight: 500, fontSize: '1.1rem' }}>{job.job_title}</TableCell>
+                        <TableCell sx={{ fontSize: '1.1rem' }}>{job.openings}</TableCell>
+                        <TableCell sx={{ fontSize: '1.1rem' }}>{job.slots}</TableCell>
                         <TableCell>
                           <Chip 
                             label={job.workerCounts.approved} 
                             size="small" 
                             color="success"
                             variant={job.workerCounts.approved > 0 ? "filled" : "outlined"}
-                            sx={{ minWidth: 60 }}
+                            sx={{ minWidth: 60, fontSize: '0.9rem' }}
                           />
                         </TableCell>
                         <TableCell>
@@ -412,7 +419,7 @@ const EventPage = () => {
                             size="small" 
                             color="info"
                             variant={job.workerCounts.backup > 0 ? "filled" : "outlined"}
-                            sx={{ minWidth: 60 }}
+                            sx={{ minWidth: 60, fontSize: '0.9rem' }}
                           />
                         </TableCell>
                         <TableCell>
@@ -421,7 +428,7 @@ const EventPage = () => {
                             size="small" 
                             color="warning"
                             variant={job.workerCounts.pending > 0 ? "filled" : "outlined"}
-                            sx={{ minWidth: 60 }}
+                            sx={{ minWidth: 60, fontSize: '0.9rem' }}
                           />
                         </TableCell>
                         <TableCell>
@@ -430,7 +437,7 @@ const EventPage = () => {
                               label={job.remainingOpenings} 
                               size="small" 
                               color="primary"
-                              sx={{ minWidth: 60 }}
+                              sx={{ minWidth: 60, fontSize: '0.9rem' }}
                             />
                           ) : (
                             <Chip 
@@ -438,7 +445,7 @@ const EventPage = () => {
                               size="small" 
                               color="success"
                               icon={<CheckCircleOutlineIcon fontSize="small" />}
-                              sx={{ minWidth: 60 }}
+                              sx={{ minWidth: 60, fontSize: '0.9rem' }}
                             />
                           )}
                         </TableCell>
@@ -466,10 +473,11 @@ const EventPage = () => {
             sx={{ 
               fontWeight: 600, 
               display: 'flex', 
-              alignItems: 'center' 
+              alignItems: 'center',
+              fontSize: '2rem'
             }}
           >
-            <PersonOutlinedIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+            <PersonOutlinedIcon sx={{ mr: 1, color: theme.palette.primary.main, fontSize: '2.2rem' }} />
             Event Workers
           </Typography>
           
@@ -481,6 +489,7 @@ const EventPage = () => {
                 variant="outlined"
                 color="success"
                 size="small"
+                sx={{ fontSize: '0.9rem' }}
               />
               <Chip 
                 icon={<AccessTimeOutlinedIcon />} 
@@ -488,6 +497,7 @@ const EventPage = () => {
                 variant="outlined"
                 color="info"
                 size="small"
+                sx={{ fontSize: '0.9rem' }}
               />
               <Chip 
                 icon={<AssignmentIndIcon />} 
@@ -495,6 +505,7 @@ const EventPage = () => {
                 variant="outlined"
                 color="warning"
                 size="small"
+                sx={{ fontSize: '0.9rem' }}
               />
             </Stack>
           )}
@@ -513,15 +524,15 @@ const EventPage = () => {
           <Table sx={{ minWidth: 650 }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900] }}>
-                <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Job Title</TableCell>
-                {!isMobile && <TableCell sx={{ fontWeight: 'bold' }}>City</TableCell>}
-                {!isMobile && <TableCell sx={{ fontWeight: 'bold' }}>Age</TableCell>}
-                <TableCell sx={{ fontWeight: 'bold' }}>Phone</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Rating</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                {isHrManager && <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>}
-                <TableCell sx={{ fontWeight: 'bold' }}>Rate</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Job Title</TableCell>
+                {!isMobile && <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>City</TableCell>}
+                {!isMobile && <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Age</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Phone</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Rating</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Status</TableCell>
+                {isHrManager && <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Actions</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Rate</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -567,16 +578,16 @@ const EventPage = () => {
                         >
                           {worker.name.charAt(0)}
                         </Avatar>
-                        {worker.name}
+                        <Typography sx={{ fontSize: '1.1rem' }}>{worker.name}</Typography>
                       </Box>
                     </TableCell>
-                    <TableCell>{worker.job_title}</TableCell>
-                    {!isMobile && <TableCell>{worker.city || 'N/A'}</TableCell>}
-                    {!isMobile && <TableCell>{worker.age || 'N/A'}</TableCell>}
+                    <TableCell sx={{ fontSize: '1.1rem' }}>{worker.job_title}</TableCell>
+                    {!isMobile && <TableCell sx={{ fontSize: '1.1rem' }}>{worker.city || 'N/A'}</TableCell>}
+                    {!isMobile && <TableCell sx={{ fontSize: '1.1rem' }}>{worker.age || 'N/A'}</TableCell>}
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <PhoneOutlinedIcon fontSize="small" sx={{ mr: 0.5, color: theme.palette.text.secondary }} />
-                        {worker.phone || 'N/A'}
+                        <Typography sx={{ fontSize: '1.1rem' }}>{worker.phone || 'N/A'}</Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
@@ -590,11 +601,11 @@ const EventPage = () => {
                           emptyIcon={<StarOutlineIcon fontSize="inherit" />}
                         />
                         {worker.rating_count === 0 || worker.rating_count === undefined ? (
-                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.9rem' }}>
                             No ratings yet
                           </Typography>
                         ) : (
-                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.9rem' }}>
                             {worker.rating?.toFixed(1) || '0.0'} ({worker.rating_count})
                           </Typography>
                         )}
@@ -607,7 +618,7 @@ const EventPage = () => {
                         size="small"
                         variant={worker.status === 'PENDING' ? 'outlined' : 'filled'}
                         icon={getWorkerStatusIcon(worker.status)}
-                        sx={{ fontWeight: 500 }}
+                        sx={{ fontWeight: 500, fontSize: '0.9rem' }}
                       />
                     </TableCell>
                     {isHrManager && (
@@ -625,7 +636,8 @@ const EventPage = () => {
                                   borderRadius: 1.5,
                                   boxShadow: 1,
                                   minWidth: 0,
-                                  px: 1.5
+                                  px: 1.5,
+                                  fontSize: '1rem'
                                 }}
                               >
                                 Approve
@@ -641,7 +653,8 @@ const EventPage = () => {
                                   textTransform: 'none',
                                   borderRadius: 1.5,
                                   minWidth: 0,
-                                  px: 1.5
+                                  px: 1.5,
+                                  fontSize: '1rem'
                                 }}
                               >
                                 Backup
@@ -657,7 +670,8 @@ const EventPage = () => {
                               onClick={() => handleWorkerStatusChange(worker.worker_id, worker.job_title, worker.name, "APPROVED")}
                               sx={{ 
                                 textTransform: 'none',
-                                borderRadius: 1.5
+                                borderRadius: 1.5,
+                                fontSize: '1rem'
                               }}
                             >
                               Promote to Approved
@@ -671,6 +685,7 @@ const EventPage = () => {
                               size="small" 
                               icon={<CheckCircleOutlineIcon />}
                               variant="outlined"
+                              sx={{ fontSize: '0.9rem' }}
                             />
                           </Tooltip>
                         )}
@@ -686,7 +701,8 @@ const EventPage = () => {
                           onClick={() => handleOpenRatingModal(worker.worker_id, worker.name, worker.job_title)}
                           sx={{
                             textTransform: 'none',
-                            borderRadius: 1.5
+                            borderRadius: 1.5,
+                            fontSize: '1rem'
                           }}
                         >
                           Rate
@@ -702,7 +718,7 @@ const EventPage = () => {
                     align="center"
                     sx={{ py: 4 }}
                   >
-                    <Typography color="text.secondary">
+                    <Typography color="text.secondary" sx={{ fontSize: '1.2rem' }}>
                       No workers assigned to this event
                     </Typography>
                   </TableCell>

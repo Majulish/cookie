@@ -48,6 +48,15 @@ interface JobStats {
   filledPositions: number;
 }
 
+interface JobWithWorkerCounts extends EventJob {
+  workerCounts: {
+    approved: number;
+    backup: number;
+    pending: number;
+  };
+  remainingOpenings: number;
+}
+
 /**
  * Hook to fetch and manage event data
  * @param {number | string | undefined} eventId - The ID of the event to fetch
@@ -137,8 +146,8 @@ const useEventData = (eventId: number | string | undefined) => {
   };
 
   // Get worker counts per job title
-  const getJobWorkerCounts = () => {
-    if (!event?.workers || !event?.jobs) return {};
+  const getJobWorkerCounts = (): JobWithWorkerCounts[] => {
+    if (!event?.workers || !event?.jobs) return [];
     
     // Count workers by job title and status
     const workersByJob = event.workers.reduce((acc: Record<string, { approved: number, backup: number, pending: number }>, worker) => {
