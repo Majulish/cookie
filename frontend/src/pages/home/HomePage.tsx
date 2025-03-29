@@ -114,7 +114,7 @@ const HomePage: React.FC = () => {
     };
 
     const renderWorkerView = () => (
-        <Grid container spacing={4}>
+        <Grid container spacing={4} sx={{ pt: 4 }}>
             <Grid item xs={12}>
                 <Paper 
                     elevation={0}
@@ -216,7 +216,7 @@ const HomePage: React.FC = () => {
     );
 
     const renderRecruiterView = () => (
-        <Grid container spacing={4}>
+        <Grid container spacing={4} sx={{ pt: 4 }}>
             <Grid item xs={12}>
                 <Paper 
                     elevation={0}
