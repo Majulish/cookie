@@ -24,7 +24,7 @@ def schedule_worker_reminders(event_id: int, worker_id: int, start_time: datetim
     if start_time.tzinfo is not None:
         event_timestamp = start_time.timestamp()
     else:
-        # If no timezone, treat as local time (Israel, UTC+2)
+        # If no timezone, treat as local time (Israel, UTC+3)
         israel_tz = datetime.timezone(datetime.timedelta(hours=3))
         event_timestamp = start_time.replace(tzinfo=israel_tz).timestamp()
 

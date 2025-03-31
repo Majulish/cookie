@@ -3,7 +3,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
-from backend.SECRETS import JWT_TOKEN
+from backend.SECRETS import JWT_SECRET_KEY
 from backend.routes.user_routes import user_blueprint
 from backend.routes.event_routes import event_blueprint
 from backend.routes.notification_routes import notifications_blueprint
@@ -20,7 +20,7 @@ def create_app():
         "supports_credentials": True
     }})
 
-    app.config['JWT_SECRET_KEY'] = JWT_TOKEN
+    app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
     app.config['JWT_TOKEN_LOCATION'] = ['cookies']
     app.config['JWT_ACCESS_COOKIE_PATH'] = '/'
     app.config['JWT_REFRESH_COOKIE_PATH'] = '/users/refresh'

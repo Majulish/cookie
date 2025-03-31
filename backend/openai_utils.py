@@ -1,8 +1,8 @@
-import openai
+from openai import OpenAI
 from backend.SECRETS import OPEN_AI_KEY
 
 
-openai.api_key = OPEN_AI_KEY
+client = OpenAI(api_key=OPEN_AI_KEY)
 
 
 def generate_event_description(prompt: str) -> str:
@@ -16,12 +16,11 @@ def generate_event_description(prompt: str) -> str:
         str: The AI-generated professional description.
     """
     try:
-        messages = [{"role": "user", "content": prompt}]
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=messages,
+            messages=[{"role": "user", "content": prompt}],
             temperature=0
         )
-        return response.choices[0].message["content"]
+        return response.choices[0].message.content
     except Exception as e:
         raise Exception(f"OpenAI API error: {e}")

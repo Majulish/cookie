@@ -608,7 +608,7 @@ const NotificationsMenu: React.FC = () => {
       </Popover>
 
       {/* Notification Approval Dialog - Only shown for non-worker roles */}
-      {!isWorker && (
+      {isWorker && (
         <NotificationApprovalDialog
           notification={pendingApprovalNotification}
           open={dialogOpen}
