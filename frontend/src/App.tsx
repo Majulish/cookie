@@ -10,6 +10,7 @@ import EventPage from './pages/event_page/EventPage';
 import FeedPage from './pages/home/feed/FeedPage';
 import EventCalendarPage from './pages/calender/EventCalendarPage';
 import Layout from './components/Layout';
+import ProfilePage from './pages/profile/ProfilePage';
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
       { path: '/event-page/:eventId', element: <EventPage /> },
       { path: '/feed', element: <FeedPage /> },
       { path: '/calendar', element: <EventCalendarPage /> },
+      { path: '/profile/:userId', element: <ProfilePage/>}
       // Add other pages that should use the layout here
     ],
   },

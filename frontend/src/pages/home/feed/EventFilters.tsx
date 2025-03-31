@@ -2,11 +2,9 @@ import React from 'react';
 import {
     Box,
     FormControl,
-    InputLabel,
     Select,
     MenuItem,
     Button,
-    Stack,
     Chip,
     OutlinedInput,
     SelectChangeEvent,
@@ -32,13 +30,13 @@ interface EventFiltersProps {
     onFilterChange: (cities: string[], jobTitles: string[]) => void;
 }
 
-const ITEM_HEIGHT = 56; // Increased from 48
+const ITEM_HEIGHT = 48; // Reduced from 56
 const ITEM_PADDING_TOP = 8;
 const MenuProps = {
     PaperProps: {
         style: {
             maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-            width: 280, // Increased from 250
+            width: 250, // Reduced from 280
         },
         elevation: 3,
     },
@@ -105,8 +103,8 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
         <Paper 
             elevation={0}
             sx={{ 
-                mb: 4.5, // Increased from 4
-                borderRadius: 2,
+                mb: 3, // Reduced from 4.5
+                borderRadius: 1, // Reduced from 2
                 border: '1px solid',
                 borderColor: 'divider',
                 overflow: 'hidden'
@@ -114,8 +112,8 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
         >
             <Box 
                 sx={{ 
-                    px: 3.5, // Increased from 3
-                    py: 2.5, // Increased from 2
+                    px: 2.5, // Reduced from 3.5
+                    py: 1.5, // Reduced from 2.5
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -127,15 +125,15 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <FilterAltIcon 
                         sx={{ 
-                            mr: 1.8, // Increased from 1.5
+                            mr: 1.5, 
                             color: 'primary.main',
-                            fontSize: '1.7rem' // Increased to match MyEventList
+                            fontSize: '1.2rem' // Reduced from 1.7rem
                         }} 
                     />
                     <Typography 
-                        variant="h6" // Upgraded from subtitle1
+                        variant="subtitle1" // Changed from h6 to subtitle1
                         fontWeight={600}
-                        sx={{ fontSize: '1.7rem' }} // Increased to match MyEventList header
+                        sx={{ fontSize: '1rem' }} // Reduced from 1.7rem
                     >
                         Filter Events
                     </Typography>
@@ -143,12 +141,11 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                     {hasActiveFilters && (
                         <Chip 
                             label={`${selectedCities.length + selectedJobs.length} active`}
-                            size="medium" // Changed from small to medium
+                            size="small" // Changed from medium to small
                             color="primary"
                             sx={{ 
-                                ml: 1.8, // Increased from 1.5
-                                fontSize: '1.2rem', // Increased to match MyEventList
-                                height: '32px' // Taller chip
+                                ml: 1.5, 
+                                fontSize: '0.75rem', // Reduced from 1.2rem
                             }}
                         />
                     )}
@@ -158,61 +155,61 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                     {hasActiveFilters && (
                         <Tooltip title="Clear all filters">
                             <IconButton 
-                                size="medium" // Changed from small to medium
+                                size="small" 
                                 onClick={handleClear}
-                                sx={{ mr: 1.5 }} // Increased from 1
+                                sx={{ mr: 1 }} 
                             >
-                                <ClearIcon sx={{ fontSize: '1.5rem' }} /> {/* Increased icon size */}
+                                <ClearIcon sx={{ fontSize: '1rem' }} /> 
                             </IconButton>
                         </Tooltip>
                     )}
                     
                     <IconButton
                         onClick={() => setExpanded(!expanded)}
-                        size="medium" // Changed from small to medium
+                        size="small" 
                     >
                         {expanded ? (
-                            <ExpandLessIcon sx={{ fontSize: '1.5rem' }} /> 
+                            <ExpandLessIcon sx={{ fontSize: '1rem' }} /> 
                         ) : (
-                            <ExpandMoreIcon sx={{ fontSize: '1.5rem' }} />
+                            <ExpandMoreIcon sx={{ fontSize: '1rem' }} />
                         )}
                     </IconButton>
                 </Box>
             </Box>
             
             <Collapse in={expanded}>
-                <Box sx={{ p: 3.5 }}> {/* Increased from 3 */}
-                    <Grid container spacing={3.5}> {/* Increased from 3 */}
+                <Box sx={{ p: 2.5 }}> {/* Reduced from 3.5 */}
+                    <Grid container spacing={2}> {/* Reduced from 3.5 */}
                         <Grid item xs={12} md={6}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.8 }}> {/* Increased from 1.5 */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}> 
                                 <LocationOnIcon 
                                     sx={{ 
                                         color: 'primary.main',
-                                        mr: 1.3, // Increased from 1
-                                        fontSize: '1.5rem' // Increased to match MyEvent
+                                        mr: 1, 
+                                        fontSize: '1rem' // Reduced from 1.5rem
                                     }} 
                                 />
                                 <Typography 
-                                    variant="subtitle1" 
-                                    sx={{ fontSize: '1.3rem', fontWeight: 500 }} // Increased to match MyEvent
+                                    variant="subtitle2" // Changed from subtitle1 to subtitle2
+                                    sx={{ fontSize: '0.875rem', fontWeight: 500 }} // Reduced from 1.3rem
                                 >
                                     Locations
                                 </Typography>
                             </Box>
                             
-                            <FormControl fullWidth size="medium"> {/* Changed from small to medium */}
+                            <FormControl fullWidth size="small"> 
                                 <Select
                                     multiple
                                     value={selectedCities}
                                     onChange={handleCityChange}
                                     input={<OutlinedInput placeholder="Select cities" />}
                                     renderValue={(selected) => (
-                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}> {/* Increased from 0.5 */}
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}> 
                                             {selected.length === 0 ? (
                                                 <Typography 
-                                                    variant="body1"
+                                                    variant="body2" // Changed from body1 to body2
                                                     color="text.secondary"
-                                                    sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
+                                                    sx={{ fontSize: '0.75rem' }} // Reduced from 1.2rem
                                                 >
                                                     Select cities...
                                                 </Typography>
@@ -221,11 +218,8 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                                     <Chip 
                                                         key={value} 
                                                         label={value} 
-                                                        size="medium" // Changed from small to medium
-                                                        sx={{ 
-                                                            fontSize: '1.2rem', // Increased to match MyEventList
-                                                            height: '32px' // Taller chip
-                                                        }}
+                                                        size="small" 
+                                                        sx={{ fontSize: '0.75rem' }}
                                                         onDelete={() => handleRemoveCity(value)}
                                                         onMouseDown={(event) => {
                                                             event.stopPropagation();
@@ -241,8 +235,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                             borderColor: selectedCities.length > 0 ? 'primary.light' : 'inherit'
                                         },
                                         '& .MuiSelect-select': { 
-                                            py: 1.8, // Increased padding
-                                            fontSize: '1.2rem' // Increased to match MyEventList
+                                            fontSize: '0.875rem' // Reduced from 1.2rem
                                         }
                                     }}
                                 >
@@ -250,7 +243,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                         <MenuItem 
                                             key={city} 
                                             value={city}
-                                            sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
+                                            sx={{ fontSize: '0.875rem' }} // Reduced from 1.2rem
                                         >
                                             {city}
                                         </MenuItem>
@@ -260,35 +253,35 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                         </Grid>
 
                         <Grid item xs={12} md={6}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.8 }}> {/* Increased from 1.5 */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}> 
                                 <WorkOutlineIcon 
                                     sx={{ 
                                         color: 'primary.main',
-                                        mr: 1.3, // Increased from 1
-                                        fontSize: '1.5rem' // Increased to match MyEvent
+                                        mr: 1, 
+                                        fontSize: '1rem' // Reduced from 1.5rem
                                     }} 
                                 />
                                 <Typography 
-                                    variant="subtitle1"
-                                    sx={{ fontSize: '1.3rem', fontWeight: 500 }} // Increased to match MyEvent
+                                    variant="subtitle2" // Changed from subtitle1 to subtitle2
+                                    sx={{ fontSize: '0.875rem', fontWeight: 500 }} // Reduced from 1.3rem
                                 >
                                     Job Positions
                                 </Typography>
                             </Box>
                             
-                            <FormControl fullWidth size="medium"> {/* Changed from small to medium */}
+                            <FormControl fullWidth size="small"> 
                                 <Select
                                     multiple
                                     value={selectedJobs}
                                     onChange={handleJobChange}
                                     input={<OutlinedInput placeholder="Select job positions" />}
                                     renderValue={(selected) => (
-                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}> {/* Increased from 0.5 */}
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}> 
                                             {selected.length === 0 ? (
                                                 <Typography 
-                                                    variant="body1"
+                                                    variant="body2" // Changed from body1 to body2
                                                     color="text.secondary"
-                                                    sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
+                                                    sx={{ fontSize: '0.75rem' }} // Reduced from 1.2rem
                                                 >
                                                     Select positions...
                                                 </Typography>
@@ -297,11 +290,8 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                                     <Chip 
                                                         key={value} 
                                                         label={value} 
-                                                        size="medium" // Changed from small to medium
-                                                        sx={{ 
-                                                            fontSize: '1.2rem', // Increased to match MyEventList
-                                                            height: '32px' // Taller chip
-                                                        }}
+                                                        size="small" 
+                                                        sx={{ fontSize: '0.75rem' }}
                                                         onDelete={() => handleRemoveJob(value)}
                                                         onMouseDown={(event) => {
                                                             event.stopPropagation();
@@ -317,8 +307,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                             borderColor: selectedJobs.length > 0 ? 'primary.light' : 'inherit'
                                         },
                                         '& .MuiSelect-select': { 
-                                            py: 1.8, // Increased padding
-                                            fontSize: '1.2rem' // Increased to match MyEventList
+                                            fontSize: '0.875rem' // Reduced from 1.2rem
                                         }
                                     }}
                                 >
@@ -326,7 +315,7 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                                         <MenuItem 
                                             key={job} 
                                             value={job}
-                                            sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
+                                            sx={{ fontSize: '0.875rem' }} // Reduced from 1.2rem
                                         >
                                             {job}
                                         </MenuItem>
@@ -341,18 +330,16 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                             sx={{ 
                                 display: 'flex', 
                                 justifyContent: 'flex-end',
-                                mt: 2.5 // Increased from 2
+                                mt: 2
                             }}
                         >
                             <Button
                                 variant="outlined"
-                                size="medium" // Changed from small to medium
+                                size="small"
                                 startIcon={<ClearIcon />}
                                 onClick={handleClear}
                                 sx={{ 
-                                    py: 1, // Added vertical padding
-                                    px: 2, // Added horizontal padding
-                                    fontSize: '1.2rem' // Increased to match MyEventList
+                                    fontSize: '0.875rem' // Reduced from 1.2rem
                                 }}
                             >
                                 Clear All Filters
@@ -365,27 +352,23 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
             {hasActiveFilters && !expanded && (
                 <Box 
                     sx={{ 
-                        px: 3.5, // Increased from 3
-                        py: 1.8, // Increased from 1.5
+                        px: 2.5, // Reduced from 3.5
+                        py: 1, // Reduced from 1.8
                         display: 'flex', 
                         flexWrap: 'wrap', 
-                        gap: 1.3 // Increased from 1
+                        gap: 0.8 // Reduced from 1.3
                     }}
                 >
                     {selectedCities.map(city => (
                         <Chip
                             key={`city-${city}`}
                             label={city}
-                            size="medium" // Changed from small to medium
+                            size="small"
                             onDelete={() => handleRemoveCity(city)}
-                            deleteIcon={<ClearIcon sx={{ fontSize: '1.2rem' }} />}
+                            deleteIcon={<ClearIcon sx={{ fontSize: '0.75rem' }} />}
                             sx={{ 
                                 bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                fontSize: '1.2rem', // Increased to match MyEventList
-                                height: '32px',
-                                '& .MuiChip-label': {
-                                    px: 1.5 // More horizontal padding
-                                }
+                                fontSize: '0.75rem', // Reduced from 1.2rem
                             }}
                         />
                     ))}
@@ -394,16 +377,12 @@ const EventFilters: React.FC<EventFiltersProps> = ({ events, onFilterChange }) =
                         <Chip
                             key={`job-${job}`}
                             label={job}
-                            size="medium" // Changed from small to medium
+                            size="small"
                             onDelete={() => handleRemoveJob(job)}
-                            deleteIcon={<ClearIcon sx={{ fontSize: '1.2rem' }} />}
+                            deleteIcon={<ClearIcon sx={{ fontSize: '0.75rem' }} />}
                             sx={{ 
                                 bgcolor: alpha(theme.palette.secondary.main, 0.1),
-                                fontSize: '1.2rem', // Increased to match MyEventList
-                                height: '32px',
-                                '& .MuiChip-label': {
-                                    px: 1.5 // More horizontal padding
-                                }
+                                fontSize: '0.75rem', // Reduced from 1.2rem
                             }}
                         />
                     ))}

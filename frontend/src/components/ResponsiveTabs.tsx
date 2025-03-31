@@ -53,8 +53,27 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
   // Determine the active tab based on the current path
   const getActiveTabFromPath = (): number => {
     const path = location.pathname;
-    const index = visibleTabs.findIndex(tab => tab.path === path);
-    return index >= 0 ? index : 0; // Default to home if path not found
+    
+    // If we're on event page or profile page, we don't want any tab to be selected
+    if (path.startsWith('/event-page/') || path.startsWith('/profile/')) {
+      return -1;
+    }
+    
+    // For other paths, try to match
+    for (let i = 0; i < visibleTabs.length; i++) {
+      if (path === visibleTabs[i].path || 
+          (visibleTabs[i].path !== '/' && path.startsWith(visibleTabs[i].path))) {
+        return i;
+      }
+    }
+    
+    // If path is root or no match found
+    if (path === '/') {
+      return visibleTabs.findIndex(tab => tab.path === '/');
+    }
+    
+    // If no match found at all
+    return -1;
   };
   
   // Use the provided value or determine from path
@@ -66,7 +85,7 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
       onChange(event, newValue);
     }
     
-    // Navigate to the corresponding path
+    // Always navigate to the tab path, even if it appears to be already selected
     if (visibleTabs[newValue]) {
       navigate(visibleTabs[newValue].path);
     }
@@ -83,6 +102,12 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  // Handler for profile navigation - now navigates to /profile/0
+  const handleProfileClick = () => {
+    navigate('/profile/0'); // Navigate to profile with ID 0 for current user
+    handleMenuClose();
   };
 
   // Check if the user is a worker
@@ -150,10 +175,7 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
                 {/* Show Profile option only for workers */}
                 {isWorker && (
                   <MenuItem 
-                    onClick={() => { 
-                      navigate('/profile'); 
-                      handleMenuClose();
-                    }}
+                    onClick={handleProfileClick}
                     sx={{ fontSize: '1.1rem' }}
                   >
                     Profile
@@ -166,7 +188,7 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
           
           {/* Bottom Navigation - INCREASED TEXT SIZE */}
           <BottomNavigation
-            value={activeTab}
+            value={activeTab >= 0 ? activeTab : null}
             onChange={handleChange}
             showLabels
             sx={{ 
@@ -246,7 +268,7 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
             {/* Navigation Tabs - INCREASED TEXT SIZE */}
             <Box sx={{ flexGrow: 1 }}>
               <Tabs
-                value={activeTab}
+                value={activeTab >= 0 ? activeTab : false}
                 onChange={handleChange}
                 textColor="inherit"
                 indicatorColor="secondary"
@@ -345,10 +367,7 @@ const ResponsiveTabs: React.FC<ResponsiveTabsProps> = ({ value, onChange }) => {
                 {/* Show Profile option only for workers */}
                 {isWorker && (
                   <MenuItem 
-                    onClick={() => { 
-                      navigate('/profile'); 
-                      handleMenuClose();
-                    }}
+                    onClick={handleProfileClick}
                     sx={{ fontSize: '1.2rem' }}
                   >
                     <PersonIcon fontSize="small" sx={{ mr: 1.5 }} />

@@ -89,12 +89,12 @@ const useEventData = (eventId: number | string | undefined) => {
     fetchEventData();
   }, [eventId]);
 
-  // Sort workers - approved workers first, then backup, then pending
+  // Sort workers - approved workers first, then pending, then backup,
   const sortedWorkers = event?.workers ? [...event.workers].sort((a, b) => {
     if (a.status === 'APPROVED' && b.status !== 'APPROVED') return -1;
     if (a.status !== 'APPROVED' && b.status === 'APPROVED') return 1;
-    if (a.status === 'BACKUP' && b.status === 'PENDING') return -1;
-    if (a.status === 'PENDING' && b.status === 'BACKUP') return 1;
+    if (a.status === 'PENDING' && b.status === 'BACKUP') return -1;
+    if (a.status === 'BACKUP' && b.status === 'PENDING') return 1;
     return 0;
   }) : [];
 

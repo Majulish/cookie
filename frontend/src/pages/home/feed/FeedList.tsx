@@ -29,14 +29,14 @@ const FeedList: React.FC<FeedListProps> = ({ events, isLoading = false }) => {
                     justifyContent: 'center', 
                     alignItems: 'center',
                     flexDirection: 'column',
-                    py: 8
+                    py: 6
                 }}
             >
-                <CircularProgress size={48} thickness={4} /> {/* Increased size */}
+                <CircularProgress size={32} thickness={4} /> {/* Reduced from 48 */}
                 <Typography 
-                    variant="body1"
+                    variant="body2" // Changed from body1 to body2
                     color="text.secondary" 
-                    sx={{ mt: 2, fontSize: '1.2rem' }} // Increased to match MyEventList
+                    sx={{ mt: 2, fontSize: '0.875rem' }} // Reduced from 1.2rem
                 >
                     Loading events...
                 </Typography>
@@ -49,9 +49,9 @@ const FeedList: React.FC<FeedListProps> = ({ events, isLoading = false }) => {
             <Paper
                 elevation={0}
                 sx={{
-                    p: 4.5, // Increased padding
+                    p: 3, // Reduced from 4.5
                     textAlign: 'center',
-                    borderRadius: 2,
+                    borderRadius: 1, // Reduced from 2
                     bgcolor: alpha(theme.palette.primary.light, 0.05),
                     border: '1px dashed',
                     borderColor: alpha(theme.palette.primary.main, 0.2)
@@ -59,23 +59,23 @@ const FeedList: React.FC<FeedListProps> = ({ events, isLoading = false }) => {
             >
                 <EventNoteIcon 
                     sx={{ 
-                        fontSize: 56, // Larger icon
+                        fontSize: 40, // Reduced from 56
                         color: alpha(theme.palette.primary.main, 0.5),
-                        mb: 2.5
+                        mb: 2
                     }} 
                 />
                 <Typography 
-                    variant="h5"
+                    variant="h6" // Changed from h5 to h6
                     gutterBottom 
                     color="text.secondary"
-                    sx={{ fontSize: '1.7rem' }} // Increased to match MyEventList header
+                    sx={{ fontSize: '1.1rem' }} // Reduced from 1.7rem
                 >
                     No Events Available
                 </Typography>
                 <Typography 
-                    variant="body1"
+                    variant="body2" // Changed from body1 to body2
                     color="text.secondary"
-                    sx={{ fontSize: '1.2rem' }} // Increased to match MyEventList
+                    sx={{ fontSize: '0.875rem' }} // Reduced from 1.2rem
                 >
                     Check back later or try different filter criteria.
                 </Typography>
@@ -90,7 +90,7 @@ const FeedList: React.FC<FeedListProps> = ({ events, isLoading = false }) => {
                     display: 'flex', 
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    mb: 3
+                    mb: 2.5 // Reduced from 3
                 }}
             >
                 <Box 
@@ -102,27 +102,27 @@ const FeedList: React.FC<FeedListProps> = ({ events, isLoading = false }) => {
                     <EventNoteIcon 
                         sx={{ 
                             color: 'primary.main',
-                            mr: 1.5,
-                            fontSize: '1.7rem' // Increased to match MyEventList
+                            mr: 1,
+                            fontSize: '1.1rem' // Reduced from 1.7rem
                         }} 
                     />
                     <Typography 
-                        variant="h6"
+                        variant="subtitle1" // Changed from h6 to subtitle1
                         fontWeight={600}
-                        sx={{ fontSize: '1.7rem' }} // Increased to match MyEventList header
+                        sx={{ fontSize: '1rem' }} // Reduced from 1.7rem
                     >
                         {events.length} Event{events.length !== 1 ? 's' : ''} Found
                     </Typography>
                 </Box>
             </Box>
 
-            <Stack spacing={3.5}> {/* Increased spacing */}
+            <Stack spacing={2.5}> {/* Reduced from 3.5 */}
                 {events.map((event, index) => (
                     <Fade 
                         key={event.id} 
                         in={true} 
-                        timeout={(index + 1) * 200}
-                        style={{ transitionDelay: `${index * 50}ms` }}
+                        timeout={(index + 1) * 150} // Reduced from 200
+                        style={{ transitionDelay: `${index * 30}ms` }} // Reduced from 50ms
                     >
                         <Box>
                             <EventFeed event={event} />

@@ -18,7 +18,8 @@ import {
   Button,
   ListItemAvatar,
   alpha,
-  useTheme
+  useTheme,
+  AlertColor
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
@@ -28,9 +29,19 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import MarkAsReadIcon from '@mui/icons-material/CheckCircle';
-import { getUserNotifications, Notification } from '../api/notificationsApi';
+
+import { 
+  getUserNotifications, 
+  markNotificationsAsRead, 
+  approveNotification, 
+  handleNotificationDismissal, 
+  Notification 
+} from '../api/notificationsApi';
 import { useQuery, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
+import NotificationApprovalDialog from './NotificationApprovalDialog';
+import FeedbackSnackbar from './FeedbackSnackbar';
+import useUserRole from '../pages/home/hooks/useUserRole';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -49,9 +60,10 @@ interface NotificationItemProps {
   notification: Notification;
   onClick: () => void;
   onMarkAsRead: (id: string) => void;
+  isClickable: boolean;
 }
 
-const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onClick, onMarkAsRead }) => {
+const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onClick, onMarkAsRead, isClickable }) => {
   const theme = useTheme();
   const { id, message, created_at, is_read, event_id } = notification;
   
@@ -70,22 +82,22 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
 
   const handleMarkAsRead = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onMarkAsRead(id);
+    onMarkAsRead(id.toString());
   };
 
   return (
     <ListItem 
-      onClick={onClick}
+      onClick={isClickable ? onClick : undefined}
       sx={{ 
         px: 2,
         py: 1.5,
         bgcolor: is_read ? 'transparent' : alpha(theme.palette.primary.light, 0.08),
         borderBottom: '1px solid',
         borderColor: 'divider',
-        cursor: 'pointer',
+        cursor: isClickable ? 'pointer' : 'default',
         transition: 'all 0.2s ease',
         '&:hover': {
-          bgcolor: alpha(theme.palette.primary.light, 0.12),
+          bgcolor: isClickable ? alpha(theme.palette.primary.light, 0.12) : is_read ? 'transparent' : alpha(theme.palette.primary.light, 0.08),
         },
         position: 'relative',
         overflow: 'hidden'
@@ -135,7 +147,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onCli
               {formattedDate} • {formattedTime}
             </Typography>
             
-            {event_id && (
+            {event_id && isClickable && (
               <Button 
                 size="small" 
                 variant="text" 
@@ -185,9 +197,23 @@ const NOTIFICATION_REFETCH_INTERVAL = 60000; // 1 minute
 
 const NotificationsMenu: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [pendingApprovalNotification, setPendingApprovalNotification] = useState<Notification | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [feedbackSeverity, setFeedbackSeverity] = useState<AlertColor>('success');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const theme = useTheme();
+  
+  // Get the user's role
+  const userRole = useUserRole();
+  
+  // Check if the user is a worker
+  const isWorker = userRole === 'worker';
+  
+  // Determine if notifications are clickable based on role
+  const notificationsClickable = !isWorker;
   
   // The open state for the popover
   const open = Boolean(anchorEl);
@@ -208,7 +234,16 @@ const NotificationsMenu: React.FC = () => {
     }
   );
 
-  const unreadCount = notifications.filter(notif => !notif.is_read).length;
+  // Check for unapproved notifications when notifications are fetched
+  useEffect(() => {
+    const unapprovedNotification = notifications.find(notif => notif.is_approved === false);
+    if (unapprovedNotification && !dialogOpen) {
+      setPendingApprovalNotification(unapprovedNotification);
+      setDialogOpen(true);
+    }
+  }, [notifications, dialogOpen]);
+
+  const unreadCount = notifications.filter(notif => !notif.is_read && notif.is_approved).length;
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -220,7 +255,85 @@ const NotificationsMenu: React.FC = () => {
     setAnchorEl(null);
   };
 
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    setPendingApprovalNotification(null);
+  };
+
+  const handleApproveNotification = (notificationId: number) => {
+    // Find the notification to get its event_id
+    const notification = notifications.find(n => n.id === notificationId);
+    if (!notification) {
+      console.error(`Notification with ID ${notificationId} not found`);
+      return;
+    }
+    
+    approveNotification(notificationId, notification.event_id)
+      .then(() => {
+        console.log(`Approved notification ${notificationId} with event ID ${notification.event_id}`);
+        // Show success feedback
+        setFeedbackMessage('You have successfully approved your attendance!');
+        setFeedbackSeverity('success');
+        setFeedbackOpen(true);
+        
+        // Refresh notifications data
+        refetch();
+        
+        // Check for any other pending notifications
+        setTimeout(() => {
+          const remainingUnapproved = notifications.filter(
+            notif => notif.is_approved === false && notif.id !== notificationId
+          );
+          
+          if (remainingUnapproved.length > 0) {
+            setPendingApprovalNotification(remainingUnapproved[0]);
+            setDialogOpen(true);
+          }
+        }, 500);
+      })
+      .catch(error => {
+        console.error('Failed to approve notification:', error);
+        // Show error feedback
+        setFeedbackMessage('Failed to approve your attendance. Please try again.');
+        setFeedbackSeverity('error');
+        setFeedbackOpen(true);
+      });
+  };
+
+  const handleDenyNotification = (notificationId: number) => {
+    // Simply decline the notification without making an API call
+    handleNotificationDismissal(notificationId)
+      .then(() => {
+        console.log(`Declined notification ${notificationId}`);
+        
+        // Show feedback message
+        setFeedbackMessage('You have declined your attendance. HR has been notified.');
+        setFeedbackSeverity('info');
+        setFeedbackOpen(true);
+        
+        // Refresh notifications data
+        refetch();
+        
+        // Check for any other pending notifications
+        setTimeout(() => {
+          const remainingUnapproved = notifications.filter(
+            notif => notif.is_approved === false && notif.id !== notificationId
+          );
+          
+          if (remainingUnapproved.length > 0) {
+            setPendingApprovalNotification(remainingUnapproved[0]);
+            setDialogOpen(true);
+          }
+        }, 500);
+      });
+  };
+
   const handleNotificationClick = (notification: Notification) => {
+    // If the user is a worker, don't do anything
+    if (isWorker) {
+      return;
+    }
+    
     // Navigate to event page if notification has an event_id
     if (notification.event_id) {
       navigate(`/event-page/${notification.event_id}`);
@@ -231,25 +344,51 @@ const NotificationsMenu: React.FC = () => {
   };
 
   const handleMarkAllAsRead = () => {
-    // This would typically call an API endpoint to mark all as read
-    console.log('Mark all as read');
-    // For now, we'll just close the menu
-    handleClose();
+    // Get all unread notification IDs
+    const unreadNotificationIds = notifications
+      .filter(notification => !notification.is_read && notification.is_approved)
+      .map(notification => notification.id);
+    
+    if (unreadNotificationIds.length === 0) {
+      return; // No unread notifications to mark
+    }
+    
+    markNotificationsAsRead(unreadNotificationIds)
+      .then(() => {
+        // Invalidate and refetch notifications to update the UI
+        queryClient.invalidateQueries('notifications');
+        console.log(`Marked ${unreadNotificationIds.length} notifications as read`);
+      })
+      .catch(error => {
+        console.error('Failed to mark all notifications as read:', error);
+      });
   };
 
   const handleMarkSingleAsRead = (notificationId: string) => {
-    // This would typically call an API endpoint to mark a single notification as read
-    console.log('Mark notification as read:', notificationId);
+    // Convert string ID to number since the API expects number[]
+    const id = parseInt(notificationId, 10);
     
-    // Here you would add the actual API call:
-    // Example:
-    // markNotificationAsRead(notificationId)
-    //   .then(() => {
-    //     queryClient.invalidateQueries('notifications');
-    //   })
-    //   .catch(error => {
-    //     console.error('Failed to mark notification as read', error);
-    //   });
+    if (isNaN(id)) {
+      console.error('Invalid notification ID:', notificationId);
+      return;
+    }
+    
+    markNotificationsAsRead([id])
+      .then(() => {
+        // Invalidate and refetch notifications to update the UI
+        queryClient.invalidateQueries('notifications');
+        console.log(`Marked notification ${id} as read`);
+      })
+      .catch(error => {
+        console.error('Failed to mark notification as read:', error);
+      });
+  };
+
+  // Filter out unapproved notifications from the list
+  const approvedNotifications = notifications.filter(notif => notif.is_approved);
+
+  const handleFeedbackClose = () => {
+    setFeedbackOpen(false);
   };
 
   return (
@@ -363,6 +502,8 @@ const NotificationsMenu: React.FC = () => {
           </IconButton>
         </Box>
 
+
+
         {isLoading ? (
           <Box 
             sx={{ 
@@ -401,7 +542,7 @@ const NotificationsMenu: React.FC = () => {
               Retry
             </Button>
           </Box>
-        ) : notifications.length === 0 ? (
+        ) : approvedNotifications.length === 0 ? (
           <Box 
             sx={{ 
               p: 4,
@@ -430,12 +571,13 @@ const NotificationsMenu: React.FC = () => {
           <>
             <Box sx={{ overflow: 'auto', maxHeight: 'calc(480px - 60px - 48px)' }}>
               <List disablePadding>
-                {notifications.map((notification) => (
+                {approvedNotifications.map((notification) => (
                   <NotificationItem
                     key={notification.id}
                     notification={notification}
                     onClick={() => handleNotificationClick(notification)}
                     onMarkAsRead={handleMarkSingleAsRead}
+                    isClickable={notificationsClickable}
                   />
                 ))}
               </List>
@@ -464,6 +606,25 @@ const NotificationsMenu: React.FC = () => {
           </>
         )}
       </Popover>
+
+      {/* Notification Approval Dialog - Only shown for non-worker roles */}
+      {!isWorker && (
+        <NotificationApprovalDialog
+          notification={pendingApprovalNotification}
+          open={dialogOpen}
+          onClose={handleDialogClose}
+          onApprove={handleApproveNotification}
+          onDeny={handleDenyNotification}
+        />
+      )}
+
+      {/* Feedback Snackbar */}
+      <FeedbackSnackbar
+        open={feedbackOpen}
+        message={feedbackMessage}
+        severity={feedbackSeverity}
+        onClose={handleFeedbackClose}
+      />
     </>
   );
 };

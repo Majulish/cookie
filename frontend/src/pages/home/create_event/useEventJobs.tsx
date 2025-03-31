@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { UseFormSetValue } from "react-hook-form";
+import { EventFormInputs } from "./eventScheme";
 
 export const availableJobs = ["waiter", "cook", "cashier"];
 
@@ -7,8 +9,17 @@ export interface Job {
   amount: number;
 }
 
-export const useEventJobs = () => {
+// Use the correct type for setValue from react-hook-form
+export const useEventJobs = (setValue?: UseFormSetValue<EventFormInputs>) => {
   const [jobList, setJobList] = useState<Job[]>([]);
+
+  // Update form value whenever jobList changes
+  useEffect(() => {
+    if (setValue) {
+      const jobsObject = getJobsObject();
+      setValue("jobs", jobsObject);
+    }
+  }, [jobList, setValue]);
 
   const setInitialJobs = (jobs: Job[]) => {
     setJobList(jobs);

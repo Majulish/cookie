@@ -6,10 +6,10 @@ import {
   Box, 
   Paper, 
   useTheme, 
-  CircularProgress
+  CircularProgress,
+  alpha  // Added import for alpha function
 } from '@mui/material';
 import { useQuery } from 'react-query';
-import SearchIcon from '@mui/icons-material/Search';
 import FeedIcon from '@mui/icons-material/Feed';
 import ResponsiveTabs from '../../../components/ResponsiveTabs';
 import { getEventsFeed } from '../../../api/eventApi';
@@ -22,15 +22,21 @@ const FeedPage: React.FC = () => {
   const theme = useTheme();
   const userRole = useUserRole();
   
-  // Always call the useQuery hook, regardless of userRole
-  // But only enable it when the role is 'worker'
-  const { data: feedEvents = [], isLoading: isFeedLoading } = useQuery(
+  // Query configuration with better error handling and refresh on focus
+  const { 
+    data: feedEvents = [], 
+    isLoading: isFeedLoading,
+    refetch
+  } = useQuery(
     ['eventsFeed'], 
     getEventsFeed,
     { 
       enabled: userRole === 'worker',
-      // Add retry: false to prevent unnecessary retries when not enabled
-      retry: userRole === 'worker'
+      retry: userRole === 'worker',
+      refetchOnWindowFocus: true,
+      onError: (error) => {
+        console.error('Failed to fetch events:', error);
+      }
     }
   );
   
@@ -39,6 +45,8 @@ const FeedPage: React.FC = () => {
   useEffect(() => {
     if (feedEvents && feedEvents.length > 0) {
       setFilteredEvents(feedEvents);
+    } else {
+      setFilteredEvents([]);
     }
   }, [feedEvents]);
 
@@ -66,7 +74,7 @@ const FeedPage: React.FC = () => {
   if (userRole === undefined) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress size={40} />
+        <CircularProgress size={32} /> {/* Reduced from 40 */}
       </Box>
     );
   }
@@ -82,17 +90,18 @@ const FeedPage: React.FC = () => {
       sx={{ 
         bgcolor: 'background.default',
         minHeight: '100vh',
-        pb: 8 
+        pb: 6 // Reduced from 8
       }}
     >
-      <Container maxWidth="xl" sx={{ pt: 3, pb: 6 }}>
-        <Grid container spacing={3}>
+      <Container maxWidth="lg"> {/* Changed from xl to lg for more compact layout */}
+        <Grid container spacing={2}> {/* Reduced from 3 */}
           <Grid item xs={12}>
             <Paper 
               elevation={0} 
               sx={{ 
-                borderRadius: 2,
-                mb: 3,
+                borderRadius: 1, // Reduced from 2
+                mt: 2, // Added margin top
+                mb: 2, // Reduced from 3
                 overflow: 'hidden',
                 border: '1px solid',
                 borderColor: 'divider'
@@ -105,8 +114,8 @@ const FeedPage: React.FC = () => {
             <Paper 
               elevation={0}
               sx={{ 
-                p: 3, 
-                borderRadius: 2,
+                p: 2.5, // Reduced from 3
+                borderRadius: 1, // Reduced from 2
                 height: '100%',
                 border: '1px solid',
                 borderColor: 'divider'
@@ -116,7 +125,7 @@ const FeedPage: React.FC = () => {
                 sx={{ 
                   display: 'flex',
                   alignItems: 'center',
-                  mb: 3,
+                  mb: 2.5, // Reduced from 3
                   justifyContent: 'space-between'
                 }}
               >
@@ -125,16 +134,16 @@ const FeedPage: React.FC = () => {
                     sx={{ 
                       color: 'primary.main',
                       mr: 1.5,
-                      fontSize: '2.2rem'
+                      fontSize: '1.5rem' // Reduced from 2.2rem
                     }} 
                   />
                   <Typography 
-                    variant="h5" 
+                    variant="h6" // Changed from h5 to h6
                     component="h1" 
                     sx={{ 
                       fontWeight: 600,
                       color: 'text.primary',
-                      fontSize: '2rem'
+                      fontSize: '1.25rem' // Reduced from 2rem
                     }}
                   >
                     Available Events
@@ -148,25 +157,27 @@ const FeedPage: React.FC = () => {
               />
               
               {isFeedLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                  <CircularProgress size={28} color="primary" />
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}> {/* Reduced from 4 */}
+                  <CircularProgress size={24} color="primary" /> {/* Reduced from 28 */}
                 </Box>
-              ) : filteredEvents.length === 0 ? (
+              ) : filteredEvents.length === 0 && !isFeedLoading ? (
                 <Box 
                   sx={{ 
-                    p: 3, 
+                    p: 2, // Reduced from 3
                     textAlign: 'center',
-                    bgcolor: 'action.hover',
-                    borderRadius: 2,
-                    mt: 3
+                    bgcolor: alpha(theme.palette.background.paper, 0.5), // Used alpha for better appearance
+                    borderRadius: 1, // Reduced from 2
+                    mt: 2, // Reduced from 3
+                    border: '1px dashed', // Added dashed border
+                    borderColor: alpha(theme.palette.divider, 0.7) // Added border color
                   }}
                 >
-                  <Typography variant="body1" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
                     No events match your filters
                   </Typography>
                 </Box>
               ) : (
-                <Box mt={3}>
+                <Box mt={2}> {/* Reduced from 3 */}
                   <FeedList events={filteredEvents} />
                 </Box>
               )}

@@ -44,6 +44,9 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import GroupIcon from '@mui/icons-material/Group';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 // Import our custom hooks
 import useEventData from './hooks/useEventData';
@@ -86,8 +89,10 @@ const EventPage = () => {
     handleRatingSuccess
   } = useWorkerActions(eventId, refreshEventData);
 
+  // Determine which columns to show based on screen size
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  
   // Get worker status icon
   const getWorkerStatusIcon = (status: string): React.ReactElement | undefined => {
     switch(status.toUpperCase()) {
@@ -162,7 +167,7 @@ const EventPage = () => {
           </Typography>
           <Button 
             variant="contained" 
-            onClick={() => navigate('/schedule')}
+            onClick={() => navigate('/')}
             startIcon={<HomeOutlinedIcon />}
             sx={{ fontSize: '1.1rem', padding: '8px 20px' }}
           >
@@ -395,7 +400,6 @@ const EventPage = () => {
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Approved</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Backup</TableCell>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Pending</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Remaining</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -430,24 +434,6 @@ const EventPage = () => {
                             variant={job.workerCounts.pending > 0 ? "filled" : "outlined"}
                             sx={{ minWidth: 60, fontSize: '0.9rem' }}
                           />
-                        </TableCell>
-                        <TableCell>
-                          {job.remainingOpenings > 0 ? (
-                            <Chip 
-                              label={job.remainingOpenings} 
-                              size="small" 
-                              color="primary"
-                              sx={{ minWidth: 60, fontSize: '0.9rem' }}
-                            />
-                          ) : (
-                            <Chip 
-                              label="Filled" 
-                              size="small" 
-                              color="success"
-                              icon={<CheckCircleOutlineIcon fontSize="small" />}
-                              sx={{ minWidth: 60, fontSize: '0.9rem' }}
-                            />
-                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -518,21 +504,25 @@ const EventPage = () => {
             borderRadius: 2,
             boxShadow: theme.shadows[2],
             mb: 5,
-            overflow: 'hidden'
+            overflow: 'hidden',
+            width: '100%',
+            maxWidth: '100%'
           }}
         >
-          <Table sx={{ minWidth: 650 }}>
+          <Box sx={{ overflowX: 'auto' }}>
+            <Table sx={{ minWidth: 950 }}>
             <TableHead>
               <TableRow sx={{ backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[100] : theme.palette.grey[900] }}>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Name</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Job Title</TableCell>
-                {!isMobile && <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>City</TableCell>}
-                {!isMobile && <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Age</TableCell>}
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Phone</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Rating</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Status</TableCell>
-                {isHrManager && <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Actions</TableCell>}
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Rate</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>Job Title</TableCell>
+                {!isMobile && !isTablet && <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>City</TableCell>}
+                {!isMobile && !isTablet && <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>Age</TableCell>}
+                {!isMobile && <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>Phone</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>Rating</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>Status</TableCell>
+                {isHrManager && <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>Actions</TableCell>}
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>Rate&Review</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '1.1rem', whiteSpace: 'nowrap' }}>Arrival Confirmation</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -545,19 +535,43 @@ const EventPage = () => {
                       backgroundColor: 
                         worker.status === 'APPROVED' 
                           ? theme.palette.mode === 'light' 
-                            ? 'rgba(46, 125, 50, 0.05)' 
-                            : 'rgba(46, 125, 50, 0.15)'
+                            ? 'rgba(46, 125, 50, 0.12)' 
+                            : 'rgba(46, 125, 50, 0.25)'
                         : worker.status === 'BACKUP'
                           ? theme.palette.mode === 'light'
-                            ? 'rgba(2, 136, 209, 0.05)'
-                            : 'rgba(2, 136, 209, 0.15)'
-                          : 'inherit',
+                            ? 'rgba(2, 136, 209, 0.12)'
+                            : 'rgba(2, 136, 209, 0.25)'
+                          : worker.status === 'PENDING'
+                            ? theme.palette.mode === 'light'
+                              ? 'rgba(237, 108, 2, 0.08)'
+                              : 'rgba(237, 108, 2, 0.18)'
+                            : 'inherit',
                       transition: 'background-color 0.2s',
                       '&:hover': {
-                        backgroundColor: theme.palette.mode === 'light' 
-                          ? theme.palette.grey[100] 
-                          : theme.palette.grey[800]
-                      }
+                        backgroundColor: 
+                          worker.status === 'APPROVED' 
+                            ? theme.palette.mode === 'light' 
+                              ? 'rgba(46, 125, 50, 0.18)' 
+                              : 'rgba(46, 125, 50, 0.35)'
+                            : worker.status === 'BACKUP'
+                              ? theme.palette.mode === 'light'
+                                ? 'rgba(2, 136, 209, 0.18)'
+                                : 'rgba(2, 136, 209, 0.35)'
+                              : worker.status === 'PENDING'
+                                ? theme.palette.mode === 'light'
+                                  ? 'rgba(237, 108, 2, 0.15)'
+                                  : 'rgba(237, 108, 2, 0.25)'
+                                : theme.palette.mode === 'light' 
+                                  ? theme.palette.grey[200] 
+                                  : theme.palette.grey[700]
+                      },
+                      borderLeft: worker.status === 'APPROVED' 
+                        ? `4px solid ${theme.palette.success.main}` 
+                        : worker.status === 'BACKUP'
+                          ? `4px solid ${theme.palette.info.main}`
+                          : worker.status === 'PENDING'
+                            ? `4px solid ${theme.palette.warning.main}`
+                            : 'none'
                     }}
                   >
                     <TableCell>
@@ -578,18 +592,50 @@ const EventPage = () => {
                         >
                           {worker.name.charAt(0)}
                         </Avatar>
-                        <Typography sx={{ fontSize: '1.1rem' }}>{worker.name}</Typography>
+                        <Link
+                          component="button"
+                          onClick={() => navigate(`/profile/${worker.worker_id}`)}
+                          sx={{
+                            textDecoration: 'none',
+                            color: theme.palette.primary.main,
+                            fontSize: '1.1rem',
+                            cursor: 'pointer',
+                            position: 'relative',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            '&:hover': {
+                              textDecoration: 'underline',
+                              '&::after': {
+                                content: '"Go to profile"',
+                                position: 'absolute',
+                                bottom: '-20px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                backgroundColor: theme.palette.grey[800],
+                                color: 'white',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                fontSize: '0.75rem',
+                                whiteSpace: 'nowrap',
+                                zIndex: 1000,
+                                boxShadow: theme.shadows[1]
+                              }
+                            }
+                          }}
+                        >
+                          {worker.name}
+                        </Link>
                       </Box>
                     </TableCell>
                     <TableCell sx={{ fontSize: '1.1rem' }}>{worker.job_title}</TableCell>
-                    {!isMobile && <TableCell sx={{ fontSize: '1.1rem' }}>{worker.city || 'N/A'}</TableCell>}
-                    {!isMobile && <TableCell sx={{ fontSize: '1.1rem' }}>{worker.age || 'N/A'}</TableCell>}
-                    <TableCell>
+                    {!isMobile && !isTablet && <TableCell sx={{ fontSize: '1.1rem' }}>{worker.city || 'N/A'}</TableCell>}
+                    {!isMobile && !isTablet && <TableCell sx={{ fontSize: '1.1rem' }}>{worker.age || 'N/A'}</TableCell>}
+                    {!isMobile && <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <PhoneOutlinedIcon fontSize="small" sx={{ mr: 0.5, color: theme.palette.text.secondary }} />
                         <Typography sx={{ fontSize: '1.1rem' }}>{worker.phone || 'N/A'}</Typography>
                       </Box>
-                    </TableCell>
+                    </TableCell>}
                     <TableCell>
                       <Box>
                         <Rating
@@ -691,30 +737,82 @@ const EventPage = () => {
                         )}
                       </TableCell>
                     )}
-                    <TableCell>
-                      <Tooltip title="Rate this worker">
+                    <TableCell sx={{ minWidth: isMobile ? '110px' : '140px' }}>
+                      <Tooltip title="Rate and review this worker">
                         <Button
                           variant="outlined"
                           size="small"
                           color="secondary"
-                          startIcon={<StarIcon />}
+                          startIcon={<RateReviewIcon />}
                           onClick={() => handleOpenRatingModal(worker.worker_id, worker.name, worker.job_title)}
                           sx={{
                             textTransform: 'none',
                             borderRadius: 1.5,
-                            fontSize: '1rem'
+                            fontSize: '1rem',
+                            whiteSpace: 'nowrap'
                           }}
                         >
-                          Rate
+                          {isMobile ? 'Rate' : 'Rate&Review'}
                         </Button>
                       </Tooltip>
+                    </TableCell>
+                    <TableCell>
+                      {worker.approval_status === false && worker.approval_count === 0 ? (
+                        <Tooltip title="Not yet time to confirm arrival">
+                          <Chip 
+                            label="Not yet required" 
+                            color="default"
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: '0.9rem', whiteSpace: 'nowrap' }}
+                          />
+                        </Tooltip>
+                      ) : worker.approval_status === false && (worker.approval_count || 0) > 0 ? (
+                        <Tooltip title="Worker declined attendance">
+                          <Chip 
+                            icon={<CancelIcon />}
+                            label="Declined" 
+                            color="error"
+                            size="small"
+                            sx={{ fontSize: '0.9rem', whiteSpace: 'nowrap' }}
+                          />
+                        </Tooltip>
+                      ) : worker.approval_status === true && worker.approval_count === 1 ? (
+                        <Tooltip title="Worker confirmed arrival for day before">
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <VerifiedIcon color="success" sx={{ mr: 0.5 }} fontSize="small" />
+                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                              Day before
+                            </Typography>
+                          </Box>
+                        </Tooltip>
+                      ) : worker.approval_status === true && worker.approval_count === 2 ? (
+                        <Tooltip title="Worker fully confirmed arrival (day before and day of)">
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <VerifiedIcon color="success" sx={{ mr: 0.5 }} fontSize="small" />
+                            <VerifiedIcon color="success" fontSize="small" />
+                          </Box>
+                        </Tooltip>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
+                          Unknown
+                        </Typography>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
                   <TableCell 
-                    colSpan={isHrManager ? (isMobile ? 7 : 9) : (isMobile ? 6 : 8)} 
+                    colSpan={
+                      (() => {
+                        let colCount = 6; // Base columns always shown
+                        if (!isMobile && !isTablet) colCount += 2; // City and Age
+                        if (!isMobile) colCount += 1; // Phone
+                        if (isHrManager) colCount += 1; // Actions
+                        return colCount;
+                      })()
+                    } 
                     align="center"
                     sx={{ py: 4 }}
                   >
@@ -726,50 +824,51 @@ const EventPage = () => {
               )}
             </TableBody>
           </Table>
-        </TableContainer>
-      </>
-    );
-  };
-
-  return (
-    <Container 
-      maxWidth="lg" 
-      sx={{ 
-        mb: { xs: 10, sm: 4 },
-        pt: { xs: 2, sm: 4 },
-        px: { xs: 2, sm: 3 }
-      }}
-    >
-      {contentView()}
-      
-      {/* Worker Approval Success Modal */}
-      <WorkerApprovalSuccessModal
-        open={approvalSuccess}
-        onClose={handleCloseSuccessModal}
-        workerName={approvedWorker.name}
-        jobTitle={approvedWorker.jobTitle}
-      />
-
-      {/* Worker Backup Success Modal */}
-      <WorkerBackupSuccessModal
-        open={backupSuccess}
-        onClose={handleCloseBackupModal}
-        workerName={approvedWorker.name}
-        jobTitle={approvedWorker.jobTitle}
-      />
-
-      {/* Worker Rating Modal */}
-      <WorkerRatingModal
-        open={ratingModalOpen}
-        onClose={handleCloseRatingModal}
-        eventId={Number(eventId)}
-        workerId={selectedWorker.id}
-        workerName={selectedWorker.name}
-        jobTitle={selectedWorker.jobTitle}
-        onRatingSuccess={handleRatingSuccess}
-      />
-    </Container>
+        </Box>
+      </TableContainer>
+    </>
   );
+};
+
+return (
+  <Container 
+    maxWidth="xl" 
+    sx={{ 
+      mb: { xs: 10, sm: 4 },
+      pt: { xs: 2, sm: 4 },
+      px: { xs: 2, sm: 3 }
+    }}
+  >
+    {contentView()}
+    
+    {/* Worker Approval Success Modal */}
+    <WorkerApprovalSuccessModal
+      open={approvalSuccess}
+      onClose={handleCloseSuccessModal}
+      workerName={approvedWorker.name}
+      jobTitle={approvedWorker.jobTitle}
+    />
+
+    {/* Worker Backup Success Modal */}
+    <WorkerBackupSuccessModal
+      open={backupSuccess}
+      onClose={handleCloseBackupModal}
+      workerName={approvedWorker.name}
+      jobTitle={approvedWorker.jobTitle}
+    />
+
+    {/* Worker Rating Modal */}
+    <WorkerRatingModal
+      open={ratingModalOpen}
+      onClose={handleCloseRatingModal}
+      eventId={Number(eventId)}
+      workerId={selectedWorker.id}
+      workerName={selectedWorker.name}
+      jobTitle={selectedWorker.jobTitle}
+      onRatingSuccess={handleRatingSuccess}
+    />
+  </Container>
+);
 };
 
 export default EventPage;

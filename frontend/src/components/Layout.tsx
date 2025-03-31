@@ -36,7 +36,8 @@ const Layout: React.FC<LayoutProps> = ({
             borderColor: 'divider'
           }}
         >
-          <ResponsiveTabs value={0} />
+          {/* Remove the hardcoded value={0} to allow dynamic tab selection */}
+          <ResponsiveTabs />
         </Paper>
         
         {/* Page content */}
