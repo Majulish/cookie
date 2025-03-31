@@ -51,6 +51,7 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
 }) => {
   const theme = useTheme();
   
+  // Initialize the jobs hook first
   const {
     jobList,
     handleAddJob,
@@ -61,7 +62,8 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
     availableJobs,
     setInitialJobs,
   } = useEventJobs();
-
+  
+  // Then use the form hook, passing in the functions from jobs hook
   const {
     control,
     handleSubmit,
@@ -80,6 +82,14 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
     resetJobs,
     mode,
   });
+  
+  // After both hooks are initialized, now we can set up the connection
+  // between them by passing setValue to the jobs hook
+  useEffect(() => {
+    if (setValue && jobList.length > 0) {
+      setValue("jobs", getJobsObject());
+    }
+  }, [jobList, setValue, getJobsObject]);
 
   // Initialize form with event data when in edit mode
   useEffect(() => {
@@ -101,9 +111,19 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
         job: job.job_title.toLowerCase(),
         amount: job.slots
       }));
+      
+      // Set initial jobs in the job list
       setInitialJobs(convertedJobs);
+      
+      // Also directly set the jobs field in the form values
+      const jobsObject = convertedJobs.reduce((acc, { job, amount }) => {
+        acc[job] = amount;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      setValue("jobs", jobsObject);
     }
-  }, [open]); // Only run when the modal opens
+  }, [open, mode, eventData, reset, setValue, setInitialJobs]);
 
   const handleClose = () => {
     reset();
@@ -429,10 +449,24 @@ const NewEventDialog: React.FC<EventFormModalProps> = ({
               elevation={0} 
               sx={{ 
                 p: 2, 
-                border: `1px solid ${theme.palette.divider}`,
+                border: `1px solid ${errors.jobs ? theme.palette.error.main : theme.palette.divider}`,
                 borderRadius: 2,
               }}
             >
+              {errors.jobs && typeof errors.jobs.message === 'string' && (
+                <Typography 
+                  color="error" 
+                  variant="caption" 
+                  sx={{ 
+                    display: 'block',
+                    mb: 1.5,
+                    fontWeight: 500
+                  }}
+                >
+                  {errors.jobs.message}
+                </Typography>
+              )}
+              
               {jobList.map((job, index) => (
                 <Box 
                   key={index} 
