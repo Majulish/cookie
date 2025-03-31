@@ -5,7 +5,7 @@ from datetime import datetime
 from backend.utils.decorators import load_user, permission_required
 from backend.models.event_users import WorkerStatus
 from backend.models.roles import Permission, Role, has_permission
-from backend.utils.openai_utils import generate_event_description
+from backend.openai_utils import generate_event_description
 from backend.models.schemas import UpdateEvent
 from backend.stores import EventStore
 from backend.models.event import Event
@@ -27,6 +27,7 @@ def generate_description():
         return jsonify({"description": description}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @event_blueprint.route("/create_event", methods=["POST"])

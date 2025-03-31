@@ -2,6 +2,8 @@ import datetime
 from flask import jsonify, Response
 from typing import Dict, Tuple, Optional
 
+from backend.models.event import Event
+from backend.models.roles import Role
 from backend.utils.auth import hash_data
 from backend.models.reviews import Review
 from backend.models.user import User
@@ -74,7 +76,8 @@ class UserStore:
                     "reviewer_name": f"{r.commenter.first_name} {r.commenter.family_name}" if r.commenter else "Unknown",
                     "review_text": r.review_text,
                     "timestamp": r.timestamp.isoformat(),
-                    "event_id": r.event_id
+                    "event_id": r.event_id,
+                    "event_name": Event.find_by("id", r.event_id).name
                 } for r in reviews
             ] if reviews else []
 
@@ -82,6 +85,7 @@ class UserStore:
             return jsonify({"error": f"Failed to fetch reviews: {str(e)}"}), 500
 
         # Prepare response data
+        hr = User.find_by({"company_id": worker.company_id, "role": Role.HR_MANAGER})
         profile_data = {
             "full_name": f"{worker.first_name} {worker.family_name}",
             "city": worker.city,
@@ -92,6 +96,8 @@ class UserStore:
             "reviews": reviews_list,
             "company_name": worker.company_name,
             "company_id": worker.company_id,
+            "hr_manager_name": f"{hr.first_name} {hr.family_name}",
+            "hr_manager_phone": hr.phone_number
         }
 
         return jsonify(profile_data), 200

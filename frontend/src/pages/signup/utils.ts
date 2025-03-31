@@ -22,4 +22,28 @@ export const calculateAge = (dateOfBirth: string): number => {
     const [hours, minutes] = time.split(':').map(Number);
     return new Date(year, month - 1, day, hours, minutes).toISOString();
   };
+
   
+  export function parseISOString(isoString: string): { date: string; time: string } {
+    // Create a Date object from the ISO string
+    const dateObj = new Date(isoString);
+    
+    // Extract day, month, and year
+    const day = dateObj.getDate().toString().padStart(2, '0');
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0'); // getMonth() is zero-based
+    const year = dateObj.getFullYear();
+    
+    // Extract hours and minutes
+    const hours = dateObj.getHours().toString().padStart(2, '0');
+    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+    
+    // Format the date and time strings
+    const formattedDate = `${day}/${month}/${year}`;
+    const formattedTime = `${hours}:${minutes}`;
+    
+    // Return the object with formatted date and time
+    return {
+      date: formattedDate,
+      time: formattedTime
+    };
+  }

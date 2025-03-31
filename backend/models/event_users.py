@@ -24,7 +24,8 @@ class EventUsers(db.Model):
     worker_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     job_id = db.Column(db.Integer, db.ForeignKey('event_jobs.id'), nullable=False)
     status = db.Column(db.Enum(WorkerStatus), default=WorkerStatus.PENDING.value)
-    approval_status = db.Column(JSON, default=lambda: {"1_day_before": False, "1_hour_before": False})
+    approval_status = db.Column(db.Boolean, default=False)
+    approval_count = db.Column(db.Integer, default=0)
 
     def add_worker(self, worker_id: str, job_id: int) -> None:
         """
@@ -85,7 +86,9 @@ class EventUsers(db.Model):
                     event_id=event_id,
                     worker_id=worker_id,
                     job_id=job_id,
-                    status=status.value
+                    status=status.value,
+                    approval_status=False,
+                    approval_count=0
                 )
                 db.session.add(new_entry)
 
@@ -135,6 +138,7 @@ class EventUsers(db.Model):
                     "phone": user.phone_number,
                     "status": status_str,
                     "approval_status": eu.approval_status,
+                    "approval_count": eu.approval_count,
                     "rating": user.rating,
                     "rating_count": user.rating_count
                 })
@@ -168,3 +172,42 @@ class EventUsers(db.Model):
             if hasattr(self, key) and key != 'id' and value is not None:
                 setattr(self, key, value)
         self.save_to_db()
+
+    @classmethod
+    def update_approval_status(cls, event_id: int, worker_id: int):
+        try:
+            event_user = cls.query.filter_by(event_id=event_id, worker_id=worker_id).first()
+            if not event_user:
+                return {"error": "Event user not found"}, 404
+
+            event_user.approval_status = True
+            event_user.approval_count = (event_user.approval_count or 0) + 1
+            db.session.commit()
+
+            return {
+                "success": True,
+                "approval_status": event_user.approval_status,
+                "approval_count": event_user.approval_count
+            }, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500
+
+    @classmethod
+    def update_approval_count(cls, event_id: int, worker_id: int):
+        try:
+            event_user = cls.query.filter_by(event_id=event_id, worker_id=worker_id).first()
+            if not event_user:
+                return {"error": "Event user not found"}, 404
+
+            event_user.approval_count = (event_user.approval_count or 0) + 1
+            db.session.commit()
+
+            return {
+                "success": True,
+                "approval_status": event_user.approval_status,
+                "approval_count": event_user.approval_count
+            }, 200
+        except Exception as e:
+            db.session.rollback()
+            return {"error": str(e)}, 500

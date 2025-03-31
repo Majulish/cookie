@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import {calculateAge , isValidDate } from '../utils';
+import {calculateAge , isValidDate } from '../pages/signup/utils'
 
 const signUpSchema = z.object({
   username: z.string().min(4, 'Username must be at least 4 characters'),

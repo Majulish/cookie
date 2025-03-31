@@ -171,7 +171,7 @@ export default function SignUp() {
                     {...register('role')}
                   >
                     <MenuItem value="worker">Worker</MenuItem>
-                    <MenuItem value="recruiter">Recruiter</MenuItem>
+                    <MenuItem value="recruiter">Event Manager</MenuItem>
                     <MenuItem value="hr_manager">HR Manager</MenuItem>
                   </Select>
                   {errors.role && (

@@ -9,7 +9,10 @@ interface TokenPayload {
 }
 
 const useUserRole = () => {
-    const [userRole, setUserRole] = useState<string | null>(null);
+    // Initialize with undefined instead of null
+    // This way we can distinguish between "still loading" (undefined)
+    // and "loaded but no role found" (null)
+    const [userRole, setUserRole] = useState<string | null | undefined>(undefined);
 
     useEffect(() => {
         const token = document.cookie
@@ -19,19 +22,20 @@ const useUserRole = () => {
 
         if (token) {
             try {
-                console.log('Token found:', token);
+                console.log('Token found in cookie');
                 const decodedToken = jwtDecode<TokenPayload>(token);
-                console.log('Decoded token:', decodedToken);
-                setUserRole(decodedToken.sub.role);
+                console.log('Decoded role:', decodedToken.sub.role);
+                // Normalize role to lowercase to prevent case sensitivity issues
+                setUserRole(decodedToken.sub.role.toLowerCase());
             } catch (error) {
                 console.error('Failed to decode token:', error);
                 setUserRole(null);
             }
         } else {
             console.log('No token found in cookies');
+            setUserRole(null);
         }
     }, []);
-
 
     return userRole;
 };

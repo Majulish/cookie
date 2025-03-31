@@ -155,6 +155,15 @@ export const eventSchema = z.object({
   address: z.string().min(5, "Address must be at least 5 characters"),
   jobs: z.record(z.string(), z.number().min(1, "Number of openings must be at least 1")).optional(),
 }).superRefine((data, ctx) => {
+  // Validate that jobs exist and are not empty
+  if (!data.jobs || Object.keys(data.jobs).length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "At least one job must be added",
+      path: ["jobs"]
+    });
+  }
+
   // Only validate dates if all date/time fields are filled
   if (data.start_date && data.start_time && data.end_date && data.end_time) {
     try {

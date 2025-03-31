@@ -1,41 +1,52 @@
-import React, { useState, ReactNode } from 'react';
-import { AppBar, Toolbar, IconButton, Typography, Drawer } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
+import React from 'react';
+import { 
+  Box, 
+  Container,
+  Paper
+} from '@mui/material';
 import ResponsiveTabs from './ResponsiveTabs';
-import SideTab from './SideTab';
+import NotificationsMenu from './NotificationsMenu';
 
 interface LayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
+  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | false;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [isDrawerOpen, setDrawerOpen] = useState(false);
-
-  const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent): void => {
-    if (event.type === 'keydown') {
-      return;
-    }
-    setDrawerOpen(open);
-  };
-
+const Layout: React.FC<LayoutProps> = ({ 
+  children, 
+  maxWidth = 'xl' 
+}) => {
   return (
-    <>
-      <AppBar position="static">
-        <Toolbar>
-          <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }} onClick={toggleDrawer(true)}>
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, display: 'flex', marginRight: '12px' }}>
-            Cookie
-          </Typography>
+    <Box 
+      sx={{ 
+        bgcolor: 'background.default',
+        minHeight: '100vh',
+        pb: 8 
+      }}
+    >
+      <Container maxWidth={maxWidth} sx={{ pt: 3, pb: 6 }}>
+        {/* Navigation bar */}
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            borderRadius: 2,
+            mb: 3,
+            overflow: 'hidden',
+            border: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          {/* Remove the hardcoded value={0} to allow dynamic tab selection */}
           <ResponsiveTabs />
-        </Toolbar>
-      </AppBar>
-      <Drawer anchor="left" open={isDrawerOpen} onClose={toggleDrawer(false)}>
-        <SideTab />
-      </Drawer>
-      <main>{children}</main>
-    </>
+        </Paper>
+        
+        {/* Page content */}
+        {children}
+        
+        {/* Notifications menu */}
+        <NotificationsMenu />
+      </Container>
+    </Box>
   );
 };
 

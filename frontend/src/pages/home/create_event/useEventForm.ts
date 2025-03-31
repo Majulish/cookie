@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventSchema, EventFormInputs } from "./eventScheme";
@@ -35,8 +35,17 @@ export const useEventForm = ({ onSubmit, getJobsObject, resetJobs, mode }: UseEv
       end_time: "",
       city: "",
       address: "",
+      jobs: {},  // Initialize with empty object
     },
   });
+
+  // Make sure jobs are passed to the form validation during form initialization
+  useEffect(() => {
+    const jobsObject = getJobsObject();
+    if (Object.keys(jobsObject).length > 0) {
+      setValue("jobs", jobsObject);
+    }
+  }, [getJobsObject, setValue]);
 
   const resetAll = () => {
     resetForm();
@@ -81,6 +90,12 @@ export const useEventForm = ({ onSubmit, getJobsObject, resetJobs, mode }: UseEv
 
   const processSubmit = async (data: EventFormInputs) => {
     const jobsObject = getJobsObject();
+    
+    // Double-check to make sure there's at least one job
+    if (Object.keys(jobsObject).length === 0) {
+      alert("Please add at least one job to the event.");
+      return;
+    }
     
     const formDataWithJobs = {
       ...data,

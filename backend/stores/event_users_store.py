@@ -37,3 +37,11 @@ class EventUsersStore:
             event_users.update(update_data)
             return event_users
         return None
+
+    @staticmethod
+    def update_event_worker_approval_status(event_id: int, worker_id: int):
+        return EventUsers.update_approval_status(event_id, worker_id)
+
+    @staticmethod
+    def update_event_worker_approval_count(event_id: int, worker_id: int):
+        return EventUsers.update_approval_count(event_id, worker_id)

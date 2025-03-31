@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import {calculateAge , isValidDate} from '../utils'
+import {calculateAge , isValidDate} from './utils'
 
 export const signUpSchema = z.object({
     username: z.string().min(4, 'Username must be at least 4 characters'),
