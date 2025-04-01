@@ -2,34 +2,36 @@
 Flask
 flask-cors
 flask-jwt-extended
+Flask-SQLAlchemy
+flask-principal
 
 # Database dependencies
 SQLAlchemy
 psycopg2-binary
 pymongo
 
-# Redis for caching or queuing
+# Task queue and caching
+celery
 redis
-celery  # <-- ADD THIS
 
-# Data validation
+# Data validation and serialization
 pydantic
 pydantic[email]
+marshmallow
+marshmallow-sqlalchemy
 
 # Authentication and security
 bcrypt
 
-# Role-based access control (RBAC)
-flask-principal
+# AI and NLP integration
+openai
 
-# Schema validation and input resolution
-marshmallow
-marshmallow-sqlalchemy
-
-# Miscellaneous utilities
-Werkzeug
+# Environment variables
 python-dotenv
 
-# Testing and development dependencies (optional)
+# Web server utilities
+Werkzeug
+
+# Testing
 pytest
 pytest-flask
